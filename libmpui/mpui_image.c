@@ -324,7 +324,7 @@ mpui_image_load (mpui_image_t *image)
   fseek (fp, 0, SEEK_SET);
   if (png_check_sig (header, sizeof (header)))
     ret = mpui_image_load_png (&image->raw, fp);
-  else if (!memcmp(header, "\xFF\xD8\xFF\xE0\x00\x10\x4A\x46", sizeof(header)))
+  else if (!memcmp(header, "\xFF\xD8\xFF", 3))
     ret = mpui_image_load_jpeg (&image->raw, fp);
   fclose (fp);
 
