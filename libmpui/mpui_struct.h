@@ -308,7 +308,7 @@ mpui_str_t *mpui_str_dup (mpui_str_t *str);
 void mpui_str_free (mpui_str_t *str);
 
 mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
-#define mpui_strings_add(a,b) a->strings = mpui_list_add(a->strings, b)
+#define mpui_strings_add(a,b) (a)->strings = mpui_list_add((a)->strings, (b))
 void mpui_strings_free (mpui_strings_t *strings);
 
 mpui_image_t *mpui_image_new (char *id, char *file,
@@ -325,7 +325,7 @@ void mpui_img_load (mpui_t *mpui, mpui_img_t *img);
 void mpui_img_free (mpui_img_t *img);
 
 mpui_images_t *mpui_images_new (void);
-#define mpui_images_add(a,b) a->images = mpui_list_add(a->images, b)
+#define mpui_images_add(a,b) (a)->images = mpui_list_add((a)->images, (b))
 void mpui_images_free (mpui_images_t *images);
 
 mpui_font_t *mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
@@ -335,7 +335,7 @@ mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 
 mpui_fonts_t *mpui_fonts_new (void);
-#define mpui_fonts_add(a,b) a->fonts = mpui_list_add(a->fonts, b)
+#define mpui_fonts_add(a,b) (a)->fonts = mpui_list_add((a)->fonts, (b))
 void mpui_fonts_free (mpui_fonts_t *fonts);
 
 mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
@@ -349,7 +349,7 @@ mpui_obj_t *mpui_obj_dup (mpui_obj_t *obj);
 void mpui_obj_free (mpui_obj_t *obj);
 
 mpui_objects_t *mpui_objects_new (void);
-#define mpui_objects_add(a,b) a->objects = mpui_list_add(a->objects, b)
+#define mpui_objects_add(a,b) (a)->objects = mpui_list_add((a)->objects, (b))
 void mpui_objects_free (mpui_objects_t *objects);
 
 mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
@@ -362,7 +362,7 @@ mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
 void mpui_mnu_free (mpui_mnu_t *mnu);
 
 mpui_menus_t *mpui_menus_new (void);
-#define mpui_menus_add(a,b) a->menus = mpui_list_add(a->menus, b)
+#define mpui_menus_add(a,b) (a)->menus = mpui_list_add((a)->menus, (b))
 void mpui_menus_free (mpui_menus_t *menus);
 
 mpui_menuitem_t *mpui_menuitem_new (void);
@@ -372,7 +372,7 @@ mpui_allmenuitem_t *mpui_allmenuitem_new (mpui_menu_t *menu);
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd);
-#define mpui_actions_add(a,b) a->actions = mpui_list_add(a->actions, b)
+#define mpui_actions_add(a,b) (a)->actions = mpui_list_add((a)->actions, (b))
 void mpui_action_free (mpui_action_t *action);
 void mpui_actions_free (mpui_action_t **actions);
 
@@ -388,19 +388,19 @@ mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
 void mpui_popup_free (mpui_popup_t *popup);
 
 mpui_popups_t *mpui_popups_new (void);
-#define mpui_popups_add(a,b) a->popups = mpui_list_add(a->popups, b)
+#define mpui_popups_add(a,b) (a)->popups = mpui_list_add((a)->popups, (b))
 void mpui_popups_free (mpui_popups_t *popups);
 
 mpui_screen_t *mpui_screen_new (char *id);
 mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
-#define mpui_popup_add(a,b) a->popup_stack = mpui_list_add(a->popup_stack, b)
-#define mpui_popup_remove(a) mpui_list_remove_last(a->popup_stack)
+#define mpui_popup_add(a,b) (a)->popup_stack = mpui_list_add((a)->popup_stack, (b))
+#define mpui_popup_remove(a) mpui_list_remove_last((a)->popup_stack)
 void mpui_screen_free (mpui_screen_t *screen);
 
-#define mpui_add_element(a,b) a->elements = mpui_list_add(a->elements, b)
+#define mpui_add_element(a,b) (a)->elements = mpui_list_add((a)->elements, (b))
 
 mpui_screens_t *mpui_screens_new (void);
-#define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
+#define mpui_screens_add(a,b) (a)->screens = mpui_list_add((a)->screens, (b))
 void mpui_screens_free (mpui_screens_t *screens);
 
 mpui_t *mpui_new (int width, int height, int format);
