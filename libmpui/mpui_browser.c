@@ -177,12 +177,25 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
         filetype = NULL;
     }
   if (filetype)
-    for (actions=filetype->actions; *actions; actions++)
-      {
-        snprintf (cmd, sizeof (cmd), (*actions)->cmd, name);
-        action = mpui_action_new (cmd, (*actions)->when);
-        mpui_actions_add ((mpui_container_t *) menuitem, action);
-      }
+    {
+      /* escape ' and \ with \ */
+      char *s = cmd, *d = name;
+      strcpy (cmd, name);
+      while (*s)
+        {
+          if (*s == '\\' || *s == '\'')
+            *d++ = '\\';
+          *d++ = *s++;
+        }
+      *d = '\0';
+      
+      for (actions=filetype->actions; *actions; actions++)
+        {
+          snprintf (cmd, sizeof (cmd), (*actions)->cmd, name);
+          action = mpui_action_new (cmd, (*actions)->when);
+          mpui_actions_add ((mpui_container_t *) menuitem, action);
+        }
+    }
 
   mpui_elements_get_size ((mpui_element_t *) menuitem,
                           ((mpui_container_t *) menuitem)->elements);

@@ -364,7 +364,11 @@ mpui_focus_action_exec (mpui_focus_box_t *focus_box, mpui_action_when_t when)
   if (actions)
     for (; *actions; actions++)
       if ((*actions)->when & when)
-        mp_input_queue_cmd (mp_input_parse_cmd ((*actions)->cmd));
+        {
+          char *cmd = strdup ((*actions)->cmd);
+          mp_input_queue_cmd (mp_input_parse_cmd (cmd));
+          free (cmd);
+        }
 
   return;
 }
