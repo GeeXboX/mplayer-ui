@@ -148,18 +148,19 @@ mpui_strings_free (mpui_strings_t *strings)
 
 
 mpui_image_t *
-mpui_image_new (char *id, char *file, mpui_size_t x, mpui_size_t y,
+mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
                 mpui_size_t h, mpui_size_t w)
 {
   mpui_image_t *image;
 
   image = (mpui_image_t *) malloc (sizeof (*image));
   image->id = mpui_strdup (id);
-  image->file = mpui_strdup (file);
   image->x = x;
   image->y = y;
   image->h = h;
   image->w = w;
+  image->alpha = 0;
+  image->num_planes = 0;
 
   return image;
 }
@@ -181,7 +182,8 @@ void
 mpui_image_free (mpui_image_t *image)
 {
   free (image->id);
-  free (image->file);
+  if (image->num_planes > 0)
+    free (image->planes[0]);
   free (image);
 }
 
@@ -581,12 +583,10 @@ mpui_screen_new (char *id)
 }
 
 mpui_screen_t *
-mpui_screen_get (mpui_t *mpui, char *id)
+mpui_screen_get (mpui_screens_t *screens, char *id)
 {
-  mpui_screens_t *screens;
   mpui_screen_t **screen;
 
-  screens = mpui->screens;
   for (screen = screens->screens; *screen; screen++)
     if (!strcmp ((*screen)->id, id))
       return *screen;
@@ -630,11 +630,14 @@ mpui_screens_free (mpui_screens_t *screens)
 }
 
 mpui_t *
-mpui_new (void)
+mpui_new (int width, int height, int format)
 {
   mpui_t *mpui;
 
   mpui = (mpui_t *) malloc (sizeof (*mpui));
+  mpui->width = width;
+  mpui->height = height;
+  mpui->format = format;
   mpui->strings = mpui_list_new ();
   mpui->images = mpui_list_new ();
   mpui->fonts = mpui_list_new ();

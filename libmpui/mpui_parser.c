@@ -28,6 +28,7 @@
 #include "../asxparser.h"
 
 #include "mpui_struct.h"
+#include "mpui_image.h"
 #include "mpui_parser.h"
 
 int
@@ -214,7 +215,10 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   sw = mpui_parse_size (w, mpui->width);
 
   if (id && file)
-    image = mpui_image_new (id, file, sx, sy, sh, sw);
+    {
+      image = mpui_image_new (id, sx, sy, sh, sw);
+      mpui_image_load (image, file, mpui->format);
+    }
   asx_free_attribs (attribs);
 
   return image;
@@ -813,14 +817,14 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
     }
   asx_free_attribs (attribs);
 
-  /*   screens->menu = mpui_screen_get (mpui, menu); */
-  /*   screens->ctrl = mpui_screen_get (mpui, control); */
+  screens->menu = mpui_screen_get (screens, menu);
+  screens->ctrl = mpui_screen_get (screens, control);
 
   return screens;
 }
 
 mpui_t *
-mpui_parse_config (char *buffer, int width, int height)
+mpui_parse_config (char *buffer, int width, int height, int format)
 {
   char *element, *body, **attribs;
   mpui_t* mpui;
@@ -836,9 +840,7 @@ mpui_parse_config (char *buffer, int width, int height)
       return NULL;
     }
 
-  mpui = mpui_new ();
-  mpui->width = width;
-  mpui->height = height;
+  mpui = mpui_new (width, height, format);
 
   while(1)
     {
@@ -891,7 +893,7 @@ mpui_parse_config (char *buffer, int width, int height)
 }
 
 mpui_t *
-mpui_parse_config_file (char *filename, int width, int height)
+mpui_parse_config_file (char *filename, int width, int height, int format)
 {
   int fd, r;
   struct stat st;
@@ -914,7 +916,7 @@ mpui_parse_config_file (char *filename, int width, int height)
       free (buffer);
       return NULL;
     }
-  mpui = mpui_parse_config (buffer, width, height);
+  mpui = mpui_parse_config (buffer, width, height, format);
   free (buffer);
 
   return mpui;

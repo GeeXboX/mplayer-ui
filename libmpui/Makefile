@@ -2,7 +2,7 @@ include ../config.mak
 
 LIBNAME=libmpui.a
 
-SRCS=mpui_struct.c mpui_parser.c vf_mpui.c
+SRCS=mpui_struct.c mpui_parser.c mpui_image.c mpui_render.c vf_mpui.c
 OBJS=$(SRCS:.c=.o)
 
 CFLAGS=$(OPTFLAGS) -I. -I.. $(EXTRA_INC) -Wall

@@ -128,8 +128,15 @@ struct mpui_images {
 
 struct mpui_image {
   char *id;
-  char *file;
   mpui_size_t x, y, h, w;
+  int format;         /* one of the IMGFMT_* */
+  int width, height;  /* original size of image file */
+  int alpha;          /* does the image contain an alpha channel */
+  int bpp;            /* byte per pixel (only for packed format) */
+  int num_planes;     /* 1 for packed format, generaly 3 for planar */
+  unsigned char *planes[5];
+  unsigned int stride[5];
+  int chroma_width, chroma_height;  /* only for planar formats */
 };
 
 struct mpui_img {
@@ -216,6 +223,7 @@ struct mpui_screen {
 
 struct mpui {
   int width, height;
+  int format;
   mpui_strings_t **strings;
   mpui_images_t **images;
   mpui_fonts_t **fonts;
@@ -243,8 +251,8 @@ mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
 #define mpui_strings_add(a,b) a->strings = mpui_list_add(a->strings, b)
 void mpui_strings_free (mpui_strings_t *strings);
 
-mpui_image_t *mpui_image_new (char *id, char *file, mpui_size_t x,
-                              mpui_size_t y, mpui_size_t h, mpui_size_t w);
+mpui_image_t *mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
+                              mpui_size_t h, mpui_size_t w);
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
@@ -304,7 +312,8 @@ mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
 void mpui_element_free (mpui_element_t *element);
 
 mpui_screen_t *mpui_screen_new (char *id);
-mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id);
+mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
+/* mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id); */
 void mpui_screen_free (mpui_screen_t *screen);
 
 #define mpui_add_element(a,b) a->elements = mpui_list_add(a->elements, b)
@@ -313,7 +322,7 @@ mpui_screens_t *mpui_screens_new (void);
 #define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
 void mpui_screens_free (mpui_screens_t *screens);
 
-mpui_t *mpui_new (void);
+mpui_t *mpui_new (int width, int height, int format);
 void mpui_free (mpui_t *mpui);
 
 #endif  /* MPUI_STRUCT_H */

@@ -25,9 +25,12 @@
 #endif
 
 #include "../libmpcodecs/mp_image.h"
+#include "../libmpcodecs/img_format.h"
 #include "../libmpcodecs/vf.h"
+#include "../libvo/fastmemcpy.h"
 
 #include "mpui_parser.h"
+#include "mpui_render.h"
 
 
 struct vf_priv_s {
@@ -36,19 +39,54 @@ struct vf_priv_s {
 
 
 static int
+query_format (struct vf_instance_s* vf, unsigned int fmt)
+{
+  if (fmt == IMGFMT_YV12 || fmt == IMGFMT_YUY2)
+    return VFCAP_CSP_SUPPORTED;
+  return 0;
+}
+
+static inline void 
+copy_mpi(mp_image_t *dmpi, mp_image_t *mpi) 
+{
+  if (mpi->flags & MP_IMGFLAG_PLANAR)
+    {
+      memcpy_pic (dmpi->planes[0], mpi->planes[0], mpi->w, mpi->h, 
+                  dmpi->stride[0], mpi->stride[0]);
+      memcpy_pic (dmpi->planes[1], mpi->planes[1], mpi->chroma_width, 
+                  mpi->chroma_height, dmpi->stride[1], mpi->stride[1]);
+      memcpy_pic (dmpi->planes[2], mpi->planes[2], mpi->chroma_width, 
+                  mpi->chroma_height, dmpi->stride[2], mpi->stride[2]);
+    }
+  else
+    {
+      memcpy_pic (dmpi->planes[0], mpi->planes[0], mpi->w*(dmpi->bpp/8), 
+                  mpi->h, dmpi->stride[0], mpi->stride[0]); 
+    }
+}
+
+static int
 put_image (struct vf_instance_s* vf, mp_image_t *mpi)
 {
-  return vf_next_put_image (vf, mpi);
+  mp_image_t *dmpi = mpi;
+
+  if (vf->priv->mpui && vf->priv->mpui->screens && vf->priv->mpui->screens->menu)
+    {
+      dmpi = vf_get_image (vf->next, mpi->imgfmt, MP_IMGTYPE_TEMP, 0,
+                           mpi->w, mpi->h);
+      copy_mpi(dmpi, mpi);
+      mpui_render_screen (vf->priv->mpui->screens->menu, dmpi);
+    }
+
+  return vf_next_put_image (vf, dmpi);
 }
 
 static void
 uninit (vf_instance_t *vf)
 {
-  if (vf->priv)
-    {
-      mpui_free (vf->priv->mpui);
-      free (vf->priv);
-    }
+  if (vf->priv->mpui)
+    mpui_free (vf->priv->mpui);
+  free (vf->priv);
   vf->priv = NULL;
 }
 
@@ -56,19 +94,22 @@ static int
 config (struct vf_instance_s* vf, int width, int height,
         int d_width, int d_height, unsigned int flags, unsigned int outfmt)
 {
-  vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
-  vf->priv->mpui = mpui_parse_config_file ("mpui-theme.xml", width, height);
+  vf->priv->mpui = mpui_parse_config_file ("mpui-theme.xml",
+                                           width, height, outfmt);
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
 }
 
 static int
 open (vf_instance_t *vf, char* args)
 {
+  vf->query_format = query_format;
   vf->config = config;
   vf->put_image = put_image;
   //  vf->get_image = get_image;
   vf->uninit = uninit;
-  vf->priv = NULL;
+
+  vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
+  vf->priv->mpui = NULL;
 
   return 1;
 }

@@ -1,5 +1,5 @@
 /*
- *  mpui_parser.h: libmpui theme file parser.
+ *  mpui_render.h: libmpui screen renderer.
  *  Copyright (C) 2004  Aurelien Jacobs
  *  Copyright (C) 2004  Benjamin Zores
  *
@@ -16,12 +16,14 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MPUI_PARSER_H
-#define MPUI_PARSER_H
+#ifndef MPUI_RENDER_H
+#define MPUI_RENDER_H
 
+#include <stdlib.h>
+#include <string.h>
+#include "../libmpcodecs/mp_image.h"
 #include "mpui_struct.h"
 
-mpui_t *mpui_parse_config (char *buffer, int width, int height, int format);
-mpui_t *mpui_parse_config_file (char *filename, int width, int height, int format);
+int mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi);
 
-#endif /* MPUI_PARSER_H */
+#endif /* MPUI_RENDER_H */
