@@ -116,7 +116,9 @@ mpui_recompute_one_coord (mpui_size_t c, char *sc,
         if (!strncmp (sc, l->id, strlen (l->id)))
           {
             char *end, *s = sc + strlen (l->id);
-            int val, mul = *s++ == '-' ? -1 : 1;
+            int val, mul;
+            if (*s)
+              mul = *s++ == '-' ? -1 : 1;
             if (!isdigit (*s))
               {
                 if (*s == '\0')
