@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE mpui SYSTEM "mpui.dtd">
+
+<mpui>
+  <strings encoding="iso8859-1">
+    <string id="watch_tv" text="Watch TV"/>
+    <string id="play_dvd" text="Play DVD"/>
+    <string id="view_img" text="View Pictures"/>
+    <string id="play_mov" text="Play Movies"/>
+    <string id="play_snd" text="Jukebox"/>
+    <string id="settings" text="Settings TV"/>
+  </strings>
+</mpui>

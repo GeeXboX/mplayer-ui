@@ -2,14 +2,7 @@
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
-  <strings encoding="iso8859-1">
-    <string id="watch_tv" text="Watch TV"/>
-    <string id="play_dvd" text="Play DVD"/>
-    <string id="view_img" text="View Pictures"/>
-    <string id="play_mov" text="Play Movies"/>
-    <string id="play_snd" text="Jukebox"/>
-    <string id="settings" text="Settings TV"/>
-  </strings>
+  <include file="mpui_en.xml"/>
 
   <images>
     <image id="back" file="background.png" x="0" y="0" h="100%" w="100%"/>
