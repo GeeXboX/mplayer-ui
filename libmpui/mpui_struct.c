@@ -18,6 +18,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
@@ -1069,6 +1070,7 @@ mpui_new (int width, int height, int format)
   mpui = (mpui_t *) malloc (sizeof (*mpui));
   mpui->width = width;
   mpui->height = height;
+  mpui->diag = sqrt (width*width + height*height);
   mpui->format = format;
   mpui->strings = mpui_list_new ();
   mpui->fonts = mpui_list_new ();
