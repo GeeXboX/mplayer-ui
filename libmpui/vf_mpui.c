@@ -170,7 +170,7 @@ read_keycode (int code)
             mpui_focus_box_first (st_priv->mpui->current_screen);
           }
         else
-          exit_player ("mpui");
+          mp_input_queue_cmd (mp_input_parse_cmd ("quit"));
       }
   else
     switch (code)
