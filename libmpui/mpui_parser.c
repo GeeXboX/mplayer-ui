@@ -746,16 +746,17 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
 static mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *orient, *font_id, *x, *y, *w, *h, *element;
+  char *id, *orient, *spacing, *font_id, *x, *y, *w, *h, *element;
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V;
   mpui_font_t *default_font = NULL, *font = NULL;
-  mpui_size_t mx, my, mw, mh;
-  mpui_size_t item_x = 0, item_y = 0;
+  mpui_size_t mx, my, ms;
+  mpui_size_t item_x, item_y, max_x = 0, max_y = 0, tmp;
 
   id = asx_get_attrib ("id", attribs);
   orient = asx_get_attrib ("orientation", attribs);
+  spacing = asx_get_attrib ("spacing", attribs);
   font_id = asx_get_attrib ("font", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
@@ -773,11 +774,13 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   mx = mpui_parse_size (x, mpui->width, 0);
   my = mpui_parse_size (y, mpui->height, 0);
-  mw = mpui_parse_size (w, mpui->width, 0);
-  mh = mpui_parse_size (h, mpui->height, 0);
+  tmp = orientation == MPUI_ORIENTATION_V ? mpui->height : mpui->width;
+  ms = mpui_parse_size (spacing, tmp, 0);
+  item_x = ms/2;
+  item_y = ms/2;
 
   if (id)
-    menu = mpui_menu_new (id, orientation, mx, my, mw, mh);
+    menu = mpui_menu_new (id, orientation, mx, my);
   asx_free_attribs (attribs);
 
   while (1)
@@ -804,9 +807,17 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
           elt->x = item_x;
           elt->y = item_y;
           if (orientation == MPUI_ORIENTATION_V)
-            item_y += elt->h;
+            {
+              item_y += ms + elt->h;
+              if (elt->w > max_x)
+                max_x = elt->w;
+            }
           else
-            item_x += elt->w;
+            {
+              item_x += ms + elt->w;
+              if (elt->h > max_y)
+                max_y = elt->h;
+            }
         }
       else if (!strcmp (element, "all-menu-items"))
         menu->allmenuitem = mpui_parse_node_menu_all_items (mpui, attribs,
@@ -817,6 +828,14 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
       free (parser);
     }
   asx_free_attribs (attribs);
+
+  if (orientation == MPUI_ORIENTATION_V)
+    item_x += max_x;
+  else
+    item_y += max_y;
+
+  menu->w = mpui_parse_size (w, mpui->width, item_x + ms/2);
+  menu->h = mpui_parse_size (h, mpui->height, item_y + ms/2);
   
   if (font)
     mpui->fonts[0]->deflt = default_font;

@@ -293,8 +293,7 @@ mpui_objects_t *mpui_objects_new (void);
 void mpui_objects_free (mpui_objects_t *objects);
 
 mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
-                            mpui_size_t x, mpui_size_t y,
-                            mpui_size_t w, mpui_size_t h);
+                            mpui_size_t x, mpui_size_t y);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 

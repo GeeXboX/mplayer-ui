@@ -490,7 +490,7 @@ mpui_objects_free (mpui_objects_t *objects)
 
 mpui_menu_t *
 mpui_menu_new (char *id, mpui_orientation_t orientation,
-               mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h)
+               mpui_size_t x, mpui_size_t y)
 {
   mpui_menu_t *menu;
 
@@ -499,8 +499,6 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu->orientation = orientation;
   menu->x = x;
   menu->y = y;
-  menu->w = w;
-  menu->h = h;
   menu->allmenuitem = NULL;
   menu->elements = mpui_list_new ();
   return menu;
@@ -543,13 +541,14 @@ mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
   mnu->fb.element.flags = flags;
   mnu->fb.element.x = x;
   mnu->fb.element.y = y;
+  mnu->fb.element.w = menu->w;
+  mnu->fb.element.h = menu->h;
   mnu->fb.element.when_focused = MPUI_DISPLAY_ALWAYS;
   mnu->fb.elements = menu->elements;
   mnu->fb.orientation = menu->orientation;
   if (mpui_focus_first (&mnu->fb))
     mnu->fb.element.flags |= MPUI_FLAG_FOCUS_BOX;
   mnu->menu = menu;
-  mpui_elements_get_size (&mnu->fb.element, menu->elements, NULL);
   return mnu;
 }
 
