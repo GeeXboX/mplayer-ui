@@ -110,7 +110,8 @@ mpui_info_add_tag (mpui_inf_t *inf, mpui_tag_t *tag,
                       MPUI_FONT_SIZE_DEFAULT, NULL, NULL,
                       NULL, MPUI_DISPLAY_ALWAYS);
 
-  mpui_add_element ((mpui_container_t *) inf, str);
+  mpui_container_elements_add ((mpui_container_t *) inf, 
+                               (mpui_element_t *) str);
 
   *cx = x;
   (*cy).val = y.val + ((mpui_element_t *) str)->h.val;

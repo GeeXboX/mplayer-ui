@@ -799,7 +799,7 @@ mpui_parse_node_filetype (mpui_t *mpui, char **attribs, char *body)
       if (!strcmp (element, "action"))
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
-          mpui_actions_add (filetype, action);
+          mpui_filetype_actions_add (filetype, action);
         }
       else if (!strcmp (element, "icon"))
         {
@@ -808,7 +808,7 @@ mpui_parse_node_filetype (mpui_t *mpui, char **attribs, char *body)
           free (id);
         }
       else if (!strcmp (element, "ext") && sbody)
-        mpui_ext_add (filetype, strdup (sbody));
+        mpui_filetype_exts_add (filetype, strdup (sbody));
       free (parser);
     }
   asx_free_attribs (attribs);
@@ -938,11 +938,11 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
           if (action)
-            mpui_actions_add (object, action);
+            mpui_object_actions_add (object, action);
         }
 
       if (elt)
-        mpui_add_element (object, elt);
+        mpui_object_elements_add (object, elt);
       free (parser);
     }
   asx_free_attribs (attribs);  
@@ -1009,11 +1009,11 @@ mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body,
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
           if (action)
-            mpui_actions_add (container, action);
+            mpui_container_actions_add (container, action);
         }
 
       if (elt)
-        mpui_add_element (container, elt);
+        mpui_container_elements_add (container, elt);
       free (parser);
     }
 
@@ -1052,11 +1052,11 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
           if (action)
-            mpui_actions_add (container, action);
+            mpui_container_actions_add (container, action);
         }
       
       if (elt)
-        mpui_add_element (container, elt);
+        mpui_container_elements_add (container, elt);
       free (parser);
     }
   asx_free_attribs (attribs);
@@ -1159,7 +1159,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
                                                                  sbody, menu);
 
       if (elt)
-        mpui_add_element (menu, elt);
+        mpui_menu_elements_add (menu, elt);
       free (parser);
     }
   asx_free_attribs (attribs);
@@ -1389,7 +1389,7 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "browser"))
         {
           mpui_browser_t *browser = mpui_parse_node_browser (mpui, attribs);
-          mpui_menus_add (mpui->menus, browser);
+          mpui_menus_add (mpui->menus, (mpui_menu_t *) browser);
         }
       free (parser);
     }
@@ -1441,7 +1441,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
             elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
 
           if (elt)
-            mpui_add_element (container, elt);
+            mpui_container_elements_add (container, elt);
           free (parser);
         }
       asx_free_attribs (attribs);
@@ -1680,7 +1680,7 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
         elt = (mpui_element_t *) mpui_parse_node_inf (mpui, attribs);
 
       if (elt && screen)
-        mpui_add_element (screen, elt);
+        mpui_screen_elements_add (screen, elt);
       free (parser);
     }
   asx_free_attribs (attribs);
@@ -1807,7 +1807,7 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
       else if (!strcmp (element, "file-types"))
         {
           mpui_filetypes_t *ft = mpui_parse_node_filetypes(mpui,attribs,sbody);
-          mpui_filetypes_add (mpui, ft);
+          mpui_filetypes_list_add (mpui, ft);
         }
       else if (!strcmp (element, "objects"))
         {

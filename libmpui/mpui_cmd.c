@@ -70,14 +70,14 @@ mpui_cmd_popup (mpui_t *mpui, char *popup_id)
     return;
 
   popup = mpui_popup_get (mpui->popups, popup_id);
-  mpui_popup_add (mpui->current_screen, popup);
+  mpui_screen_popups_add (mpui->current_screen, popup);
 }
 
 void
 mpui_cmd_popup_close (mpui_t *mpui)
 {
   if (mpui->current_screen)
-    mpui_popup_remove (mpui->current_screen);
+    mpui_screen_popups_remove_last (mpui->current_screen);
 }
 
 

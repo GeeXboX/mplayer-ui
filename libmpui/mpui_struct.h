@@ -408,8 +408,13 @@ mpui_str_t *mpui_str_dup (mpui_str_t *str);
 void mpui_str_free (mpui_str_t *str);
 
 mpui_strings_t *mpui_strings_new (char *fonts, char *lang);
-#define mpui_strings_add(a,b) (a)->strings = mpui_list_add((a)->strings, (b))
 void mpui_strings_free (mpui_strings_t *strings);
+
+static inline void
+mpui_strings_add (mpui_strings_t *strings, mpui_string_t *string)
+{
+  strings->strings = mpui_list_add(strings->strings, string);
+}
 
 mpui_image_t *mpui_image_new (char *id, char *file,
                               mpui_size_t x, mpui_size_t y,
@@ -427,8 +432,13 @@ void mpui_img_load (mpui_t *mpui, mpui_img_t *img);
 void mpui_img_free (mpui_img_t *img);
 
 mpui_images_t *mpui_images_new (void);
-#define mpui_images_add(a,b) (a)->images = mpui_list_add((a)->images, (b))
 void mpui_images_free (mpui_images_t *images);
+
+static inline void
+mpui_images_add (mpui_images_t *images, mpui_image_t *image)
+{
+  images->images = mpui_list_add(images->images, image);
+}
 
 mpui_font_t *mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
                             mpui_color_t *color, mpui_color_t *focused_color,
@@ -437,25 +447,65 @@ mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 
 mpui_fonts_t *mpui_fonts_new (void);
-#define mpui_fonts_add(a,b) (a)->fonts = mpui_list_add((a)->fonts, (b))
 void mpui_fonts_free (mpui_fonts_t *fonts);
 
+static inline void
+mpui_fonts_add (mpui_fonts_t *fonts, mpui_font_t *font)
+{
+  fonts->fonts = mpui_list_add(fonts->fonts, font);
+}
+
 mpui_filetype_t *mpui_filetype_new (mpui_match_t match);
-#define mpui_ext_add(a,b) (a)->exts = mpui_list_add((a)->exts, (b))
 mpui_filetype_t *mpui_filetype_dup (mpui_filetype_t *filetype,
                                     mpui_size_t icon_w, mpui_size_t icon_h);
 void mpui_filetype_free (mpui_filetype_t *filetype);
+
+static inline void
+mpui_filetype_exts_add (mpui_filetype_t *filetype, char *ext)
+{
+  filetype->exts = mpui_list_add(filetype->exts, ext);
+}
+
+static inline void
+mpui_filetype_actions_add (mpui_filetype_t *filetype, mpui_action_t *action)
+{
+  filetype->actions = mpui_list_add(filetype->actions, action);
+}
+
 mpui_filetypes_t *mpui_filetypes_new (char *id);
-#define mpui_filetypes_add(a,b) (a)->filetypes = mpui_list_add((a)->filetypes, (b))
 mpui_filetypes_t *mpui_filetypes_get (mpui_t *mpui, char *id);
 mpui_filetypes_t *mpui_filetypes_dup (mpui_filetypes_t *filetypes,
                                       mpui_size_t icon_w, mpui_size_t icon_h);
 void mpui_filetypes_free (mpui_filetypes_t *filetypes);
 
+static inline void
+mpui_filetypes_add (mpui_filetypes_t *filetypes, mpui_filetype_t *filetype)
+{
+  filetypes->filetypes = mpui_list_add(filetypes->filetypes, filetype);
+}
+
+static inline void
+mpui_filetypes_list_add (mpui_t *mpui, mpui_filetypes_t *filetypes)
+{
+  mpui->filetypes = mpui_list_add(mpui->filetypes, filetypes);
+}
+
 mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
 mpui_object_t *mpui_object_dup (mpui_object_t *object);
 void mpui_object_free (mpui_object_t *object);
+
+static inline void
+mpui_object_actions_add (mpui_object_t *object, mpui_action_t *action)
+{
+  object->actions = mpui_list_add(object->actions, action);
+}
+
+static inline void
+mpui_object_elements_add (mpui_object_t *object, mpui_element_t *element)
+{
+  object->elements = mpui_list_add(object->elements, element);
+}
 
 mpui_obj_t *mpui_obj_new (mpui_object_t *object, mpui_coord_t x,mpui_coord_t y,
                           mpui_flags_t flags,mpui_when_focused_t when_focused);
@@ -463,21 +513,37 @@ mpui_obj_t *mpui_obj_dup (mpui_obj_t *obj);
 void mpui_obj_free (mpui_obj_t *obj);
 
 mpui_objects_t *mpui_objects_new (void);
-#define mpui_objects_add(a,b) (a)->objects = mpui_list_add((a)->objects, (b))
 void mpui_objects_free (mpui_objects_t *objects);
+
+static inline void
+mpui_objects_add (mpui_objects_t *objects, mpui_object_t *object)
+{
+  objects->objects = mpui_list_add(objects->objects, object);
+}
 
 mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
                             mpui_size_t x, mpui_size_t y);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 
+static inline void
+mpui_menu_elements_add (mpui_menu_t *menu, mpui_element_t *element)
+{
+  menu->elements = mpui_list_add(menu->elements, element);
+}
+
 mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
                           mpui_flags_t flags);
 void mpui_mnu_free (mpui_mnu_t *mnu);
 
 mpui_menus_t *mpui_menus_new (void);
-#define mpui_menus_add(a,b) (a)->menus = mpui_list_add((a)->menus, (b))
 void mpui_menus_free (mpui_menus_t *menus);
+
+static inline void
+mpui_menus_add (mpui_menus_t *menus, mpui_menu_t *menu)
+{
+  menus->menus = mpui_list_add(menus->menus, menu);
+}
 
 mpui_menuitem_t *mpui_menuitem_new (void);
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);
@@ -486,7 +552,6 @@ mpui_allmenuitem_t *mpui_allmenuitem_new (mpui_menu_t *menu);
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd, mpui_action_when_t when);
-#define mpui_actions_add(a,b) (a)->actions = mpui_list_add((a)->actions, (b))
 void mpui_action_free (mpui_action_t *action);
 void mpui_actions_free (mpui_action_t **actions);
 
@@ -518,8 +583,13 @@ mpui_info_t *mpui_info_new (char *id, mpui_font_t *font,
                             mpui_coord_t x, mpui_coord_t y,
                             mpui_coord_t w, mpui_coord_t h);
 mpui_info_t *mpui_info_get (mpui_t *mpui, char *id);
-#define mpui_info_add(a,b) (a)->tags = mpui_list_add((a)->tags, (b))
 void mpui_info_free (mpui_info_t *info);
+
+static inline void
+mpui_info_add (mpui_info_t *info, mpui_tag_t *tag)
+{
+  info->tags = mpui_list_add(info->tags, tag);
+}
 
 mpui_inf_t *mpui_inf_new (mpui_info_t *info,
                           mpui_coord_t x, mpui_coord_t y,
@@ -527,30 +597,71 @@ mpui_inf_t *mpui_inf_new (mpui_info_t *info,
 void mpui_inf_free (mpui_inf_t *inf);
 
 mpui_infos_t *mpui_infos_new (void);
-#define mpui_infos_add(a,b) (a)->infos = mpui_list_add((a)->infos, (b))
 void mpui_infos_free (mpui_infos_t *infos);
+
+static inline void
+mpui_infos_add (mpui_infos_t *infos, mpui_info_t *info)
+{
+  infos->infos = mpui_list_add(infos->infos, info);
+}
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
 void mpui_popup_free (mpui_popup_t *popup);
 
 mpui_popups_t *mpui_popups_new (void);
-#define mpui_popups_add(a,b) (a)->popups = mpui_list_add((a)->popups, (b))
 void mpui_popups_free (mpui_popups_t *popups);
+
+static inline void
+mpui_popups_add (mpui_popups_t *popups, mpui_popup_t *popup)
+{
+  popups->popups = mpui_list_add(popups->popups, popup);
+}
 
 mpui_screen_t *mpui_screen_new (char *id);
 mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
-#define mpui_popup_add(a,b) (a)->popup_stack = mpui_list_add((a)->popup_stack, (b))
-#define mpui_popup_remove(a) mpui_list_remove_last((a)->popup_stack)
 void mpui_screen_free (mpui_screen_t *screen);
 
-#define mpui_add_element(a,b) (a)->elements = mpui_list_add((a)->elements, (b))
+static inline void
+mpui_screen_elements_add (mpui_screen_t *screen, mpui_element_t *element)
+{
+  screen->elements = mpui_list_add(screen->elements, element);
+}
+
+static inline void
+mpui_screen_popups_add (mpui_screen_t *screen, mpui_popup_t *popup)
+{
+  screen->popup_stack = mpui_list_add(screen->popup_stack, popup);
+}
+
+static inline void
+mpui_screen_popups_remove_last (mpui_screen_t *screen)
+{
+  mpui_list_remove_last (screen->popup_stack);
+}
 
 mpui_screens_t *mpui_screens_new (void);
-#define mpui_screens_add(a,b) (a)->screens = mpui_list_add((a)->screens, (b))
 void mpui_screens_free (mpui_screens_t *screens);
+
+static inline void
+mpui_screens_add (mpui_screens_t *screens, mpui_screen_t *screen)
+{
+  screens->screens = mpui_list_add(screens->screens, screen);
+}
 
 mpui_t *mpui_new (int width, int height, int format, char *theme, char *lang);
 void mpui_free (mpui_t *mpui);
+
+static inline void
+mpui_container_actions_add (mpui_container_t *container, mpui_action_t *action)
+{
+  container->actions = mpui_list_add(container->actions, action);
+}
+
+static inline void
+mpui_container_elements_add (mpui_container_t *container, mpui_element_t *element)
+{
+  container->elements = mpui_list_add(container->elements, element);
+}
 
 #endif  /* MPUI_STRUCT_H */

@@ -127,7 +127,8 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
     default:
       break;
     }
-  mpui_add_element ((mpui_container_t *) menuitem, str);
+  mpui_container_elements_add ((mpui_container_t *) menuitem, 
+                               (mpui_element_t *) str);
 
   if (icon)
     {
@@ -152,7 +153,8 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
       img = mpui_img_new (icon, x, y, w, h, 0, MPUI_DISPLAY_ALWAYS);
       mpui_img_load (mpui, img);
       mpui_clip (mpui, (mpui_element_t *) img, 0, 0, 0);
-      mpui_add_element ((mpui_container_t *) menuitem, img);
+      mpui_container_elements_add ((mpui_container_t *) menuitem, 
+                                   (mpui_element_t *) img);
     }
 
   if (filetype->match == MPUI_MATCH_DIR)
@@ -193,7 +195,7 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
         {
           snprintf (cmd, sizeof (cmd), (*actions)->cmd, name);
           action = mpui_action_new (cmd, (*actions)->when);
-          mpui_actions_add ((mpui_container_t *) menuitem, action);
+          mpui_container_actions_add ((mpui_container_t *) menuitem, action);
         }
     }
 
@@ -208,7 +210,7 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
   else
     *cy += ((mpui_element_t *) menuitem)->h.val;
 
-  mpui_add_element ((mpui_menu_t *) browser, menuitem);
+  mpui_menu_elements_add ((mpui_menu_t *) browser, (mpui_element_t *) menuitem);
 
   if (((mpui_menu_t *) browser)->orientation == MPUI_ORIENTATION_H
       || (((mpui_menu_t *) browser)->orientation & MPUI_ORIENTATION_H
@@ -230,9 +232,11 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
   int i, n;
 
   if (browser->border)
-    mpui_add_element ((mpui_menu_t *) browser, browser->border);
+    mpui_menu_elements_add ((mpui_menu_t *) browser,
+                            (mpui_element_t *) browser->border);
   if (browser->item_border)
-    mpui_add_element ((mpui_menu_t *) browser, browser->item_border);
+    mpui_menu_elements_add ((mpui_menu_t *) browser, 
+                            (mpui_element_t *) browser->item_border);
 
   x = y = browser->spacing/2;
 

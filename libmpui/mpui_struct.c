@@ -891,7 +891,7 @@ mpui_object_dup (mpui_object_t *object)
 
   dup = mpui_object_new ("", object->x, object->y);
   for (e=object->elements; *e; e++)
-    mpui_add_element (dup, mpui_element_dup (*e));
+    mpui_object_elements_add (dup, mpui_element_dup (*e));
   dup->dup = 1;
 
   return dup;
@@ -1256,7 +1256,8 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
       ty.str = NULL;
       obj = mpui_obj_new (item_border, tx, ty, 0, MPUI_DISPLAY_ALWAYS);
       browser->item_border = mpui_allmenuitem_new ((mpui_menu_t *) browser);
-      mpui_add_element ((mpui_container_t *) browser->item_border, obj);
+      mpui_container_elements_add ((mpui_container_t *) browser->item_border,
+                                   (mpui_element_t *) obj);
     }
   else
     browser->item_border = NULL;
