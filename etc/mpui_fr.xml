@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE mpui SYSTEM "mpui.dtd">
+
+<mpui>
+  <strings encoding="iso-8859-1" lang="fr">
+    <string id="version" text="Version de Développement pre0.99\nGeeXboX Team (C) 2005"/>
+    <string id="media_menu" text="Lecteur Multimédia"/>
+    <string id="play_menu" text="Lire un CD/DVD"/>
+    <string id="tv_menu" text="Regarder la TV"/>
+    <string id="playlist_menu" text="Editeur de Playlist"/>    
+    <string id="settings_menu" text="Configuration"/>
+
+    <string id="media_screen_title" text="Lecteur Multimédia"/>
+    <string id="media_all_files" text="Tous fichiers"/>
+    <string id="media_movie_files" text="Fichiers vidéo seulement"/>
+    <string id="media_music_files" text="Fichiers audio seulement"/>
+    <string id="media_picture_files" text="Images seulement"/>
+    <string id="media_playlist_files" text="Playlists"/>
+
+    <string id="tv_screen_title" text="Centre TV"/>
+    <string id="tv_analog" text="TV analogique"/>
+    <string id="tv_digital" text="TV numérique"/>
+    <string id="tv_analog_channel" text="Chaines hertziennes"/>
+    <string id="tv_digital_channel" text="Chaines numériques"/>
+    <string id="tv_video_in" text="Entrée Vidéo"/>
+
+    <string id="playlist_screen_title" text="Editeur de Playlist"/>
+    <string id="settings_screen_title" text="Configuration"/>
+
+    <string id="txt_help" file="help_en.txt"/>
+    <string id="txt_info" text="Informations Systèmes"/>
+  </strings>
+</mpui>

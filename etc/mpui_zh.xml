@@ -2,12 +2,12 @@
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
-  <strings encoding="iso-8859-1" lang="en">
-    <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2005"/>
-    <string id="media_menu" text="Media Browser"/>
-    <string id="play_menu" text="Play CD/DVD"/>
-    <string id="tv_menu" text="Watch TV"/>
-    <string id="playlist_menu" text="Playlist editor"/>    
+  <strings encoding="gb2312" lang="zh">
+    <string id="version" text="Devel"/>
+    <string id="media_menu" text="打开文件"/>
+    <string id="play_menu" text="打开文件夹"/>
+    <string id="tv_menu" text="播放音乐CD"/>
+    <string id="playlist_menu" text="选择章节/曲目"/>    
     <string id="settings_menu" text="Settings"/>
 
     <string id="media_screen_title" text="Media Browser"/>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE mpui SYSTEM "mpui.dtd">
+
+<mpui>
+  <fonts encoding="iso-8859-1" default="menu_font">
+    <font id="menu_font" file="Handycandy.ttf" size="30"
+                         color="#CCCCCC" really-focused-color="#FFFFFF"/>
+    <font id="title_font" file="Handycandy.ttf" size="35"
+                         color="#FFFFFF" focused-color="#FFFFFF"/>
+    <font id="subtitle_font" file="Handycandy.ttf" size="20"
+                             color="#FFFFFF" focused-color="#FFFFFF"/>
+    <font id="version_font" file="subfont.ttf" size="14"
+                            color="#ffffff" focused-color="#ffff81"/>
+  </fonts>
+
+  <fonts encoding="gb2312" default="menu_font">
+    <font id="menu_font" file="gkai00mp.ttf" size="30"
+                         color="#CCCCCC" really-focused-color="#FFFFFF"/>
+  </fonts>
+</mpui>
