@@ -1123,7 +1123,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   align = mpui_parse_alignment (attribs);
 
-  if (font_id && (font = mpui_font_get (mpui, font_id)))
+  if ((font = mpui_font_get (mpui, font_id)))
     {
       default_font = mpui->fonts->deflt;
       mpui->fonts->deflt = font;
@@ -1136,7 +1136,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   item_x = ms.val/2;
   item_y = ms.val/2;
 
-  if (id)
+  if (id && font)
     menu = mpui_menu_new (id, orientation, mx.val, my.val, font);
 
   asx_free_attribs (attribs);
@@ -1245,7 +1245,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   free (w);
   free (h);
 
-  if (font)
+  if (default_font)
     mpui->fonts->deflt = default_font;
 
   return menu;
