@@ -73,24 +73,20 @@ mpui_parse_size (char *size, int total)
   return val;
 }
 
-mpui_color_t
+mpui_color_t *
 mpui_parse_color (char *color)
 {
-  mpui_color_t c = {0, 0, 0};
-  
   if (color && color[0] == '#' && strlen (color) == 7)
     {
       char *end;
       int val = strtol (color+1, &end, 16);
       if (end > color+1 && *end == '\0')
-        {
-          c.r = (val & 0xFF0000) >> 16;
-          c.g = (val & 0x00FF00) >> 8;
-          c.b = (val & 0x0000FF);
-        }
+        return mpui_color_new ((val & 0xFF0000) >> 16,
+                               (val & 0x00FF00) >> 8,
+                               (val & 0x0000FF));
     }
 
-  return c;
+  return NULL;
 }
 
 mpui_string_t *
@@ -132,7 +128,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       mpui_size_t sx, sy;
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
-      mpui_color_t col, fcol;
+      mpui_color_t *col, *fcol;
       int wf = MPUI_DISPLAY_ALWAYS;
       string = mpui_string_get (mpui, id);
       if (font_id)
@@ -304,7 +300,7 @@ mpui_parse_node_font (char **attribs)
 {
   char *id, *file, *f, *size, *col, *focused_col;
   mpui_font_t *font = NULL;
-  mpui_color_t color, focused_color;
+  mpui_color_t *color, *focused_color;
   int s = MPUI_FONT_SIZE_DEFAULT;
 
   id = asx_get_attrib ("id", attribs);

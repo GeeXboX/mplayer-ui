@@ -94,7 +94,8 @@ struct mpui_element {
 };
 
 struct mpui_color {
-  int r, g, b;
+  unsigned char r, g, b;
+  unsigned char y, u, v;
 };
 
 struct mpui_ids {
@@ -118,8 +119,8 @@ struct mpui_str {
   mpui_size_t x, y;
   mpui_font_t *font;
   int size;
-  mpui_color_t color;
-  mpui_color_t focused_color;
+  mpui_color_t *color;
+  mpui_color_t *focused_color;
   mpui_when_focused_t when_focused;
 };
 
@@ -157,8 +158,8 @@ struct mpui_font {
   char *id;
   char *file;
   int size;
-  mpui_color_t color;
-  mpui_color_t focused_color;
+  mpui_color_t *color;
+  mpui_color_t *focused_color;
 };
 
 struct mpui_action {
@@ -238,13 +239,16 @@ void *mpui_list_new (void);
 int mpui_list_length (void *list);
 void *mpui_list_add (void *list, void *element);
 
+mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
+void mpui_color_free (mpui_color_t *color);
+
 mpui_string_t *mpui_string_new (char *id, char *str);
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
 void mpui_string_free (mpui_string_t *string);
 
 mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
                           mpui_font_t *font, int size,
-                          mpui_color_t color, mpui_color_t focused_color,
+                          mpui_color_t *color, mpui_color_t *focused_color,
                           mpui_when_focused_t when_focused);
 void mpui_str_free (mpui_str_t *str);
 
@@ -267,7 +271,7 @@ mpui_images_t *mpui_images_new (void);
 void mpui_images_free (mpui_images_t *images);
 
 mpui_font_t *mpui_font_new (char *id, char *file, int size,
-                            mpui_color_t color, mpui_color_t focused_color);
+                            mpui_color_t *color, mpui_color_t *focused_color);
 mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 

@@ -179,6 +179,9 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
       return;
     }
   
+  if (!vo_font)
+    return;
+
   p = txt;
   while (*p)
     render_one_glyph (vo_font, *p++);

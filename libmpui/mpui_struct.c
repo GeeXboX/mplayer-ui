@@ -62,6 +62,32 @@ mpui_list_add (void *list, void *element)
 }
 
 
+#define mpui_rgb2y(R,G,B)  ((( 263*R + 516*G + 100*B) >> 10) + 16)
+#define mpui_rgb2u(R,G,B)  (((-152*R - 298*G + 450*B) >> 10) + 128)
+#define mpui_rgb2v(R,G,B)  ((( 450*R - 376*G -  73*B) >> 10) + 128)
+
+mpui_color_t *
+mpui_color_new (unsigned char r, unsigned char g, unsigned char b)
+{
+  mpui_color_t *color;
+
+  color = (mpui_color_t *) malloc (sizeof (*color));
+  color->r = r;
+  color->g = g;
+  color->b = b;
+  color->y = mpui_rgb2y (color->r, color->g, color->b);
+  color->u = mpui_rgb2u (color->r, color->g, color->b);
+  color->v = mpui_rgb2v (color->r, color->g, color->b);
+  return color;
+}
+
+void
+mpui_color_free (mpui_color_t *color)
+{
+  free (color);
+}
+
+
 mpui_string_t *
 mpui_string_new (char *id, char *str)
 {
@@ -97,8 +123,8 @@ mpui_string_free (mpui_string_t *string)
 
 mpui_str_t *
 mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
-              mpui_font_t *font, int size, mpui_color_t color,
-              mpui_color_t focused_color, mpui_when_focused_t when_focused)
+              mpui_font_t *font, int size, mpui_color_t *color,
+              mpui_color_t *focused_color, mpui_when_focused_t when_focused)
 {
   mpui_str_t *str;
 
@@ -117,6 +143,8 @@ mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
 void
 mpui_str_free (mpui_str_t *str)
 {
+  mpui_color_free (str->color);
+  mpui_color_free (str->focused_color);
   free (str);
 }
 
@@ -234,7 +262,7 @@ mpui_images_free (mpui_images_t *images)
 
 mpui_font_t *
 mpui_font_new (char *id, char *file, int size,
-               mpui_color_t color, mpui_color_t focused_color)
+               mpui_color_t *color, mpui_color_t *focused_color)
 {
   mpui_font_t *font;
 
@@ -266,6 +294,8 @@ mpui_font_free (mpui_font_t *font)
 {
   free (font->id);
   free (font->file);
+  mpui_color_free (font->color);
+  mpui_color_free (font->focused_color);
   free (font);
 }
 
@@ -515,6 +545,9 @@ mpui_element_t *
 mpui_element_new (mpui_type_t type, void *elem)
 {
   mpui_element_t *element;
+
+  if (!elem)
+    return NULL;
 
   element = (mpui_element_t *) malloc (sizeof (*element));
   element->type = type;
