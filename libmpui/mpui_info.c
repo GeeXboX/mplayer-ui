@@ -123,7 +123,13 @@ static char *
 mpui_info_get_picture_file (mpui_t *mpui, mpui_pic_t *pic, char *filename)
 {
   mpui_filetype_t **filetypes;
-  char **exts;
+  struct dirent **namelist;
+  char **exts, *res = NULL;
+  int n;
+
+  n = scandir (mpui->cwd, &namelist, 0, alphasort);
+  if (n < 0)
+    return NULL;
 
   for (filetypes = pic->filter->filetypes; *filetypes; filetypes++)
     switch ((*filetypes)->match)
@@ -131,32 +137,36 @@ mpui_info_get_picture_file (mpui_t *mpui, mpui_pic_t *pic, char *filename)
       case MPUI_MATCH_EXT:
         for (exts = (*filetypes)->exts; *exts; exts++)
           {
-            struct dirent **namelist;
-            char file[256], tmp[256];
-            char *res = NULL;
-            int n;
-            
-            snprintf (file, 256, "%s.%s", filename, *exts);
-            n = scandir (mpui->cwd, &namelist, 0, alphasort);
-            if (n < 0)
-              return NULL;
-            while (n--)
+            int i;
+            char *file;
+
+            file = (char *) malloc (strlen (filename) + strlen (*exts) + 2);
+            sprintf (file, "%s.%s", filename, *exts);
+
+            for (i = 0; i < n; i++)
               {
-                snprintf (tmp, 256, "%s/%s", mpui->cwd, namelist[n]->d_name);
-                if (strcasecmp (tmp, file) == 0)
-                  res = strdup (tmp);
-                free (namelist[n]);
+                int l = strlen (mpui->cwd) + 1;
+                if (strcasecmp (&file[l], namelist[i]->d_name) == 0)
+                  {
+                    res = strdup (file);
+                    break;
+                  }
               }
-            free (namelist);
+
+            free (file);
             if (res)
-              return res;
+              break;
           }
         break;
       default:
         break;
       }
 
-  return NULL;
+  while (n--)
+    free (namelist[n]);
+  free (namelist);
+
+  return res;
 }
 
 static void
