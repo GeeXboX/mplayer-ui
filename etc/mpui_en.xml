@@ -3,7 +3,7 @@
 
 <mpui>
   <strings encoding="iso8859-1">
-    <string id="version" text="Development Release pre0.99"/>
+    <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2004"/>
     <string id="watch_tv" text="Watch TV"/>
     <string id="play_dvd" text="Play DVD"/>
     <string id="view_img" text="View Pictures"/>

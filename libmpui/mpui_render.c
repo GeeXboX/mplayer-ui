@@ -305,6 +305,7 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   font_desc_t *font;
   mpui_color_t *color;
   int f;
+  int x_init = context->x;
 
   if (!str->font || !str->font->font_desc)
     return;
@@ -321,6 +322,17 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   while (*txt)
     {
       unsigned char c = *txt++;
+      if (c == '\\')
+        {
+          char *t = txt;
+          if (*t == 'n')
+            {
+              *txt++;
+              context->x = x_init;
+              context->y += font->height;
+            }
+          continue;
+        }
       if ((f = font->font[c]) >= 0
           && (context->x + font->width[c] <= mpi->w)
           && (context->y + font->pic_a[f]->h <= mpi->h))
