@@ -27,6 +27,7 @@ void mpui_cmd_popup (mpui_t *mpui, char *popup_id);
 void mpui_cmd_popup_close (mpui_t *mpui);
 void mpui_cmd_hide (mpui_t *mpui, char *element_id);
 void mpui_cmd_show (mpui_t *mpui, char *element_id);
+void mpui_cmd_hide_switch (mpui_t *mpui, char *element_id);
 void mpui_cmd_info (mpui_t *mpui, char *filename);
 
 #endif  /* MPUI_CMD_H */

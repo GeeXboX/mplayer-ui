@@ -116,6 +116,28 @@ mpui_cmd_show (mpui_t *mpui, char *element_id)
                                mpui_cmd_show_func, NULL);
 }
 
+
+static void
+mpui_cmd_hide_switch_func (mpui_t *mpui __attribute__((unused)),
+                           mpui_element_t *element,
+                           void *data __attribute__((unused)))
+{
+  if (element->flags & MPUI_FLAG_HIDDEN)
+    element->flags &= ~MPUI_FLAG_HIDDEN;
+  else
+    element->flags |= MPUI_FLAG_HIDDEN;
+}
+
+void
+mpui_cmd_hide_switch (mpui_t *mpui, char *element_id)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               element_id, MPUI_ANY,
+                               mpui_cmd_hide_switch_func, NULL);
+}
+
+
 static void
 mpui_cmd_info_update_func (mpui_t *mpui, mpui_element_t *element, void *data)
 {

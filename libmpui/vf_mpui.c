@@ -116,6 +116,9 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
     case MP_CMD_MPUI_SHOW:
       mpui_cmd_show (priv->mpui, cmd->args[0].v.s);
       return 1;
+    case MP_CMD_MPUI_HIDE_SWITCH:
+      mpui_cmd_hide_switch (priv->mpui, cmd->args[0].v.s);
+      return 1;
     case MP_CMD_MPUI_INFO:
       mpui_cmd_info (priv->mpui, cmd->args[0].v.s);
       return 1;
