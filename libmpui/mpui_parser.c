@@ -586,6 +586,12 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 
       if (object)
         {
+          if (object->need_dup)
+            {
+              object = mpui_object_dup (object);
+              mpui_objects_add (mpui->objects[0], object);
+            }
+
           sx = mpui_parse_size (x, mpui->width, object->x);
           sy = mpui_parse_size (y, mpui->height, object->y);
           obj = mpui_obj_new (object, sx, sy, flags, wf);

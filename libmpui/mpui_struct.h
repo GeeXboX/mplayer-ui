@@ -198,6 +198,7 @@ struct mpui_objects {
 
 struct mpui_object {
   char *id;
+  int need_dup;
   mpui_size_t x, y;
   mpui_element_t **elements;
   mpui_action_t **actions;
@@ -263,6 +264,7 @@ int mpui_list_length (void *list);
 void *mpui_list_add (void *list, void *element);
 
 mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
+mpui_color_t *mpui_color_dup (mpui_color_t *color);
 void mpui_color_free (mpui_color_t *color);
 
 mpui_string_t *mpui_string_new (char *id, char *str);
@@ -273,6 +275,7 @@ mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
                           mpui_flags_t flags, mpui_font_t *font, int size,
                           mpui_color_t *color, mpui_color_t *focused_color,
                           mpui_when_focused_t when_focused);
+mpui_str_t *mpui_str_dup (mpui_str_t *str);
 void mpui_str_free (mpui_str_t *str);
 
 mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
@@ -288,6 +291,7 @@ void mpui_image_free (mpui_image_t *image);
 mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
                           mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
                           mpui_when_focused_t when_focused);
+mpui_img_t *mpui_img_dup (mpui_img_t *img);
 void mpui_img_load (mpui_t *mpui, mpui_img_t *img);
 void mpui_img_free (mpui_img_t *img);
 
@@ -306,10 +310,12 @@ void mpui_fonts_free (mpui_fonts_t *fonts);
 
 mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
+mpui_object_t *mpui_object_dup (mpui_object_t *object);
 void mpui_object_free (mpui_object_t *object);
 
 mpui_obj_t *mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
                           mpui_flags_t flags,mpui_when_focused_t when_focused);
+mpui_obj_t *mpui_obj_dup (mpui_obj_t *obj);
 void mpui_obj_free (mpui_obj_t *obj);
 
 mpui_objects_t *mpui_objects_new (void);
@@ -339,6 +345,7 @@ mpui_action_t *mpui_action_new (char *cmd);
 #define mpui_actions_add(a,b) a->actions = mpui_list_add(a->actions, b)
 void mpui_action_free (mpui_action_t *action);
 
+mpui_element_t *mpui_element_dup (mpui_element_t *element);
 void mpui_element_free (mpui_element_t *element);
 void mpui_elements_get_size (mpui_element_t *element,
                              mpui_element_t **elements,

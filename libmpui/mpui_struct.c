@@ -83,6 +83,14 @@ mpui_color_new (unsigned char r, unsigned char g, unsigned char b)
   return color;
 }
 
+mpui_color_t *
+mpui_color_dup (mpui_color_t *color)
+{
+  if (!color)
+    return NULL;
+  return mpui_color_new (color->r, color->g, color->b);
+}
+
 void
 mpui_color_free (mpui_color_t *color)
 {
@@ -139,16 +147,15 @@ static void
 mpui_str_get_size (mpui_str_t *str)
 {
   font_desc_t *font = str->font->font_desc;
-  int f, w = 0, h = 0, wmax = 0, htot = 0;
+  int f, w = 0, wmax = 0, htot = 0;
   char *s;
 
   for (s=str->string->text; *s; s++)
     {
       if (*s == '\n')
         {
-          htot += h;
+          htot += font->height;
           w = 0;
-          h = 0;
           continue;
         }
 
@@ -158,10 +165,8 @@ mpui_str_get_size (mpui_str_t *str)
       w += font->width[(int)*s] + font->charspace;
       if (w > wmax)
         wmax = w;
-      if (f >= 0 && font->pic_a[f]->h > h)
-        h = font->pic_a[f]->h;
     }
-  htot += h;
+  htot += font->height;
 
   str->element.w = wmax;
   str->element.h = htot;
@@ -188,6 +193,23 @@ mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
   str->focused_color = focused_color;
   mpui_str_get_size (str);
   return str;
+}
+
+mpui_str_t *
+mpui_str_dup (mpui_str_t *str)
+{
+  mpui_element_t *elem = (mpui_element_t *) str;
+  mpui_str_t *dup;
+
+  dup = mpui_str_new (str->string, elem->x, elem->y, elem->flags,
+                      str->font, str->size, mpui_color_dup (str->color),
+                      mpui_color_dup (str->focused_color), elem->when_focused);
+  dup->element.sx = mpui_strdup (elem->sx);
+  dup->element.sy = mpui_strdup (elem->sy);
+  dup->element.sw = mpui_strdup (elem->sw);
+  dup->element.sh = mpui_strdup (elem->sh);
+
+  return dup;
 }
 
 void
@@ -301,6 +323,23 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
     }
 
   return img;
+}
+
+mpui_img_t *
+mpui_img_dup (mpui_img_t *img)
+{
+  mpui_element_t *elem = (mpui_element_t *) img;
+  mpui_img_t *dup;
+
+  dup = mpui_img_new (img->image, elem->x, elem->y,
+                      elem->w, elem->h, elem->flags,
+                      elem->when_focused);
+  dup->element.sx = mpui_strdup (elem->sx);
+  dup->element.sy = mpui_strdup (elem->sy);
+  dup->element.sw = mpui_strdup (elem->sw);
+  dup->element.sh = mpui_strdup (elem->sh);
+
+  return dup;
 }
 
 void
@@ -434,6 +473,7 @@ mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
 
   object = (mpui_object_t *) malloc (sizeof (*object));
   object->id = mpui_strdup (id);
+  object->need_dup = 0;
   object->x = x;
   object->y = y;
   object->elements = mpui_list_new ();
@@ -452,6 +492,19 @@ mpui_object_get (mpui_t *mpui, char *id)
       if (!strcmp ((*object)->id, id))
         return *object;
   return NULL;
+}
+
+mpui_object_t *
+mpui_object_dup (mpui_object_t *object)
+{
+  mpui_element_t **e;
+  mpui_object_t *dup;
+
+  dup = mpui_object_new ("", object->x, object->y);
+  for (e=object->elements; *e; e++)
+    mpui_add_element (dup, mpui_element_dup (*e));
+
+  return dup;
 }
 
 void
@@ -488,6 +541,9 @@ mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
   obj->object = object;
   mpui_elements_get_size (&obj->container.element, object->elements, NULL);
 
+  if (obj->container.element.flags & MPUI_FLAG_NOCOORD)
+    object->need_dup = 1;
+
   if (*object->actions)
     obj->container.element.flags |= MPUI_FLAG_FOCUSABLE;
   else
@@ -499,6 +555,18 @@ mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
         }
 
   return obj;
+}
+
+mpui_obj_t *
+mpui_obj_dup (mpui_obj_t *obj)
+{
+  mpui_element_t *elem = (mpui_element_t *) obj;
+  mpui_obj_t *dup;
+
+  dup = mpui_obj_new (obj->object, elem->x, elem->y, elem->flags,
+                      elem->when_focused);
+
+  return dup;
 }
 
 void
@@ -694,6 +762,22 @@ mpui_action_free (mpui_action_t *action)
   free (action);
 }
 
+
+mpui_element_t *
+mpui_element_dup (mpui_element_t *element)
+{
+  switch (element->type)
+    {
+    case MPUI_STR:
+      return (mpui_element_t *) mpui_str_dup ((mpui_str_t *) element);
+    case MPUI_IMG:
+      return (mpui_element_t *) mpui_img_dup ((mpui_img_t *) element);
+    case MPUI_OBJ:
+      return (mpui_element_t *) mpui_obj_dup ((mpui_obj_t *) element);
+    default:
+      return NULL;
+    }
+}
 
 void
 mpui_element_free (mpui_element_t *element)
