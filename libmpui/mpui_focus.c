@@ -378,6 +378,35 @@ mpui_focus_element (mpui_focus_box_t *focus_box, mpui_element_t *element)
 }
 
 void
+mpui_focus_index (mpui_focus_box_t *focus_box, int index)
+{
+  mpui_element_t **elements;
+
+  for (elements=focus_box->container.elements;
+       *elements && elements[1] && index; elements++)
+    if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
+      index--;
+
+  mpui_focus_element (focus_box, *elements);
+}
+
+int
+mpui_focus_get_index (mpui_focus_box_t *focus_box)
+{
+  mpui_element_t **elements;
+  int index = 0;
+
+  if (!focus_box->focus)
+    return -1;
+
+  for (elements=focus_box->container.elements; *elements; elements++, index++)
+    if (elements == focus_box->focus)
+      return index;
+
+  return 0;
+}
+
+void
 mpui_focus_unfocus (mpui_focus_box_t *focus_box)
 {
   mpui_focus_change (focus_box, NULL);

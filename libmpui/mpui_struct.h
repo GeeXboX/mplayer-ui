@@ -353,6 +353,7 @@ struct mpui_playlist {
   mpui_size_t spacing;
   char **items;
   int need_generate;
+  int focus_index;
 };
 
 struct mpui_infos {

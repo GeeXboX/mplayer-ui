@@ -183,6 +183,7 @@ mpui_playlist_remove (mpui_playlist_t *playlist, char *filename)
   for (item=playlist->items; *item; item++)
     if (!strcmp (*item, filename))
       {
+        playlist->focus_index = item - playlist->items;
         free (*item);
         do {
           *item = *(item+1);
@@ -225,6 +226,7 @@ mpui_playlist_move_up (mpui_playlist_t *playlist, mpui_element_t **element)
       char *tmp = playlist->items[n-1];
       playlist->items[n-1] = playlist->items[n];
       playlist->items[n] = tmp;
+      playlist->focus_index = n - 1;
       playlist->need_generate = 1;
     }
 }
@@ -239,6 +241,7 @@ mpui_playlist_move_down (mpui_playlist_t *playlist, mpui_element_t **element)
       char *tmp = playlist->items[n];
       playlist->items[n] = playlist->items[n-1];
       playlist->items[n-1] = tmp;
+      playlist->focus_index = n;
       playlist->need_generate = 1;
     }
 }
@@ -299,7 +302,11 @@ mpui_playlist_update (mpui_mnu_t *mnu)
       mpui_playlist_clean (playlist);
       mpui_playlist_generate (playlist);
       ((mpui_container_t *) mnu)->elements = mnu->menu->elements;
-      mpui_focus_first ((mpui_focus_box_t *) mnu);
+      if (playlist->focus_index > 0)
+        mpui_focus_index ((mpui_focus_box_t *) mnu, playlist->focus_index);
+      else
+        mpui_focus_first ((mpui_focus_box_t *) mnu);
+      playlist->focus_index = -1;
       playlist->need_generate = 0;
     }
 }

@@ -1398,6 +1398,7 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   playlist->spacing = spacing;
   playlist->align = align;
   playlist->need_generate = 0;
+  playlist->focus_index = -1;
   playlist->items = mpui_list_new ();
 
   if (border)
