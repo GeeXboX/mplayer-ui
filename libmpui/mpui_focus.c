@@ -21,11 +21,18 @@
 #include "mpui_focus.h"
 
 
-static void
+static int
 mpui_focus_box_change (mpui_screen_t *screen, mpui_element_t **element)
 {
   mpui_container_t *container;
+  mpui_element_t **e;
   int keymap = 0;
+
+  for (e=((mpui_container_t *) *element)->elements; *e; e++)
+    if ((*e)->flags & MPUI_FLAG_FOCUSABLE)
+      break;
+  if (!*e)
+    return 0;
 
   if (screen->focus_box > screen->elements)
     keymap = 1;
@@ -36,6 +43,7 @@ mpui_focus_box_change (mpui_screen_t *screen, mpui_element_t **element)
   container = (mpui_container_t *) *element;
   if (keymap && container->keymaps)
     mp_input_add_binds_filter(container->keymaps->binds);
+  return 1;
 }
 
 int
@@ -57,17 +65,13 @@ mpui_focus_box_next (mpui_screen_t *screen)
   for (elements=screen->focus_box+1; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
-      {
-        mpui_focus_box_change (screen, elements);
+      if (mpui_focus_box_change (screen, elements))
         return;
-      }
   for (elements=screen->elements; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
-      {
-        mpui_focus_box_change (screen, elements);
+      if (mpui_focus_box_change (screen, elements))
         return;
-      }
 }
 
 void
@@ -78,18 +82,14 @@ mpui_focus_box_previous (mpui_screen_t *screen)
   for (elements=screen->focus_box-1; elements >= screen->elements; elements--)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
-      {
-        mpui_focus_box_change (screen, elements);
+      if (mpui_focus_box_change (screen, elements))
         return;
-      }
   for (elements=screen->focus_box+1; *elements; elements++);
   for (elements--; elements > screen->focus_box; elements--)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
-      {
-        mpui_focus_box_change (screen, elements);
+      if (mpui_focus_box_change (screen, elements))
         return;
-      }
 }
 
 
