@@ -493,7 +493,7 @@ mpui_parse_node_strings (mpui_t *mpui, char **attribs, char *body)
     return NULL;
 
   /* do not care of <strings> from another language */
-  if (strcmp (lang, mpui->lang) && *mpui->lang))
+  if (strcmp (lang, mpui->lang) && *mpui->lang)
     {
       free (code);
       free (lang);
