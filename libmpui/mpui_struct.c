@@ -335,13 +335,13 @@ mpui_string_put_next_char (unsigned char **txt, size_t *len,
       unsigned char u[6];
       size_t ulen, i;
 
-      if (c < 0x80)              { ulen = 1; u[0] = 0x00; } /* 0xxxxxxx */
-      else if (c < 0x800)        { ulen = 2; u[0] = 0xC0; } /* 110xxxxx */
-      else if (c < 0x10000)      { ulen = 3; u[0] = 0xE0; } /* 1110xxxx */
-      else if (c < 0x200000)     { ulen = 4; u[0] = 0xF0; } /* 11110xxx */
-      else if (c < 0x4000000)    { ulen = 5; u[0] = 0xF8; } /* 111110xx */
-      else if (c < 0x80000000)   { ulen = 6; u[0] = 0xFC; } /* 1111110x */
-      else                       { break; }
+      if (c < 0x80)            { ulen = 1; u[0] = 0x00; } /* 0xxxxxxx  7bit */
+      else if (c < 0x800)      { ulen = 2; u[0] = 0xC0; } /* 110xxxxx 11bit */
+      else if (c < 0x10000)    { ulen = 3; u[0] = 0xE0; } /* 1110xxxx 16bit */
+      else if (c < 0x200000)   { ulen = 4; u[0] = 0xF0; } /* 11110xxx 21bit */
+      else if (c < 0x4000000)  { ulen = 5; u[0] = 0xF8; } /* 111110xx 26bit */
+      else if (c < 0x80000000) { ulen = 6; u[0] = 0xFC; } /* 1111110x 31bit */
+      else                     { break; }
 
       if (*len < ulen)
         break;
