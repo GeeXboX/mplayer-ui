@@ -20,6 +20,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -118,17 +121,26 @@ uninit (vf_instance_t *vf)
   vf->priv = NULL;
 }
 
+extern char * get_path (char *filename);
+
 static int
 config (struct vf_instance_s* vf, int width, int height,
         int d_width, int d_height, unsigned int flags, unsigned int outfmt)
 {
-  vf->priv->mpui = mpui_parse_config_file ("mpui-theme.xml",
-                                           width, height, outfmt);
+  int fd;
+  char *config = get_path ("mpui.conf");
+
+  fd = open (config, O_RDONLY);
+  if (fd == -1)
+    config = strdup (MPLAYER_CONFDIR"/mpui.conf");
+
+  vf->priv->mpui = mpui_parse_config_file (config, width, height, outfmt);
+
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
 }
 
 static int
-open (vf_instance_t *vf, char* args)
+vf_open (vf_instance_t *vf, char* args)
 {
   vf->query_format = query_format;
   vf->config = config;
@@ -149,6 +161,6 @@ vf_info_t vf_info_mpui = {
   "mpui",
   "Aurelien Jacobs\nBenjamin Zores",
   "",
-  open,
+  vf_open,
   NULL
 };
