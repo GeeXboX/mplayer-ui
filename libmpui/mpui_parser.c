@@ -356,28 +356,72 @@ mpui_parse_node_action (char **attribs)
 }
 
 
-void
+mpui_object_t *
 mpui_parse_node_object (char **attribs)
 {
-  char *id, *relative, *dynamic, *when_focused;
-                  
+  char *id, *relative, *dynamic;
+  mpui_object_t *object = NULL;
+  mpui_object_flags_t flags = 0;
+
   id = asx_get_attrib ("id", attribs);
   relative = asx_get_attrib ("relative", attribs);
   dynamic = asx_get_attrib ("dynamic", attribs);
-  when_focused = asx_get_attrib ("when-focused", attribs);
+
+  /* FIXME: setting args hangs MPlayer */
+/*   if (!strcmp (relative, "yes")) */
+/*     flags |= MPUI_OBJECT_RELATIVE; */
+/*   if (!strcmp (dynamic, "yes")) */
+/*     flags |= MPUI_OBJECT_DYNAMIC; */
+
+  if (id)
+    object = mpui_object_new (id, flags);
   asx_free_attribs (attribs);
                   
-  printf ("Object attrib id =  %s\n", id);
-  printf ("Object attrib relative =  %s\n", relative);
-  printf ("Object attrib dynamic =  %s\n", dynamic);
-  printf ("Object attrib when-focused =  %s\n", when_focused);
+  return object;
 }
 
-void
+mpui_obj_t *
+mpui_parse_node_obj (mpui_t *mpui, char **attribs)
+{
+  char *id, *when_focused;
+  mpui_obj_t *obj = NULL;
+
+  id = asx_get_attrib ("id", attribs);
+  when_focused = asx_get_attrib ("when_focused", attribs);
+
+  if (id)
+    {
+      mpui_object_t *object;
+      int wf = MPUI_DISPLAY_ALWAYS;
+
+      object = mpui_object_get (mpui, id);
+      if (when_focused)
+        {
+          if (!strcmp (when_focused, "yes"))
+            wf = MPUI_DISPLAY_FOCUSED;
+          else if (!strcmp (when_focused, "no"))
+            wf = MPUI_DISPLAY_NORMAL;
+        }
+
+      if (object)
+        obj = mpui_obj_new (object, wf);
+    }
+  asx_free_attribs (attribs);
+
+  printf ("Obj attrib id =  %s\n", id);
+  printf ("Obj attrib when_focused =  %s\n", when_focused);
+
+  return obj;
+}
+
+mpui_objects_t *
 mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
 {
   char *element;
   ASX_Parser_t* parser;
+  mpui_objects_t *objects;
+
+  objects = mpui_objects_new ();
 
   while (1)
     {
@@ -393,8 +437,9 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
         {
           ASX_Parser_t* sparser;
 
-          mpui_parse_node_object (attribs);
-              
+          mpui_object_t *object = mpui_parse_node_object (attribs);
+          mpui_objects_add (objects, object);
+
           while (1)
             {
               char *ssbody;
@@ -407,7 +452,7 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
                 break;
 
               if (!strcmp (element, "obj"))
-                mpui_parse_node_object (attribs);
+                mpui_parse_node_obj (mpui, attribs);
               else if (!strcmp (element, "img"))
                 mpui_parse_node_img (mpui, attribs);
               else if (!strcmp (element, "str"))
@@ -421,6 +466,8 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
       free (parser);
     }
   asx_free_attribs (attribs);
+
+  return objects;
 }
 
 
@@ -481,9 +528,9 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
                 break;
 
               if (!strcmp (element, "obj"))
-                mpui_parse_node_object (attribs);
+                mpui_parse_node_obj (mpui, attribs);
               else if (!strcmp (element, "img"))
-                mpui_parse_node_image (attribs);
+                mpui_parse_node_img (mpui, attribs);
               else if (!strcmp (element, "str"))
                 mpui_parse_node_str (mpui, attribs);
               else if (!strcmp (element, "all-menu-items"))
@@ -503,9 +550,9 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
                         break;
 
                       if (!strcmp (element, "obj"))
-                        mpui_parse_node_object (attribs);
+                        mpui_parse_node_obj (mpui, attribs);
                       else if (!strcmp (element, "img"))
-                        mpui_parse_node_image (attribs);
+                        mpui_parse_node_img (mpui, attribs);
                       else if (!strcmp (element, "str"))
                         mpui_parse_node_str (mpui, attribs);
                       else if (!strcmp (element, "action"))
@@ -530,9 +577,9 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
                         break;
 
                       if (!strcmp (element, "obj"))
-                        mpui_parse_node_object (attribs);
+                        mpui_parse_node_obj (mpui, attribs);
                       else if (!strcmp (element, "img"))
-                        mpui_parse_node_image (attribs);
+                        mpui_parse_node_img (mpui, attribs);
                       else if (!strcmp (element, "str"))
                         mpui_parse_node_str (mpui, attribs);
                       else if (!strcmp (element, "action"))
@@ -602,9 +649,9 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
                 break;
 
               if (!strcmp (element, "obj"))
-                mpui_parse_node_object (attribs);
+                mpui_parse_node_obj (mpui, attribs);
               else if (!strcmp (element, "img"))
-                mpui_parse_node_image (attribs);
+                mpui_parse_node_img (mpui, attribs);
               else if (!strcmp (element, "str"))
                 mpui_parse_node_str (mpui, attribs);
               else if (!strcmp (element, "mnu"))

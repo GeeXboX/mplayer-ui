@@ -286,14 +286,28 @@ mpui_fonts_free (mpui_fonts_t *fonts)
 
 
 mpui_object_t *
-mpui_object_new (mpui_object_flags_t flags)
+mpui_object_new (char *id, mpui_object_flags_t flags)
 {
   mpui_object_t *object;
 
   object = (mpui_object_t *) malloc (sizeof (*object));
+  object->id = mpui_strdup (id);
   object->flags = flags;
   object->elements = mpui_list_new ();
   return object;
+}
+
+mpui_object_t *
+mpui_object_get (mpui_t *mpui, char *id)
+{
+  mpui_objects_t **objects;
+  mpui_object_t **object;
+
+  for (objects=mpui->objects; *objects; objects++)
+    for (object=(*objects)->objects; *object; object++)
+      if (!strcmp ((*object)->id, id))
+        return *object;
+  return NULL;
 }
 
 void
@@ -304,9 +318,27 @@ mpui_object_free (mpui_object_t *object)
   while (*e)
     mpui_element_free (*e++);
   free (object->elements);
+  free (object->id);
   free (object);
 }
 
+mpui_obj_t *
+mpui_obj_new (mpui_object_t *object, mpui_when_focused_t when_focused)
+{
+  mpui_obj_t *obj;
+
+  obj = (mpui_obj_t *) malloc (sizeof (*obj));
+  obj->object = object;
+  obj->when_focused = when_focused;
+
+  return obj;
+}
+
+void
+mpui_obj_free (mpui_obj_t *obj)
+{
+  free (obj);
+}
 
 mpui_objects_t *
 mpui_objects_new (void)

@@ -41,6 +41,7 @@ typedef struct mpui_action mpui_action_t;
 typedef unsigned int mpui_object_flags_t;
 typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
+typedef struct mpui_obj mpui_obj_t;
 typedef unsigned int mpui_menu_orientation_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
 typedef struct mpui_menus mpui_menus_t;
@@ -159,8 +160,14 @@ struct mpui_objects {
 };
 
 struct mpui_object {
+  char *id;
   mpui_object_flags_t flags;
   mpui_element_t **elements;
+};
+
+struct mpui_obj {
+  mpui_object_t *object;
+  mpui_when_focused_t when_focused;
 };
 
 #define MPUI_MENU_ORIENTATION_H ((mpui_menu_orientation_t) 1)
@@ -240,10 +247,16 @@ void mpui_font_free (mpui_font_t *font);
 mpui_fonts_t *mpui_fonts_new (void);
 void mpui_fonts_free (mpui_fonts_t *fonts);
 
-mpui_object_t *mpui_object_new (mpui_object_flags_t flags);
+mpui_object_t *mpui_object_new (char *id, mpui_object_flags_t flags);
+mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
 void mpui_object_free (mpui_object_t *object);
 
+mpui_obj_t *mpui_obj_new (mpui_object_t *object,
+                          mpui_when_focused_t when_focused);
+void mpui_obj_free (mpui_obj_t *obj);
+
 mpui_objects_t *mpui_objects_new (void);
+#define mpui_objects_add(a,b) a->objects = mpui_list_add(a->objects, b)
 void mpui_objects_free (mpui_objects_t *objects);
 
 mpui_menu_t *mpui_menu_new (mpui_menu_orientation_t orientation,
