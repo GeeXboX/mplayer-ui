@@ -166,7 +166,7 @@ asx_parser_free(ASX_Parser_t* parser) {
 
 }
 
-#define LETTER "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#define LETTER "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-"
 #define SPACE " \n\t\r"
 
 int
