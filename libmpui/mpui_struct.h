@@ -219,8 +219,8 @@ mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
 #define mpui_strings_add(a,b) a->strings = mpui_list_add(a->strings, b)
 void mpui_strings_free (mpui_strings_t *strings);
 
-mpui_image_t *mpui_image_new (char *id, char *file,
-                              char *x, char *y, char *h, char *w);
+mpui_image_t *mpui_image_new (char *id, char *file, mpui_size_t x,
+                              mpui_size_t y, mpui_size_t h, mpui_size_t w);
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 

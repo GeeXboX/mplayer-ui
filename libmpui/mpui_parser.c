@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "../asxparser.h"
 
@@ -46,6 +47,40 @@ mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
     }
 
   return r;
+}
+
+mpui_size_t
+mpui_parse_size (char *size)
+{
+  mpui_size_t st;
+
+  st.val = 0;
+  if (size && *size)
+    {
+      /* Determine absolute position/size */
+      if (isdigit (size[0]))
+        {
+          int i, l = 0;
+          char *val = malloc (16 * sizeof (char));
+
+          for (i = 0; i < strlen (size); i++)
+            {
+              if (isdigit (size[i]))
+                l++;
+              else
+                break;
+            }
+
+          strncpy (val, size, l);
+          st.val = atoi (val);
+          st.absolute = (size[l+1] == '%') ? 0 : 1;
+          free (val);
+        }
+      /* FIXME: determine position/size for special keywords like
+         left, right, top, bottom, width, height */
+    }
+  
+  return st;
 }
 
 mpui_string_t *
@@ -104,7 +139,9 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
           if (*endptr)
             s = MPUI_FONT_SIZE_DEFAULT;
         }
-      /* FIXME: get sx, sy, and colors */
+      sx = mpui_parse_size (x);
+      sy = mpui_parse_size (y);
+      /* FIXME: get colors */
       if (string)
         str = mpui_str_new (string, sx, sy, font, s, col, fcol, wf);
     }
@@ -162,6 +199,7 @@ mpui_image_t *
 mpui_parse_node_image (char **attribs)
 {
   char *id, *file, *x, *y, *h, *w;
+  mpui_size_t sx, sy, sh, sw;
   mpui_image_t *image = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -171,8 +209,13 @@ mpui_parse_node_image (char **attribs)
   h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
 
+  sx = mpui_parse_size (x);
+  sy = mpui_parse_size (y);
+  sh = mpui_parse_size (h);
+  sw = mpui_parse_size (w);
+
   if (id && file)
-    image = mpui_image_new (id, file, x, y, h, w);
+    image = mpui_image_new (id, file, sx, sy, sh, sw);
   asx_free_attribs (attribs);
 
   return image;
@@ -205,7 +248,10 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
           else if (!strcmp (when_focused, "no"))
             wf = MPUI_DISPLAY_NORMAL;
         }
-      /* FIXME: get sx, sy, sh and sw */
+      sx = mpui_parse_size (x);
+      sy = mpui_parse_size (y);
+      sh = mpui_parse_size (h);
+      sw = mpui_parse_size (w);
       if (image)
         img = mpui_img_new (image, sx, sy, sh, sw, wf);
     }

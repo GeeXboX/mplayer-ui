@@ -148,21 +148,19 @@ mpui_strings_free (mpui_strings_t *strings)
 
 
 mpui_image_t *
-mpui_image_new (char *id, char *file, char *x, char *y, char *h, char *w)
+mpui_image_new (char *id, char *file, mpui_size_t x, mpui_size_t y,
+                mpui_size_t h, mpui_size_t w)
 {
   mpui_image_t *image;
 
   image = (mpui_image_t *) malloc (sizeof (*image));
   image->id = mpui_strdup (id);
   image->file = mpui_strdup (file);
-/*   if (x != NULL) */
-/*     image->x =   /\* FIXME: to implement *\/ */
-/*   if (y != NULL) */
-/*     image->y =   /\* FIXME: to implement *\/ */
-/*   if (h != NULL) */
-/*     image->h =   /\* FIXME: to implement *\/ */
-/*   if (w != NULL) */
-/*     image->w =   /\* FIXME: to implement *\/ */
+  image->x = x;
+  image->y = y;
+  image->h = h;
+  image->w = w;
+
   return image;
 }
 
