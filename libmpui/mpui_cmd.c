@@ -31,6 +31,7 @@ typedef void (* mpui_cmd_action_t) (mpui_t *mpui, mpui_element_t *element,
 static void
 mpui_cmd_for_each_element (mpui_t *mpui, mpui_element_t **elements,
                            char *element_id, mpui_type_t element_type,
+                           mpui_flags_t flags,
                            mpui_cmd_action_t func, void *data)
 {
   for (; *elements; elements++)
@@ -38,12 +39,13 @@ mpui_cmd_for_each_element (mpui_t *mpui, mpui_element_t **elements,
       if ((!element_id
            || ((*elements)->id && !strcmp ((*elements)->id, element_id)))
           && (element_type == MPUI_ANY
-              || element_type == (*elements)->type))
+              || element_type == (*elements)->type)
+          && ((flags & (*elements)->flags) == flags))
         func (mpui, *elements, data);
       if ((*elements)->flags & MPUI_FLAG_CONTAINER)
         mpui_cmd_for_each_element (mpui,
                                    ((mpui_container_t *) *elements)->elements,
-                                   element_id, element_type, func, data);
+                                   element_id, element_type, flags, func,data);
     }
 }
 
@@ -95,7 +97,7 @@ mpui_cmd_hide (mpui_t *mpui, char *element_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               element_id, MPUI_ANY,
+                               element_id, MPUI_ANY, 0,
                                mpui_cmd_hide_func, NULL);
 }
 
@@ -113,7 +115,7 @@ mpui_cmd_show (mpui_t *mpui, char *element_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               element_id, MPUI_ANY,
+                               element_id, MPUI_ANY, 0,
                                mpui_cmd_show_func, NULL);
 }
 
@@ -134,7 +136,7 @@ mpui_cmd_hide_switch (mpui_t *mpui, char *element_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               element_id, MPUI_ANY,
+                               element_id, MPUI_ANY, 0,
                                mpui_cmd_hide_switch_func, NULL);
 }
 
@@ -203,7 +205,7 @@ mpui_cmd_info (mpui_t *mpui, char *filename)
     return;
 
   mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                             NULL, MPUI_INF, mpui_cmd_info_func,
+                             NULL, MPUI_INF, 0, mpui_cmd_info_func,
                              (void *) filename);
 }
 
@@ -220,7 +222,7 @@ mpui_cmd_slideshow_path (mpui_t *mpui, char *slideshow_id, char *path)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               slideshow_id, MPUI_SLIDESHOW,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
                                mpui_cmd_slideshow_path_func, (void *) path);
 }
 
@@ -237,7 +239,7 @@ mpui_cmd_slideshow_pause (mpui_t *mpui, char *slideshow_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               slideshow_id, MPUI_SLIDESHOW,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
                                mpui_cmd_slideshow_pause_func, NULL);
 }
 
@@ -254,7 +256,7 @@ mpui_cmd_slideshow_prev (mpui_t *mpui, char *slideshow_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               slideshow_id, MPUI_SLIDESHOW,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
                                mpui_cmd_slideshow_prev_func, NULL);
 }
 
@@ -271,7 +273,7 @@ mpui_cmd_slideshow_next (mpui_t *mpui, char *slideshow_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               slideshow_id, MPUI_SLIDESHOW,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
                                mpui_cmd_slideshow_next_func, NULL);
 }
 
@@ -287,7 +289,7 @@ mpui_cmd_slideshow_mode (mpui_t *mpui, char *slideshow_id, char *mode)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               slideshow_id, MPUI_SLIDESHOW,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
                                mpui_cmd_slideshow_mode_func, mode);
 }
 
@@ -306,7 +308,7 @@ mpui_cmd_playlist_add (mpui_t *mpui, char *playlist_id, char *filename)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               playlist_id, MPUI_MNU,
+                               playlist_id, MPUI_MNU, 0,
                                mpui_cmd_playlist_add_func, filename);
 }
 
@@ -324,7 +326,7 @@ mpui_cmd_playlist_remove (mpui_t *mpui, char *playlist_id, char *filename)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               playlist_id, MPUI_MNU,
+                               playlist_id, MPUI_MNU, 0,
                                mpui_cmd_playlist_remove_func, filename);
 }
 
@@ -343,7 +345,7 @@ mpui_cmd_playlist_empty (mpui_t *mpui, char *playlist_id)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               playlist_id, MPUI_MNU,
+                               playlist_id, MPUI_MNU, 0,
                                mpui_cmd_playlist_empty_func, NULL);
 }
 
@@ -361,6 +363,6 @@ mpui_cmd_playlist_load (mpui_t *mpui, char *playlist_id, char *filename)
 {
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               playlist_id, MPUI_MNU,
+                               playlist_id, MPUI_MNU, 0,
                                mpui_cmd_playlist_load_func, filename);
 }
