@@ -1312,9 +1312,9 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
                                    + strlen (file) + 2);
               snprintf (f, strlen (MPLAYER_CONFDIR) + strlen (file) + 2,
                         "%s/%s", MPLAYER_CONFDIR, file);
+              fd = open (f, O_RDONLY);
+              free (f);
             }
-
-          fd = open (f, O_RDONLY);
           if (fd == -1)
             continue;
           if (fstat (fd, &st) == -1)
