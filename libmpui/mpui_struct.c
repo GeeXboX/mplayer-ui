@@ -1246,13 +1246,15 @@ mpui_screens_free (mpui_screens_t *screens)
 }
 
 mpui_t *
-mpui_new (int width, int height, int format)
+mpui_new (int width, int height, int format, char *theme)
 {
   mpui_t *mpui;
 
   mpui = (mpui_t *) malloc (sizeof (*mpui));
   mpui->width = width;
   mpui->height = height;
+  mpui->theme = mpui_strdup (theme);
+  mpui->datadir = NULL;
   mpui->diag = sqrt (width*width + height*height);
   mpui->format = format;
   mpui->strings = mpui_list_new ();
@@ -1278,6 +1280,9 @@ mpui_free (mpui_t *mpui)
   mpui_strings_t **strings = mpui->strings;
   mpui_fonts_t **fonts = mpui->fonts;
   mpui_filetypes_t **filetypes = mpui->filetypes;
+
+  free (mpui->theme);
+  free (mpui->datadir);
 
   while (*strings)
     mpui_strings_free (*strings++);

@@ -23,8 +23,7 @@
 #include "mpui_struct.h"
 #include "config.h"
 
-mpui_t *mpui_parse_config (mpui_t *ui, char *buffer, char *datadir, int width, int height, int format);
-mpui_t *mpui_parse_config_file (char *filename, int width, int height, int format);
+mpui_t *mpui_parse_config_file (char *theme, int width, int height, int format);
 
 void mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
                            mpui_size_t w, mpui_size_t h, int dynamic,

@@ -24,7 +24,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <unistd.h>
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -214,48 +213,16 @@ uninit (vf_instance_t *vf)
   vf->priv = NULL;
 }
 
-extern char * get_path (char *filename);
-
 static int
 config (struct vf_instance_s* vf, int width, int height,
         int d_width, int d_height, unsigned int flags, unsigned int outfmt)
 {
-  int fd;
-  char *config, *path;
-
   mp_msg (MSGT_VFILTER, MSGL_INFO,
           "mpui: Using theme '%s'\n", vf->priv->theme);
 
-  path = (char *) malloc (256 * sizeof (char));
-  sprintf (path, "mpui/%s/mpui.conf", vf->priv->theme); 
-  config = get_path (path);
-  free (path);
+  vf->priv->mpui = mpui_parse_config_file (vf->priv->theme,
+                                           width, height, outfmt);
 
-  /* Try to get theme's config file from home's dir first */
-  fd = open (config, O_RDONLY);
-  if (fd == -1)
-    {
-      /* ... then try from global data dir */
-      sprintf (config, "%s/mpui/%s/mpui.conf",
-               MPLAYER_DATADIR, vf->priv->theme);
-      fd = open (config, O_RDONLY);
-      if (fd == -1)
-        {
-          mp_msg (MSGT_VFILTER, MSGL_WARN,
-                  "mpui : No suitable mpui config file can be found\n");
-          config = NULL;
-        }
-    }
-  close (fd);
-
-  if (config)
-    {
-      mp_msg (MSGT_VFILTER, MSGL_INFO,
-              "mpui: Using configuration from %s\n", config);  
-      vf->priv->mpui = mpui_parse_config_file (config, width, height, outfmt);
-    }
-
-  free (config);
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
 }
 

@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <libgen.h>
+#include <string.h>
 
 #include "asxparser.h"
 #include "config.h"
@@ -35,6 +35,60 @@
 #include "mpui_focus.h"
 #include "mpui_image.h"
 #include "mpui_parser.h"
+
+extern char * get_path (char *filename);
+
+char *
+mpui_get_full_name (mpui_t *mpui, char *name)
+{
+  char *fullname = NULL;
+
+  if (mpui->datadir)
+    {
+      fullname = (char *) malloc (strlen (mpui->datadir) + strlen (name) + 2);
+      sprintf (fullname, "%s/%s", mpui->datadir, name);
+    }
+  else
+    {
+      struct stat st;
+      char path[256];
+      char *tmp, *datadir;
+
+      snprintf (path, 256, "mpui/%s/%s", mpui->theme, name);
+      fullname = get_path (path);
+
+      /* try to get the full name of the file from home's dir first */
+      if (!fullname || stat (fullname, &st) != 0)
+        {
+          /* ... then try from global data dir */
+          if (fullname)
+            fullname = realloc (fullname, strlen (MPLAYER_DATADIR)
+                                + strlen (mpui->theme) + strlen (name) + 8);
+          else
+            fullname = (char *) malloc (strlen (MPLAYER_DATADIR)
+                                        + strlen (mpui->theme)
+                                        + strlen (name) + 8);
+
+          sprintf (fullname, "%s/mpui/%s/%s",
+                   MPLAYER_DATADIR, mpui->theme, name);
+          if (stat (fullname, &st) != 0)
+            {
+              free (fullname);
+              return NULL;
+            }
+        }
+
+      datadir = strdup (fullname);
+      tmp = strrchr (datadir, '/');
+      if (tmp)
+        {
+          *tmp = '\0';
+          mpui->datadir = datadir;
+        }
+    }
+
+  return fullname;
+}
 
 static int
 mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
@@ -311,9 +365,7 @@ mpui_parse_node_string (mpui_t *mpui, char **attribs)
       struct stat st;
       char *f;
 
-      f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
-      snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
-                "%s/%s", mpui->datadir, file);
+      f = mpui_get_full_name (mpui, file);
 
       fd = open (f, O_RDONLY);
       free (f);
@@ -485,9 +537,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   free (w);
   free (h);
 
-  f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
-  snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
-            "%s/%s", mpui->datadir, file);
+  f = mpui_get_full_name (mpui, file);
 
   if (id && f)
     image = mpui_image_new (id, f, sx.val, sy.val, sw.val, sh.val);
@@ -602,9 +652,7 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
   focused_color = mpui_parse_color (focused_col);
   really_focused_color = mpui_parse_color (really_focused_col);
 
-  f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
-  snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
-            "%s/%s", mpui->datadir, file);
+  f = mpui_get_full_name (mpui, file);
 
   if (id && file)
     font = mpui_font_new (mpui, id, f, s, color,
@@ -1491,34 +1539,23 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
   return screens;
 }
 
-extern char * get_path (char *filename);
-
-mpui_t *
-mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
+static int
+mpui_parse_config (mpui_t *mpui, char *buffer,
                    int width, int height, int format)
 {
   char *element, *body, **attribs;
   mpui_element_t **elements;
-  mpui_t* mpui;
   ASX_Parser_t* parser = asx_parser_new();
 
   if (mpui_parse_get_element (parser, &buffer, &element, &body, &attribs) < 0)
-    return NULL;
+    return -1;
 
   if (strcmp (element, "mpui"))
     {
       printf ("Not a valid ui config file %d\n", parser->line);
       asx_parser_free (parser);
-      return NULL;
+      return -1;
     }
-
-  if (ui)
-    mpui = ui;
-  else
-    mpui = mpui_new (width, height, format);
-
-  if (datadir)
-    mpui->datadir = strdup (datadir);
 
   while(1)
     {
@@ -1527,7 +1564,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
 
       r = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
       if (r < 0)
-        return NULL;
+        return -1;
       else if (r == 0)
         break;
 
@@ -1539,9 +1576,9 @@ mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
           char *file, *f;
           
           file = asx_get_attrib ("file", attribs);
-          f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
-          snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
-                    "%s/%s", mpui->datadir, file);
+          f = mpui_get_full_name (mpui, file);
+
+          free (file);
           fd = open (f, O_RDONLY);
           free (f);
 
@@ -1560,7 +1597,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
               free (buffer);
               continue;
             }
-          mpui_parse_config (mpui, buffer, NULL, width, height, format);
+          mpui_parse_config (mpui, buffer, width, height, format);
           free (buffer);
         }
       else if (!strcmp (element, "strings"))
@@ -1627,18 +1664,24 @@ mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
         }
     }
 
-  return mpui;
+  return 0;
 }
 
 mpui_t *
-mpui_parse_config_file (char *filename, int width, int height, int format)
+mpui_parse_config_file (char *theme, int width, int height, int format)
 {
   int fd, r;
   struct stat st;
-  char *buffer;
+  char *buffer, *filename;
   mpui_t *mpui;
 
+  mpui = mpui_new (width, height, format, theme);  
+  filename = mpui_get_full_name (mpui, "mpui.conf");
+  if (!filename)
+    return NULL;
+
   fd = open (filename, O_RDONLY);
+  free (filename);
   if (fd == -1)
     return NULL;
   if (fstat (fd, &st) == -1)
@@ -1654,9 +1697,14 @@ mpui_parse_config_file (char *filename, int width, int height, int format)
       free (buffer);
       return NULL;
     }
-  mpui = mpui_parse_config (NULL, buffer, dirname (filename),
-                            width, height, format);
-  free (buffer);
 
+  if (mpui_parse_config (mpui, buffer, width, height, format) != 0)
+    {
+      mpui_free (mpui);
+      free (buffer);
+      return NULL;
+    }
+
+  free (buffer);
   return mpui;
 }
