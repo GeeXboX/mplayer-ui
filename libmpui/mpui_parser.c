@@ -122,8 +122,8 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   font_id = asx_get_attrib ("font", attribs);
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
-  focused_color = asx_get_attrib ("focused_color", attribs);
-  when_focused = asx_get_attrib ("when_focused", attribs);
+  focused_color = asx_get_attrib ("focused-color", attribs);
+  when_focused = asx_get_attrib ("when-focused", attribs);
   asx_free_attribs (attribs);
 
   if (id)
@@ -241,7 +241,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   y = asx_get_attrib ("y", attribs);
   h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
-  when_focused = asx_get_attrib ("when_focused", attribs);
+  when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
@@ -393,7 +393,7 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
   mpui_obj_t *obj = NULL;
 
   id = asx_get_attrib ("id", attribs);
-  when_focused = asx_get_attrib ("when_focused", attribs);
+  when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {

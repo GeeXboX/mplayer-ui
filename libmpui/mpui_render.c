@@ -208,13 +208,28 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
   switch (element->type)
     {
     case MPUI_IMG:
-      mpui_render_image (element->img->image, mpi);
+      if (element->img->when_focused == MPUI_DISPLAY_ALWAYS
+          || (element->focus 
+              && element->img->when_focused == MPUI_DISPLAY_FOCUSED)
+          || (!element->focus 
+              && element->img->when_focused == MPUI_DISPLAY_NORMAL))
+        mpui_render_image (element->img->image, mpi);
       break;
     case MPUI_OBJ:
-      mpui_render_object (element->obj->object, mpi);
+      if (element->obj->when_focused == MPUI_DISPLAY_ALWAYS
+          || (element->focus 
+              && element->obj->when_focused == MPUI_DISPLAY_FOCUSED)
+          || (!element->focus 
+              && element->obj->when_focused == MPUI_DISPLAY_NORMAL))
+        mpui_render_object (element->obj->object, mpi);
       break;
     case MPUI_STR:
-      mpui_render_string (element->str, mpi);
+      if (element->str->when_focused == MPUI_DISPLAY_ALWAYS
+          || (element->focus 
+              && element->str->when_focused == MPUI_DISPLAY_FOCUSED)
+          || (!element->focus 
+              && element->str->when_focused == MPUI_DISPLAY_NORMAL))
+        mpui_render_string (element->str, mpi);
       break;
     default:
       break;

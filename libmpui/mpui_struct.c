@@ -518,6 +518,7 @@ mpui_element_new (mpui_type_t type, void *elem)
 
   element = (mpui_element_t *) malloc (sizeof (*element));
   element->type = type;
+  element->focus = 0;
   switch (type)
     {
     case MPUI_STRING:

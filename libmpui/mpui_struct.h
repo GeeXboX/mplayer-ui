@@ -75,6 +75,7 @@ enum mpui_type {
 
 struct mpui_element {
   mpui_type_t type;
+  int focus;
   union {
     void *ptr;
     mpui_string_t *string;
