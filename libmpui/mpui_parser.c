@@ -16,6 +16,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -55,26 +56,15 @@ mpui_parse_size (char *size)
   mpui_size_t st;
 
   st.val = 0;
+  st.absolute = 1;
   if (size && *size)
     {
       /* Determine absolute position/size */
       if (isdigit (size[0]))
         {
-          int i, l = 0;
-          char *val = malloc (16 * sizeof (char));
-
-          for (i = 0; i < strlen (size); i++)
-            {
-              if (isdigit (size[i]))
-                l++;
-              else
-                break;
-            }
-
-          strncpy (val, size, l);
-          st.val = atoi (val);
-          st.absolute = (size[l+1] == '%') ? 0 : 1;
-          free (val);
+          char *end;
+          st.val = strtol (size, &end, 10);
+          st.absolute = (*end == '%') ? 0 : 1;
         }
       /* FIXME: determine position/size for special keywords like
          left, right, top, bottom, width, height */
@@ -83,47 +73,21 @@ mpui_parse_size (char *size)
   return st;
 }
 
-int
-color_from_hex (char *color)
-{
-  int value = 0;
-
-  tolower (color[0]);
-  tolower (color[1]);
-
-  if (color[0] >= 'a' && color[0] <= 'f')
-    value = (color[0] - 87) * 16;
-  else if (color[0] >= '0' && color[0] <= '9')
-    value = (color[0] - 48) * 16;
-  if (color[1] >= 'a' && color[0] <= 'f')
-    value += color[1] - 87;
-  else if (color[1] >= '0' && color[0] <= '9')
-    value += color[1] - 48;
-
-  return value;
-}
-
 mpui_color_t
 mpui_parse_color (char *color)
 {
-  mpui_color_t c;
+  mpui_color_t c = {0, 0, 0};
   
   if (color && color[0] == '#' && strlen (color) == 7)
     {
-      char val[3];
-
-      val[0] = color[1];
-      val[1] = color[2];
-      val[2] = '\0';
-      c.r = color_from_hex (val);
-      
-      val[0] = color[3];
-      val[1] = color[4];
-      c.g = color_from_hex (val);
-
-      val[0] = color[5];
-      val[1] = color[6];
-      c.b = color_from_hex (val);
+      char *end;
+      int val = strtol (color+1, &end, 16);
+      if (end > color+1 && *end == '\0')
+        {
+          c.r = (val & 0xFF0000) >> 16;
+          c.g = (val & 0x00FF00) >> 8;
+          c.b = (val & 0x0000FF);
+        }
     }
 
   return c;
