@@ -442,7 +442,7 @@ void *mpui_list_new (void);
 int mpui_list_empty (void *list);
 int mpui_list_length (void *list);
 void *mpui_list_add (void *list, void *element);
-void mpui_list_remove_last (void *list);
+void *mpui_list_remove_last (void *list);
 void mpui_list_free (void *list, mpui_list_free_func_t func);
 
 mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
@@ -723,10 +723,10 @@ mpui_screen_popups_add (mpui_screen_t *screen, mpui_popup_t *popup)
   screen->popup_stack = mpui_list_add(screen->popup_stack, popup);
 }
 
-static inline void
+static inline void *
 mpui_screen_popups_remove_last (mpui_screen_t *screen)
 {
-  mpui_list_remove_last (screen->popup_stack);
+  return mpui_list_remove_last (screen->popup_stack);
 }
 
 mpui_screens_t *mpui_screens_new (void);

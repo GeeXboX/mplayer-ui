@@ -75,13 +75,17 @@ mpui_list_add (void *list, void *element)
   return l;
 }
 
-void
+void *
 mpui_list_remove_last (void *list)
 {
   int n = mpui_list_length (list) - 1;
-  void **l = list;
+  void **l = list, *e = NULL;
   if (n >= 0)
-    l[n] = NULL;
+    {
+      e = l[n];
+      l[n] = NULL;
+    }
+  return e;
 }
 
 void
