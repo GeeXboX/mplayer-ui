@@ -31,11 +31,11 @@ OBJS_MENCODER = $(SRCS_MENCODER:.c=.o)
 OBJS_MPLAYER = $(SRCS_MPLAYER:.c=.o)
 
 VO_LIBS = $(AA_LIB) $(X_LIB) $(SDL_LIB) $(GGI_LIB) $(MP1E_LIB) $(MLIB_LIB) $(SVGA_LIB) $(DIRECTFB_LIB) $(CACA_LIB)
-AO_LIBS = $(ARTS_LIB) $(ESD_LIB) $(JACK_LIB) $(NAS_LIB) $(SGIAUDIO_LIB)
+AO_LIBS = $(ARTS_LIB) $(ESD_LIB) $(JACK_LIB) $(NAS_LIB) $(SGIAUDIO_LIB) $(POLYP_LIB)
 CODEC_LIBS = $(AV_LIB) $(FAME_LIB) $(MAD_LIB) $(VORBIS_LIB) $(THEORA_LIB) $(FAAD_LIB) $(LIBLZO_LIB) $(DECORE_LIB) $(XVID_LIB) $(DTS_LIB) $(PNG_LIB) $(Z_LIB) $(JPEG_LIB) $(ALSA_LIB) $(XMMS_LIB) $(X264_LIB)
 COMMON_LIBS = libmpcodecs/libmpcodecs.a $(W32_LIB) $(DS_LIB) libaf/libaf.a libmpdemux/libmpdemux.a input/libinput.a postproc/libswscale.a osdep/libosdep.a $(DVDREAD_LIB) $(CODEC_LIBS) $(FREETYPE_LIB) $(TERMCAP_LIB) $(CDPARANOIA_LIB) $(MPLAYER_NETWORK_LIB) $(WIN32_LIB) $(GIF_LIB) $(MACOSX_FRAMEWORKS) $(SMBSUPPORT_LIB) $(FRIBIDI_LIB) $(FONTCONFIG_LIB) $(ENCA_LIB)
 
-CFLAGS = $(OPTFLAGS) -Ilibmpdemux -Iloader -Ilibvo $(FREETYPE_INC) $(EXTRA_INC) $(CDPARANOIA_INC) $(SDL_INC) $(X11_INC) $(FRIBIDI_INC) $(DVB_INC) $(XVID_INC) $(FONTCONFIG_INC) $(CACA_INC) # -Wall
+CFLAGS = $(OPTFLAGS) -I. $(FREETYPE_INC) $(EXTRA_INC) $(CDPARANOIA_INC) $(SDL_INC) $(X11_INC) $(FRIBIDI_INC) $(DVB_INC) $(XVID_INC) $(FONTCONFIG_INC) $(CACA_INC) # -Wall
 ifeq ($(TOOLAME),yes)
 CFLAGS += $(TOOLAME_EXTRAFLAGS) 
 CODEC_LIBS += $(TOOLAME_LIB)
@@ -356,7 +356,7 @@ clean:
 
 distclean: doxygen_clean
 	-rm -f *~ $(PRG) $(PRG_MENCODER) $(PRG_CFG) $(OBJS)
-	-rm -f *.o *.a .depend configure.log codecs.conf.h
+	-rm -f *.o *.a .depend configure.log codecs.conf.h help_mp.h
 	@for a in $(PARTS); do $(MAKE) -C $$a distclean; done
 
 strip:

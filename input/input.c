@@ -55,6 +55,9 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_EDL_MARK, "edl_mark", 0, { {-1,{0}} } },
 #endif
   { MP_CMD_AUDIO_DELAY, "audio_delay", 1, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
+  { MP_CMD_SPEED_INCR, "speed_incr", 1, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
+  { MP_CMD_SPEED_MULT, "speed_mult", 1, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
+  { MP_CMD_SPEED_SET, "speed_set", 1, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
   { MP_CMD_QUIT, "quit", 0, { {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
   { MP_CMD_PAUSE, "pause", 0, { {-1,{0}} } },
   { MP_CMD_FRAME_STEP, "frame_step", 0, { {-1,{0}} } },
@@ -115,6 +118,7 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_SWITCH_VSYNC, "switch_vsync", 0, { {MP_CMD_ARG_INT,{0}}, {-1,{0}} } },
   { MP_CMD_LOADFILE, "loadfile", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_LOADLIST, "loadlist", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_RUN, "run", 1, { {MP_CMD_ARG_STRING,{0}}, {-1,{0}} } },
   { MP_CMD_VF_CHANGE_RECTANGLE, "change_rectangle", 2, { {MP_CMD_ARG_INT,{0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}}}},
 
 #ifdef HAVE_NEW_GUI  
@@ -139,7 +143,6 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_CHELP, "help", 0, { {-1,{0}} } },
   { MP_CMD_CEXIT, "exit", 0, { {-1,{0}} } },
   { MP_CMD_CHIDE, "hide", 0, { {MP_CMD_ARG_INT,{3000}}, {-1,{0}} } },
-  { MP_CMD_CRUN, "run", 1, { {MP_CMD_ARG_STRING,{0}}, {-1,{0}} } },
 #endif
 
   { MP_CMD_GET_VO_FULLSCREEN, "get_vo_fullscreen", 0, { {-1,{0}} } },
@@ -277,6 +280,11 @@ static mp_cmd_bind_t def_cmd_binds[] = {
   { { KEY_PAGE_DOWN, 0 }, "seek -600" },
   { { '-', 0 }, "audio_delay 0.100" },
   { { '+', 0 }, "audio_delay -0.100" },
+  { { '[', 0 }, "speed_mult 0.9091" },
+  { { ']', 0 }, "speed_mult 1.1" },
+  { { '{', 0 }, "speed_mult 0.5" },
+  { { '}', 0 }, "speed_mult 2.0" },
+  { { KEY_BACKSPACE, 0 }, "speed_set 1.0" },
   { { 'q', 0 }, "quit" },
   { { KEY_ESC, 0 }, "quit" },
 #ifndef HAVE_NEW_GUI
@@ -541,12 +549,18 @@ mp_input_add_key_fd(int fd, int select, mp_key_func_t read_func, mp_close_func_t
 mp_cmd_t*
 mp_input_parse_cmd(char* str) {
   int i,l;
+  int pausing = 0;
   char *ptr,*e;
   mp_cmd_t *cmd, *cmd_def;
 
 #ifdef MP_DEBUG
   assert(str != NULL);
 #endif
+
+  if (strncmp(str, "pausing ", 8) == 0) {
+    pausing = 1;
+    str = &str[8];
+  }
 
   for(ptr = str ; ptr[0] != '\0'  && ptr[0] != '\t' && ptr[0] != ' ' ; ptr++)
     /* NOTHING */;
@@ -571,6 +585,7 @@ mp_input_parse_cmd(char* str) {
   cmd = (mp_cmd_t*)malloc(sizeof(mp_cmd_t));
   cmd->id = cmd_def->id;
   cmd->name = strdup(cmd_def->name);
+  cmd->pausing = pausing;
 
   ptr = str;
 
@@ -1351,7 +1366,7 @@ mp_input_parse_config(char *file) {
   fd = open(file,O_RDONLY);
 
   if(fd < 0) {
-    mp_msg(MSGT_INPUT,MSGL_ERR,"Can't open input config file %s: %s\n",file,strerror(errno));
+    mp_msg(MSGT_INPUT,MSGL_V,"Can't open input config file %s: %s\n",file,strerror(errno));
     return 0;
   }
 
@@ -1377,7 +1392,7 @@ mp_input_parse_config(char *file) {
     }
     // Empty buffer : return
     if(bs <= 1) {
-      mp_msg(MSGT_INPUT,MSGL_INFO,"Input config file %s parsed: %d binds\n",file,n_binds);
+      mp_msg(MSGT_INPUT,MSGL_V,"Input config file %s parsed: %d binds\n",file,n_binds);
       if(binds)
 	cmd_binds = binds;
       close(fd);
@@ -1518,7 +1533,7 @@ mp_input_init(void) {
     // Try global conf dir
     file = MPLAYER_CONFDIR "/input.conf";
     if(! mp_input_parse_config(file))
-      mp_msg(MSGT_INPUT,MSGL_WARN,"Falling back on default (hardcoded) input config\n");
+      mp_msg(MSGT_INPUT,MSGL_V,"Falling back on default (hardcoded) input config\n");
   }
   else
   {
@@ -1581,6 +1596,8 @@ mp_input_uninit(void) {
     if(cmd_fds[i].close_func)
       cmd_fds[i].close_func(cmd_fds[i].fd);
   }
+  mp_input_free_binds(cmd_binds);
+  cmd_binds=NULL;
   
 }
 
