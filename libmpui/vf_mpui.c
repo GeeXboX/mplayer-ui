@@ -28,6 +28,9 @@
 #include "../libmpcodecs/img_format.h"
 #include "../libmpcodecs/vf.h"
 #include "../libvo/fastmemcpy.h"
+#include "../input/input.h"
+#include "../osdep/keycodes.h"
+#include "../mplayer.h"
 
 #include "mpui_parser.h"
 #include "mpui_render.h"
@@ -35,6 +38,7 @@
 
 struct vf_priv_s {
   mpui_t *mpui;
+  int show;
 };
 
 
@@ -73,10 +77,26 @@ copy_mpi(mp_image_t *dmpi, mp_image_t *mpi)
     }
 }
 
+static void
+read_keycode (int code)
+{
+  switch (code)
+    {
+    case KEY_ESC:
+      exit_player ("mpui");
+    }
+}
+
 static int
 put_image (struct vf_instance_s* vf, mp_image_t *mpi)
 {
   mp_image_t *dmpi = mpi;
+
+  /* (Un)Grab the keys */
+  if (!mp_input_key_cb && vf->priv->show)
+    mp_input_key_cb = read_keycode;
+  if (mp_input_key_cb && !vf->priv->show)
+    mp_input_key_cb = NULL;
 
   if (vf->priv->mpui && vf->priv->mpui->screens && vf->priv->mpui->screens->menu)
     {
@@ -118,6 +138,7 @@ open (vf_instance_t *vf, char* args)
 
   vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
   vf->priv->mpui = NULL;
+  vf->priv->show = 1;
 
   return 1;
 }
