@@ -356,7 +356,7 @@ static inline void
 mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
                     mpui_render_context_t *context)
 {
-  char *p, *txt = str->string->text;
+  char *txt = str->string->text;
   font_desc_t *font;
   mpui_color_t *color;
   int f, c;
@@ -391,10 +391,6 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   else if (str->color)
     color = str->color;
 
-  p = txt;
-  while ((c = mpui_string_get_next_char (&p, str->string->encoding)))
-    render_one_glyph (font, c);
-
   while ((c = mpui_string_get_next_char (&txt, str->string->encoding)))
     {
       if (c == '\n')
@@ -403,6 +399,7 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
           context->y += font->height;
           continue;
         }
+      render_one_glyph (font, c);
       if ((f = font->font[c]) >= 0
           && (context->x + font->width[c] <= mpi->w)
           && (context->x + font->width[c] + font->charspace <= x_end)
