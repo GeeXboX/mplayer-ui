@@ -416,7 +416,12 @@ mpui_focus_unfocus (mpui_focus_box_t *focus_box)
 void
 mpui_focus_action_exec (mpui_focus_box_t *focus_box, mpui_action_when_t when)
 {
-  mpui_action_t **actions = ((mpui_container_t *) *focus_box->focus)->actions;
+  mpui_action_t **actions;
+
+  if (!focus_box->focus)
+    return;
+
+  actions = ((mpui_container_t *) *focus_box->focus)->actions;
 
   if (actions)
     for (; *actions; actions++)
