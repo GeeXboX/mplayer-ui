@@ -73,6 +73,7 @@ mpui_parse_when_focused (char **attribs)
         wf = MPUI_DISPLAY_REALLY_NORMAL;
     }
 
+  free (when_focused);
   return wf;
 }
 
@@ -96,6 +97,7 @@ mpui_parse_alignment (char **attribs)
         align = MPUI_ALIGNMENT_BOTTOM;
     }
 
+  free (al);
   return align;
 }
 
@@ -280,11 +282,20 @@ mpui_parse_node_string (char **attribs)
                 "%s%s", MPUI_DATADIR, file);
 
       fd = open (f, O_RDONLY);
+      free (f);
       if (fd == -1)
-        return NULL;
+        {
+          free (id);
+          free (text);
+          free (file);
+          return NULL;
+        }
       if (fstat (fd, &st) == -1)
         {
           close (fd);
+          free (id);
+          free (text);
+          free (file);
           return NULL;
         }
       text = (char *) malloc (st.st_size);
@@ -292,14 +303,20 @@ mpui_parse_node_string (char **attribs)
       close (fd);
       if (r != st.st_size)
         {
+          free (id);
           free (text);
+          free (file);
           return NULL;
         }
     }
 
   if (id && text)
     string = mpui_string_new (id, text);
+
   asx_free_attribs (attribs);
+  free (id);
+  free (text);
+  free (file);
 
   return string;
 }
@@ -354,6 +371,15 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
         }
     }
 
+  free (id);
+  free (x);
+  free (y);
+  free (absolute);
+  free (font_id);
+  free (size);
+  free (color);
+  free (focused_color);
+
   return str;
 }
 
@@ -369,6 +395,8 @@ mpui_parse_node_strings (char **attribs, char *body)
   asx_free_attribs (attribs);
 
   strings = mpui_strings_new (code, lang);
+  free (code);
+  free (lang);
 
   while (1)
     {
@@ -410,13 +438,22 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   sw = mpui_parse_size (w, mpui->width, 0);
   sh = mpui_parse_size (h, mpui->height, 0);
 
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+
   f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
   snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
             "%s%s", MPUI_DATADIR, file);
 
   if (id && f)
     image = mpui_image_new (id, f, sx.val, sy.val, sw.val, sh.val);
+
   asx_free_attribs (attribs);
+  free (id);
+  free (file);
+  free (f);
 
   return image;
 }
@@ -456,7 +493,11 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
         }
     }
   asx_free_attribs (attribs);
-
+  free (id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
   return img;
 }
 
@@ -519,6 +560,13 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
   if (id && file)
     font = mpui_font_new (mpui, id, f, s, color, focused_color);
 
+  free (id);
+  free (file);
+  free (size);
+  free (col);
+  free (focused_col);
+  free (f);
+
   return font;
 }
 
@@ -575,7 +623,8 @@ mpui_parse_node_action (char **attribs)
 
   if (cmd)
     action = mpui_action_new (cmd);
-                  
+         
+  free (cmd);
   return action;
 }
 
@@ -616,7 +665,10 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
         }
     }
   asx_free_attribs (attribs);
-
+  free (id);
+  free (x);
+  free (y);
+  free (absolute);
   return obj;
 }
 
@@ -637,6 +689,9 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
   sy = mpui_parse_size (y, mpui->height, 0);
   object = mpui_object_new (id, sx.val, sy.val);
   asx_free_attribs (attribs);
+  free (id);
+  free (x);
+  free (y);
 
   while (1)
     {
@@ -831,7 +886,14 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   if (id)
     menu = mpui_menu_new (id, orientation, mx.val, my.val);
+
   asx_free_attribs (attribs);
+  free (id);
+  free (orient);
+  free (spacing);
+  free (font_id);
+  free (x);
+  free (y);
 
   while (1)
     {
@@ -921,7 +983,9 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   my = mpui_parse_size (h, mpui->height, item_y + ms.val/2);
   menu->w = mx.val;
   menu->h = my.val;
-  
+  free (w);
+  free (h);
+
   if (font)
     mpui->fonts[0]->deflt = default_font;
 
@@ -955,6 +1019,10 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
         }
     }
 
+  free (id);
+  free (x);
+  free (y);
+  free (absolute);
   return mnu;
 }
 
@@ -999,6 +1067,8 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
   x = mpui_parse_size (sx, mpui->width, 0);
   y = mpui_parse_size (sy, mpui->height, 0);
   asx_free_attribs (attribs);
+  free (sx);
+  free (sy);
 
   if (id)
     {
@@ -1034,6 +1104,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
       mpui_elements_get_size (&container->element, container->elements, NULL);
     }
 
+  free (id);
   return popup;
 }
 
@@ -1075,6 +1146,7 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
 
   if (id)
     screen = mpui_screen_new (id);
+  free (id);
 
   while (1)
     {
@@ -1096,13 +1168,14 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "mnu"))
         elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
 
-      if (elt)
+      if (elt && screen)
         mpui_add_element (screen, elt);
       free (parser);
     }
   asx_free_attribs (attribs);
 
-  mpui_focus_box_first (screen);
+  if (screen)
+    mpui_focus_box_first (screen);
 
   return screen;
 }
@@ -1142,6 +1215,8 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
   screens->menu = mpui_screen_get (screens, menu);
   screens->ctrl = mpui_screen_get (screens, control);
 
+  free (menu);
+  free (control);
   return screens;
 }
 
