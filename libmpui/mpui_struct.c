@@ -217,8 +217,8 @@ mpui_image_new (char *id, char *file,
   image->y = y;
   image->w = w;
   image->h = h;
-  image->alpha = 0;
   image->num_planes = 0;
+  image->raw.data = NULL;
 
   return image;
 }
@@ -241,6 +241,7 @@ mpui_image_free (mpui_image_t *image)
 {
   free (image->id);
   free (image->file);
+  free (image->raw.data);
   if (image->num_planes > 0)
     free (image->planes[0]);
   free (image);
@@ -262,6 +263,22 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
   img->element.h = h;
   img->element.when_focused = when_focused;
   img->image = image;
+  if (!image->raw.data)
+    mpui_image_load (image);
+
+  if (img->element.w == 0 && img->element.h == 0)
+    {
+      img->element.w = image->w;
+      img->element.h = image->h;
+    }
+  else if (image->raw.data)
+    {
+      if (img->element.w == 0)
+        img->element.w = img->element.h*image->raw.w/image->raw.h;
+      if (img->element.h == 0)
+        img->element.h = img->element.w*image->raw.h/image->raw.w;
+    }
+
   return img;
 }
 
@@ -272,8 +289,8 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
 
   if (img->element.w == image->w && img->element.h == image->h)
     {
-      if (image->num_planes <= 0)
-        mpui_image_load (image, mpui->format);
+      if (image->raw.data && image->num_planes <= 0)
+        mpui_image_convert (image, &image->raw, mpui->format);
     }
   else
     {
@@ -281,7 +298,8 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
                               img->element.x, img->element.y,
                               img->element.w, img->element.h);
       mpui_images_add (mpui->images[0], image);
-      mpui_image_load (image, mpui->format);
+      if (img->image->raw.data)
+        mpui_image_convert (image, &img->image->raw, mpui->format);
       img->image = image;
     }
 }

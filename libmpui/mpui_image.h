@@ -21,6 +21,8 @@
 
 #include "mpui_struct.h"
 
-int mpui_image_load (mpui_image_t *image, int format);
+int mpui_image_load (mpui_image_t *image);
+void mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw,
+                         int format);
 
 #endif /* MPUI_IMAGE_H */

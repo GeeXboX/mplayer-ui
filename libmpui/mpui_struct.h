@@ -36,6 +36,7 @@ typedef struct mpui_strings mpui_strings_t;
 typedef struct mpui_string mpui_string_t;
 typedef struct mpui_str mpui_str_t;
 typedef struct mpui_images mpui_images_t;
+typedef struct mpui_raw_image mpui_raw_image_t;
 typedef struct mpui_image mpui_image_t;
 typedef struct mpui_img mpui_img_t;
 typedef struct mpui_fonts mpui_fonts_t;
@@ -128,12 +129,21 @@ struct mpui_images {
   mpui_image_t **images;
 };
 
+struct mpui_raw_image {
+  int format;
+  int alpha;
+  int bpp;
+  int w, h;
+  int stride;
+  unsigned char *data;
+};
+
 struct mpui_image {
   char *id;
   char *file;
+  mpui_raw_image_t raw;
   mpui_size_t x, y, w, h;
   int format;         /* one of the IMGFMT_* */
-  int width, height;  /* original size of image file */
   int alpha;          /* does the image contain an alpha channel */
   int bpp;            /* byte per pixel (only for packed format) */
   int num_planes;     /* 1 for packed format, generaly 3 for planar */

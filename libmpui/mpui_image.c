@@ -81,14 +81,18 @@ mpui_image_permultiply_alpha (mpui_image_t *image)
     mpui_image_packed_permultiply_alpha (image);
 }
 
-static void
-mpui_image_convert (mpui_image_t *image, int format)
+void
+mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 {
   struct SwsContext *sws;
-  int sbpp = image->bpp;
-  float dbpp = image->alpha ? 2.75 : 1.5;
+  float dbpp;
   unsigned char *src[3];
   int src_stride[3];
+  int sformat;
+
+  image->alpha = raw->alpha;
+  sformat = raw->format;
+  dbpp = image->alpha ? 2.75 : 1.5;
 
   switch (format)
     {
@@ -100,7 +104,7 @@ mpui_image_convert (mpui_image_t *image, int format)
       break;
     case IMGFMT_I420:
     case IMGFMT_IYUV:
-      image->format = image->format == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
+      sformat = sformat == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
     case IMGFMT_YV12:
       image->num_planes = 3;
       image->chroma_width = image->w >> 1;
@@ -113,12 +117,12 @@ mpui_image_convert (mpui_image_t *image, int format)
       image->bpp = 2;
       dbpp = image->alpha ? image->bpp + 1 : image->bpp;
       /* strange but needed to avoid color inversion */
-      image->format = image->format == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
+      sformat = sformat == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
       break;
     }
 
-  src[0] = image->planes[0];
-  src_stride[0] = image->stride[0];
+  src[0] = raw->data;
+  src_stride[0] = raw->stride;
 
   image->planes[0] = (unsigned char *) malloc(dbpp * image->w * image->h);
   if (image->num_planes >= 3)
@@ -132,9 +136,9 @@ mpui_image_convert (mpui_image_t *image, int format)
   else
     image->stride[0] = image->bpp * image->w;
 
-  sws = sws_getContext (image->width, image->height, image->format, image->w,
+  sws = sws_getContext (raw->w, raw->h, sformat, image->w,
                         image->h, format, SWS_BILINEAR, NULL, NULL, NULL);
-  sws_scale (sws, src, src_stride, 0, image->height,
+  sws_scale (sws, src, src_stride, 0, raw->h,
              image->planes, image->stride);
   sws_freeContext (sws);
   image->format = format;
@@ -150,17 +154,16 @@ mpui_image_convert (mpui_image_t *image, int format)
       image->stride[3] = image->w;
 
       img = src[0] + 3;
-      a = alpha_buffer = (unsigned char *) malloc (image->width*image->height);
-      for (end=a+image->width*image->height; a<end; a++, img+=sbpp)
+      a = alpha_buffer = (unsigned char *) malloc (raw->w * raw->h);
+      for (end=a+raw->w*raw->h; a<end; a++, img+=raw->bpp)
         *a = *img;
-      free (src[0]);
       src[0] = alpha_buffer;
-      src_stride[0] = image->width;
+      src_stride[0] = raw->w;
 
-      sws = sws_getContext (image->width, image->height, IMGFMT_Y8,
+      sws = sws_getContext (raw->w, raw->h, IMGFMT_Y8,
                             image->w, image->h, IMGFMT_Y8,
                             SWS_BILINEAR, NULL, NULL, NULL);
-      sws_scale (sws, src, src_stride, 0, image->height,
+      sws_scale (sws, src, src_stride, 0, raw->h,
                  image->planes+3, image->stride+3);
       sws_freeContext (sws);
 
@@ -169,30 +172,30 @@ mpui_image_convert (mpui_image_t *image, int format)
           image->planes[4] = image->planes[3] + image->w * image->h;
           image->stride[4] = image->chroma_width;
 
-          sws = sws_getContext (image->width, image->height, IMGFMT_Y8,
+          sws = sws_getContext (raw->w, raw->h, IMGFMT_Y8,
                                 image->chroma_width, image->chroma_height,
                                 IMGFMT_Y8, SWS_BILINEAR, NULL, NULL, NULL);
-          sws_scale (sws, src, src_stride, 0, image->height,
+          sws_scale (sws, src, src_stride, 0, raw->h,
                      image->planes+4, image->stride+4);
           sws_freeContext (sws);
         }
 
+      free (alpha_buffer);
+
       mpui_image_permultiply_alpha (image);
     }
-
-  free (src[0]);
 }
 
 
 static int
-mpui_image_load_png (mpui_image_t *image, FILE *fp)
+mpui_image_load_png (mpui_raw_image_t *raw, FILE *fp)
 {
   png_structp png;
   png_infop info, end_info;
   png_uint_32 width, height;
   png_bytep *row;
   int depth, color;
-  int i, line_length;
+  int i;
 
   png = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   info = png_create_info_struct (png);
@@ -202,14 +205,14 @@ mpui_image_load_png (mpui_image_t *image, FILE *fp)
   png_read_info (png, info);
   png_get_IHDR (png, info, &width, &height, &depth, &color, NULL, NULL, NULL);
   if (png_get_valid (png, info, PNG_INFO_tRNS))
-    image->alpha = 1;
+    raw->alpha = 1;
   else
-    image->alpha = color & PNG_COLOR_MASK_ALPHA;
-  image->format = image->alpha ? IMGFMT_BGR32 : IMGFMT_BGR24;
-  image->width = width;
-  image->height = height;
-  image->bpp = image->alpha ? 4 : 3;
-  image->stride[0] = image->bpp * image->width;
+    raw->alpha = color & PNG_COLOR_MASK_ALPHA;
+  raw->format = raw->alpha ? IMGFMT_BGR32 : IMGFMT_BGR24;
+  raw->w = width;
+  raw->h = height;
+  raw->bpp = raw->alpha ? 4 : 3;
+  raw->stride = raw->bpp * raw->w;
 
   png_set_expand (png);          /* expand to 24 bits RGB */
   png_set_palette_to_rgb (png);  /* expand 8 bits paletted to RGB */
@@ -220,12 +223,10 @@ mpui_image_load_png (mpui_image_t *image, FILE *fp)
   png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
 #endif
 
-  line_length = width * (image->alpha ? 4 : 3);
-  image->planes[0] = (unsigned char *) malloc (height * line_length);
-  image->num_planes = 1;
+  raw->data = (unsigned char *) malloc (height * raw->stride);
   row = (png_bytep *) malloc (sizeof (*row) * height);
   for (i=0; i < height; i++)
-    row[i] = image->planes[0] + line_length*i;
+    row[i] = raw->data + raw->stride*i;
   png_read_image (png, row);
   free (row);
 
@@ -244,7 +245,7 @@ mpui_image_jpeg_error (j_common_ptr cinfo)
 }
 
 static int
-mpui_image_load_jpeg (mpui_image_t *image, FILE *fp)
+mpui_image_load_jpeg (mpui_raw_image_t *raw, FILE *fp)
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
@@ -260,22 +261,27 @@ mpui_image_load_jpeg (mpui_image_t *image, FILE *fp)
       jpeg_read_header (&cinfo, TRUE);
       cinfo.out_color_space = JCS_RGB;
       jpeg_start_decompress (&cinfo);
-      image->format = IMGFMT_BGR24;
-      image->width = cinfo.output_width;
-      image->height = cinfo.output_height;
-      image->bpp = 3;
-      image->stride[0] = 3 * image->width;
-      image->planes[0] = (unsigned char *) malloc (3 * cinfo.output_width
-                                                     * cinfo.output_height);
-      image->num_planes = 1;
+      raw->alpha = 0;
+      raw->format = IMGFMT_BGR24;
+      raw->w = cinfo.output_width;
+      raw->h = cinfo.output_height;
+      raw->bpp = 3;
+      raw->stride = 3 * raw->w;
+      raw->data = (unsigned char *) malloc (3 * cinfo.output_width
+                                              * cinfo.output_height);
       row = (JSAMPLE **) malloc (sizeof (*row) * cinfo.output_height);
       for (i=0; i < cinfo.output_height; i++)
-        row[i] = image->planes[0] + 3*i*cinfo.output_width;
+        row[i] = raw->data + 3*i*cinfo.output_width;
       while (cinfo.output_scanline < cinfo.output_height)
         jpeg_read_scanlines (&cinfo, row + cinfo.output_scanline,
                              cinfo.output_height - cinfo.output_scanline);
       jpeg_finish_decompress (&cinfo);
       ret = 0;
+    }
+  else
+    {
+      free (raw->data);
+      raw->data = NULL;
     }
   free (row);
   jpeg_destroy_decompress (&cinfo);
@@ -283,7 +289,7 @@ mpui_image_load_jpeg (mpui_image_t *image, FILE *fp)
 }
 
 int
-mpui_image_load (mpui_image_t *image, int format)
+mpui_image_load (mpui_image_t *image)
 {
   png_byte header[8];
   int ret = 1;
@@ -295,26 +301,25 @@ mpui_image_load (mpui_image_t *image, int format)
   fread (header, 1, sizeof (header), fp);
   fseek (fp, 0, SEEK_SET);
   if (png_check_sig (header, sizeof (header)))
-    ret = mpui_image_load_png (image, fp);
+    ret = mpui_image_load_png (&image->raw, fp);
   else if (!memcmp(header, "\xFF\xD8\xFF\xE0\x00\x10\x4A\x46", sizeof(header)))
-    ret = mpui_image_load_jpeg (image, fp);
+    ret = mpui_image_load_jpeg (&image->raw, fp);
   fclose (fp);
 
   if (!ret)
     {
       if (image->w == 0 && image->h == 0)
         {
-          image->w = image->width;
-          image->h = image->height;
+          image->w = image->raw.w;
+          image->h = image->raw.h;
         }
       else
         {
           if (image->w == 0)
-            image->w = image->h*image->width/image->height;
+            image->w = image->h*image->raw.w/image->raw.h;
           if (image->h == 0)
-            image->h = image->w*image->height/image->width;
+            image->h = image->w*image->raw.h/image->raw.w;
         }
-      mpui_image_convert (image, format);
     }
 
   return ret;
