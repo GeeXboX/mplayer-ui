@@ -15,5 +15,6 @@
     <string id="snd" text="Audio Jukebox"/>
     <string id="settings" text="Settings"/>
     <string id="txt_help" file="help_en.txt"/>
+    <string id="txt_info" text="System's Information"/>
   </strings>
 </mpui>
