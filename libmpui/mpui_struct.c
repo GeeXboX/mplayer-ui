@@ -242,7 +242,7 @@ mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
   string->len = dlen = len;
-  string->text = dst = (char *) malloc (dlen + 1);
+  string->text = dst = (char *) malloc (dlen);
   string->encoding = encoding;
 
   do {
