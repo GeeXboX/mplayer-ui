@@ -54,7 +54,7 @@ typedef struct mpui_screens mpui_screens_t;
 typedef struct mpui_screen mpui_screen_t;
 typedef struct mpui mpui_t;
 
-#define MPUI_FLAG_RELATIVE ((mpui_flags_t) 0x01)
+#define MPUI_FLAG_ABSOLUTE ((mpui_flags_t) 0x01)
 #define MPUI_FLAG_DYNAMIC  ((mpui_flags_t) 0x02)
 #define MPUI_FLAG_FOCUS    ((mpui_flags_t) 0x04)
 #define MPUI_FLAG_NOCOORD  ((mpui_flags_t) 0x08)

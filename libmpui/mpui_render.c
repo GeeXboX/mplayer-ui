@@ -37,15 +37,15 @@ static void
 mpui_render_context_update (mpui_element_t *element,
                             mpui_render_context_t *context)
 {
-  if (element->flags & MPUI_FLAG_RELATIVE)
-    {
-      context->x += element->x;
-      context->y += element->y;
-    }
-  else
+  if (element->flags & MPUI_FLAG_ABSOLUTE)
     {
       context->x = element->x;
       context->y = element->y;
+    }
+  else
+    {
+      context->x += element->x;
+      context->y += element->y;
     }
 }
 

@@ -207,14 +207,14 @@ mpui_parse_node_string (char **attribs)
 static mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *relative;
+  char *id, *x, *y, *absolute;
   char *font_id, *size, *color, *focused_color, *when_focused;
   mpui_str_t *str = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  relative = asx_get_attrib ("relative", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
   font_id = asx_get_attrib ("font", attribs);
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
@@ -226,20 +226,15 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
     {
       mpui_string_t *string;
       mpui_size_t sx, sy;
-      mpui_flags_t flags = MPUI_FLAG_RELATIVE;
+      mpui_flags_t flags = 0;
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
       mpui_color_t *col, *fcol;
       int wf = MPUI_DISPLAY_ALWAYS;
       string = mpui_string_get (mpui, id);
       font = mpui_font_get (mpui, font_id);
-      if (relative)
-        {
-          if (!strcmp (relative, "yes"))
-            flags |= MPUI_FLAG_RELATIVE;
-          else if (!strcmp (relative, "no"))
-            flags &= ~MPUI_FLAG_RELATIVE;
-        }
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -336,7 +331,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 static mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *w, *h, *relative, *when_focused;
+  char *id, *x, *y, *w, *h, *absolute, *when_focused;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -344,23 +339,18 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   y = asx_get_attrib ("y", attribs);
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
-  relative = asx_get_attrib ("relative", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
   when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_image_t *image;
-      mpui_flags_t flags = MPUI_FLAG_RELATIVE;
+      mpui_flags_t flags = 0;
       int wf = MPUI_DISPLAY_ALWAYS;
 
       image = mpui_image_get (mpui, id);
-      if (relative)
-        {
-          if (!strcmp (relative, "yes"))
-            flags |= MPUI_FLAG_RELATIVE;
-          else if (!strcmp (relative, "no"))
-            flags &= ~MPUI_FLAG_RELATIVE;
-        }
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -510,30 +500,25 @@ mpui_parse_node_action (char **attribs)
 static mpui_obj_t *
 mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *relative, *when_focused;
+  char *id, *x, *y, *absolute, *when_focused;
   mpui_obj_t *obj = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  relative = asx_get_attrib ("relative", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
   when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_object_t *object;
-      mpui_flags_t flags = MPUI_FLAG_RELATIVE;
+      mpui_flags_t flags = 0;
       mpui_size_t sx, sy;
       int wf = MPUI_DISPLAY_ALWAYS;
 
       object = mpui_object_get (mpui, id);
-      if (relative)
-        {
-          if (!strcmp (relative, "yes"))
-            flags |= MPUI_FLAG_RELATIVE;
-          else if (!strcmp (relative, "no"))
-            flags &= ~MPUI_FLAG_RELATIVE;
-        }
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -801,27 +786,22 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 static mpui_mnu_t *
 mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *relative;
+  char *id, *x, *y, *absolute;
   mpui_mnu_t *mnu = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  relative = asx_get_attrib ("relative", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
   asx_free_attribs (attribs);
 
   if (id)
     {
       mpui_menu_t *menu = mpui_menu_get (mpui, id);
-      mpui_flags_t flags = MPUI_FLAG_RELATIVE;
+      mpui_flags_t flags = 0;
       mpui_size_t sx, sy;
-      if (relative)
-        {
-          if (!strcmp (relative, "yes"))
-            flags |= MPUI_FLAG_RELATIVE;
-          else if (!strcmp (relative, "no"))
-            flags &= ~MPUI_FLAG_RELATIVE;
-        }
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
       sx = mpui_parse_size (x, mpui->width, menu->x);
       sy = mpui_parse_size (y, mpui->height, menu->y);
       if (menu)

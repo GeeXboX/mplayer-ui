@@ -571,7 +571,7 @@ mpui_menuitem_new (void)
 
   menuitem = (mpui_menuitem_t *) malloc (sizeof (*menuitem));
   menuitem->element.type = MPUI_MENUITEM;
-  menuitem->element.flags = MPUI_FLAG_RELATIVE;
+  menuitem->element.flags = 0;
   menuitem->element.when_focused = MPUI_DISPLAY_ALWAYS;
   menuitem->elements = mpui_list_new ();
   menuitem->actions = mpui_list_new ();
@@ -671,8 +671,7 @@ mpui_elements_get_size (mpui_element_t *element,
     {
       while (*elements)
         {
-          if ((*elements)->flags & MPUI_FLAG_RELATIVE
-              && !((*elements)->flags & MPUI_FLAG_NOCOORD))
+          if (!((*elements)->flags & (MPUI_FLAG_ABSOLUTE|MPUI_FLAG_NOCOORD)))
             {
               if ((*elements)->x + (*elements)->w > element->w)
                 element->w = (*elements)->x + (*elements)->w;
