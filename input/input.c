@@ -100,6 +100,8 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_DVB_SET_CHANNEL, "dvb_set_channel", 2, { {MP_CMD_ARG_INT,{0}}, {MP_CMD_ARG_INT,{0}}, {-1,{0}}}},
 #endif
   { MP_CMD_SWITCH_RATIO, "switch_ratio", 0, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_POPUP, "popup", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SCREEN, "screen", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_VO_FULLSCREEN, "vo_fullscreen", 0, { {-1,{0}} } },
   { MP_CMD_VO_ONTOP, "vo_ontop", 0, { {-1,{0}} } },
   { MP_CMD_VO_ROOTWIN, "vo_rootwin", 0, { {-1,{0}} } },
@@ -135,9 +137,6 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_CRUN, "run", 1, { {MP_CMD_ARG_STRING,{0}}, {-1,{0}} } },
 #endif
 
-  { MP_CMD_MPUI_POPUP, "popup", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
-  { MP_CMD_MPUI_GOTOSCREEN, "gotoscreen", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
- 
   { MP_CMD_GET_VO_FULLSCREEN, "get_vo_fullscreen", 0, { {-1,{0}} } },
   { MP_CMD_GET_SUB_VISIBILITY, "get_sub_visibility", 0, { {-1,{0}} } },
   
