@@ -542,6 +542,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   free (y);
   free (w);
   free (h);
+  free (absolute);
   free (hidden);
   return img;
 }
