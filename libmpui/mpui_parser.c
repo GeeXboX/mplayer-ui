@@ -51,26 +51,24 @@ mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
 }
 
 mpui_size_t
-mpui_parse_size (char *size)
+mpui_parse_size (char *size, int total)
 {
-  mpui_size_t st;
+  mpui_size_t val = 0;
 
-  st.val = 0;
-  st.absolute = 1;
   if (size && *size)
     {
       /* Determine absolute position/size */
       if (isdigit (size[0]))
         {
           char *end;
-          st.val = strtol (size, &end, 10);
-          st.absolute = (*end == '%') ? 0 : 1;
+          val = strtol (size, &end, 10);
+          val = (*end == '%') ? val * total / 100 : val;
         }
       /* FIXME: determine position/size for special keywords like
          left, right, top, bottom, width, height */
     }
   
-  return st;
+  return val;
 }
 
 mpui_color_t
@@ -149,8 +147,8 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
           if (*endptr)
             s = MPUI_FONT_SIZE_DEFAULT;
         }
-      sx = mpui_parse_size (x);
-      sy = mpui_parse_size (y);
+      sx = mpui_parse_size (x, mpui->width);
+      sy = mpui_parse_size (y, mpui->height);
       col = mpui_parse_color (color);
       fcol = mpui_parse_color (focused_color);
 
@@ -197,7 +195,7 @@ mpui_parse_node_strings (char **attribs, char *body)
 }
 
 mpui_image_t *
-mpui_parse_node_image (char **attribs)
+mpui_parse_node_image (mpui_t *mpui, char **attribs)
 {
   char *id, *file, *x, *y, *h, *w;
   mpui_size_t sx, sy, sh, sw;
@@ -210,10 +208,10 @@ mpui_parse_node_image (char **attribs)
   h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
 
-  sx = mpui_parse_size (x);
-  sy = mpui_parse_size (y);
-  sh = mpui_parse_size (h);
-  sw = mpui_parse_size (w);
+  sx = mpui_parse_size (x, mpui->width);
+  sy = mpui_parse_size (y, mpui->height);
+  sh = mpui_parse_size (h, mpui->height);
+  sw = mpui_parse_size (w, mpui->width);
 
   if (id && file)
     image = mpui_image_new (id, file, sx, sy, sh, sw);
@@ -249,10 +247,10 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
           else if (!strcmp (when_focused, "no"))
             wf = MPUI_DISPLAY_NORMAL;
         }
-      sx = mpui_parse_size (x);
-      sy = mpui_parse_size (y);
-      sh = mpui_parse_size (h);
-      sw = mpui_parse_size (w);
+      sx = mpui_parse_size (x, mpui->width);
+      sy = mpui_parse_size (y, mpui->height);
+      sh = mpui_parse_size (h, mpui->height);
+      sw = mpui_parse_size (w, mpui->width);
       if (image)
         img = mpui_img_new (image, sx, sy, sh, sw, wf);
     }
@@ -262,7 +260,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
 }
 
 mpui_images_t *
-mpui_parse_node_images (char **attribs, char *body)
+mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
   char *element;
@@ -282,7 +280,7 @@ mpui_parse_node_images (char **attribs, char *body)
 
       if (!strcmp (element, "image"))
         {
-          mpui_image_t *image = mpui_parse_node_image (attribs);
+          mpui_image_t *image = mpui_parse_node_image (mpui, attribs);
           mpui_images_add (images, image);
         }
       free (parser);
@@ -622,10 +620,10 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   if (font)
     mfont = mpui_font_get (mpui, font);
 
-  mx = mpui_parse_size (x);
-  my = mpui_parse_size (y);
-  mh = mpui_parse_size (h);
-  mw = mpui_parse_size (w);
+  mx = mpui_parse_size (x, mpui->width);
+  my = mpui_parse_size (y, mpui->height);
+  mh = mpui_parse_size (h, mpui->height);
+  mw = mpui_parse_size (w, mpui->width);
 
   if (id && mfont)
     menu = mpui_menu_new (id, morientation, mfont, mx, my, mh, mw);
@@ -860,7 +858,7 @@ mpui_parse_config (char *buffer, int width, int height)
         }
       else if (!strcmp (element, "images"))
         {
-          mpui_images_t *images = mpui_parse_node_images (attribs, sbody);
+          mpui_images_t *images = mpui_parse_node_images (mpui, attribs,sbody);
           mpui_images_add (mpui, images);
         }
       else if (!strcmp (element, "fonts"))

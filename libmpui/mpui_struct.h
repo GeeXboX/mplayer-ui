@@ -25,7 +25,7 @@
 typedef enum mpui_when_focused mpui_when_focused_t;
 typedef enum mpui_type mpui_type_t;
 typedef struct mpui_element mpui_element_t;
-typedef struct mpui_size mpui_size_t;
+typedef int mpui_size_t;
 typedef struct mpui_color mpui_color_t;
 typedef struct mpui_ids mpui_ids_t;
 
@@ -90,11 +90,6 @@ struct mpui_element {
     mpui_menuitem_t *menuitem;
     mpui_allmenuitem_t *allmenuitem;
   };
-};
-
-struct mpui_size {
-  int val;
-  int absolute;
 };
 
 struct mpui_color {
