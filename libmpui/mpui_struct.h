@@ -147,6 +147,7 @@ struct mpui_str {
   int size;
   mpui_color_t *color;
   mpui_color_t *focused_color;
+  mpui_color_t *really_focused_color;
 };
 
 struct mpui_images {
@@ -195,6 +196,7 @@ struct mpui_font {
   int size;
   mpui_color_t *color;
   mpui_color_t *focused_color;
+  mpui_color_t *really_focused_color;
   font_desc_t *font_desc;
 };
 
@@ -299,6 +301,7 @@ void mpui_string_free (mpui_string_t *string);
 mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_coord_t x,mpui_coord_t y,
                           mpui_flags_t flags, mpui_font_t *font, int size,
                           mpui_color_t *color, mpui_color_t *focused_color,
+                          mpui_color_t *really_focused_color,
                           mpui_when_focused_t when_focused);
 mpui_str_t *mpui_str_dup (mpui_str_t *str);
 void mpui_str_free (mpui_str_t *str);
@@ -325,7 +328,8 @@ mpui_images_t *mpui_images_new (void);
 void mpui_images_free (mpui_images_t *images);
 
 mpui_font_t *mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
-                            mpui_color_t *color, mpui_color_t *focused_color);
+                            mpui_color_t *color, mpui_color_t *focused_color,
+                            mpui_color_t *really_focused_color);
 mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 

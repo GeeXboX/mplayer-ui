@@ -281,6 +281,7 @@ mpui_str_t *
 mpui_str_new (mpui_string_t *string, mpui_coord_t x, mpui_coord_t y,
               mpui_flags_t flags, mpui_font_t *font, int size,
               mpui_color_t *color, mpui_color_t *focused_color,
+              mpui_color_t *really_focused_color,
               mpui_when_focused_t when_focused)
 {
   mpui_str_t *str;
@@ -297,6 +298,7 @@ mpui_str_new (mpui_string_t *string, mpui_coord_t x, mpui_coord_t y,
   str->size = size;
   str->color = color;
   str->focused_color = focused_color;
+  str->really_focused_color = really_focused_color;
   mpui_str_get_size (str);
   return str;
 }
@@ -309,7 +311,9 @@ mpui_str_dup (mpui_str_t *str)
 
   dup = mpui_str_new (str->string, elem->x, elem->y, elem->flags,
                       str->font, str->size, mpui_color_dup (str->color),
-                      mpui_color_dup (str->focused_color), elem->when_focused);
+                      mpui_color_dup (str->focused_color),
+                      mpui_color_dup (str->really_focused_color),
+                      elem->when_focused);
   mpui_element_coord_dup ((mpui_element_t *) dup);
 
   return dup;
@@ -320,6 +324,7 @@ mpui_str_free (mpui_str_t *str)
 {
   mpui_color_free (str->color);
   mpui_color_free (str->focused_color);
+  mpui_color_free (str->really_focused_color);
   mpui_element_uninit ((mpui_element_t *) str);
   free (str);
 }
@@ -497,7 +502,8 @@ mpui_images_free (mpui_images_t *images)
 
 mpui_font_t *
 mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
-               mpui_color_t *color, mpui_color_t *focused_color)
+               mpui_color_t *color, mpui_color_t *focused_color,
+               mpui_color_t *really_focused_color)
 {
   mpui_font_t *font;
 
@@ -506,6 +512,7 @@ mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
   font->size = size;
   font->color = color;
   font->focused_color = focused_color;
+  font->really_focused_color = really_focused_color;
   font->font_desc = read_font_desc (file, 0.75, 0);
   if (!font->font_desc)
     font->font_desc = read_font_desc_ft (file, size*mpui->width/40,
@@ -541,6 +548,7 @@ mpui_font_free (mpui_font_t *font)
   free (font->id);
   mpui_color_free (font->color);
   mpui_color_free (font->focused_color);
+  mpui_color_free (font->really_focused_color);
   free_font_desc (font->font_desc);
   free (font);
 }

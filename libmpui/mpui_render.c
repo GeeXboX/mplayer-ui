@@ -342,16 +342,31 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   if (!str->font || !str->font->font_desc)
     return;
   font = str->font->font_desc;
-  if (str->color)
-    color = str->color;
-  else
+  color = str->font->color;
+  if (context->really_focus)
     {
-      if ((context->focus || context->really_focus)
-          && str->font->focused_color)
+      if(str->really_focused_color)
+        color = str->really_focused_color;
+      else if(str->font->really_focused_color)
+        color = str->font->really_focused_color;
+      else if (str->focused_color)
+        color = str->focused_color;
+      else if (str->font->focused_color)
         color = str->font->focused_color;
-      else
-        color = str->font->color;
+      else if (str->color)
+        color = str->color;
     }
+  else if (context->focus)
+    {
+      if (str->focused_color)
+        color = str->focused_color;
+      else if (str->font->focused_color)
+        color = str->font->focused_color;
+      else if (str->color)
+        color = str->color;
+    }
+  else if (str->color)
+    color = str->color;
 
   p = txt;
   while (*p)

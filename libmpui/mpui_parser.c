@@ -325,7 +325,7 @@ static mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *absolute;
-  char *font_id, *size, *color, *focused_color;
+  char *font_id, *size, *color, *focused_color, *really_focused_color;
   mpui_str_t *str = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -336,6 +336,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
   focused_color = asx_get_attrib ("focused-color", attribs);
+  really_focused_color = asx_get_attrib ("really-focused-color", attribs);
   asx_free_attribs (attribs);
 
   if (id)
@@ -345,7 +346,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       mpui_flags_t flags = 0;
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
-      mpui_color_t *col, *fcol;
+      mpui_color_t *col, *fcol, *rfcol;
       mpui_when_focused_t wf;
       string = mpui_string_get (mpui, id);
       font = mpui_font_get (mpui, font_id);
@@ -363,10 +364,12 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       sy = mpui_parse_size (y, mpui->height, 0);
       col = mpui_parse_color (color);
       fcol = mpui_parse_color (focused_color);
+      rfcol = mpui_parse_color (really_focused_color);
 
       if (string && font)
         {
-          str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
+          str = mpui_str_new (string, sx, sy, flags, font, s,
+                              col, fcol, rfcol, wf);
           mpui_set_nocoord ((mpui_element_t *) str);
         }
     }
@@ -379,6 +382,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   free (size);
   free (color);
   free (focused_color);
+  free (really_focused_color);
 
   return str;
 }
@@ -530,9 +534,9 @@ mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
 static mpui_font_t *
 mpui_parse_node_font (mpui_t *mpui, char **attribs)
 {
-  char *id, *file, *f, *size, *col, *focused_col;
+  char *id, *file, *f, *size, *col, *focused_col, *really_focused_col;
   mpui_font_t *font = NULL;
-  mpui_color_t *color, *focused_color;
+  mpui_color_t *color, *focused_color, *really_focused_color;
   int s = MPUI_FONT_SIZE_DEFAULT;
 
   id = asx_get_attrib ("id", attribs);
@@ -540,6 +544,7 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
   size = asx_get_attrib ("size", attribs);
   col = asx_get_attrib ("color", attribs);
   focused_col = asx_get_attrib ("focused-color", attribs);
+  really_focused_col = asx_get_attrib ("really-focused-color", attribs);
   asx_free_attribs (attribs);
   
   if (size && *size)
@@ -552,19 +557,22 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
 
   color = mpui_parse_color (col);
   focused_color = mpui_parse_color (focused_col);
+  really_focused_color = mpui_parse_color (really_focused_col);
 
   f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
   snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
             "%s%s", MPUI_DATADIR, file);
 
   if (id && file)
-    font = mpui_font_new (mpui, id, f, s, color, focused_color);
+    font = mpui_font_new (mpui, id, f, s, color,
+                          focused_color, really_focused_color);
 
   free (id);
   free (file);
   free (size);
   free (col);
   free (focused_col);
+  free (really_focused_col);
   free (f);
 
   return font;
