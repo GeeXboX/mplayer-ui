@@ -1,7 +1,8 @@
 /*
  *  mpui_render.h: libmpui screen renderer.
- *  Copyright (C) 2004  Aurelien Jacobs
- *  Copyright (C) 2004  Benjamin Zores
+ *  Originally developped for the GeeXboX project.
+ *  Copyright (C) 2004-2005  Aurelien Jacobs
+ *  Copyright (C) 2004-2005  Benjamin Zores
  *
  *   This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
