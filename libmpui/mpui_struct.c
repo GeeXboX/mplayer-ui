@@ -170,12 +170,12 @@ mpui_foxus_box_init (mpui_focus_box_t *focus_box, char *id,
 {
   mpui_container_init ((mpui_container_t *) focus_box, id, type,
                        flags, elements, actions);
-  if (mpui_focus_first (focus_box))
-    focus_box->container.element.flags |= MPUI_FLAG_FOCUS_BOX;
+  focus_box->container.element.flags |= MPUI_FLAG_FOCUS_BOX;
   focus_box->orientation = orientation;
   focus_box->scrolling = scrolling;
   focus_box->xoffset = 0;
   focus_box->yoffset = 0;
+  mpui_focus_first (focus_box);
 }
 
 static void

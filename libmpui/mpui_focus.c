@@ -105,6 +105,9 @@ mpui_focus_next (mpui_focus_box_t *focus_box)
 {
   mpui_element_t **elements;
 
+  if (!focus_box->focus)
+    return;
+
   for (elements=focus_box->focus+1; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
@@ -145,6 +148,9 @@ void
 mpui_focus_previous (mpui_focus_box_t *focus_box)
 {
   mpui_element_t **elements;
+
+  if (!focus_box->focus)
+    return;
 
   for (elements=focus_box->focus-1; elements>=focus_box->container.elements;
        elements--)
@@ -203,6 +209,9 @@ mpui_focus_next_line (mpui_focus_box_t *focus_box)
 {
   mpui_element_t **elements;
 
+  if (!focus_box->focus)
+    return;
+
   for (elements=focus_box->focus+1; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE
         && ((focus_box->scrolling == MPUI_ORIENTATION_V
@@ -253,6 +262,9 @@ void
 mpui_focus_previous_line (mpui_focus_box_t *focus_box)
 {
   mpui_element_t **elements;
+
+  if (!focus_box->focus)
+    return;
 
   for (elements=focus_box->focus-1; elements>=focus_box->container.elements;
        elements--)
@@ -380,8 +392,9 @@ mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element)
   mpui_element_t **elements;
 
   for (elements=screen->elements; *elements; elements++)
-    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX)
-      if (((mpui_focus_box_t *) *elements)->focus[0] == element)
+    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
+        && ((mpui_focus_box_t *) *elements)->focus
+        && ((mpui_focus_box_t *) *elements)->focus[0] == element)
         return 1;
   return 0;
 }
@@ -389,5 +402,8 @@ mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element)
 int
 mpui_is_really_focused (mpui_screen_t *screen, mpui_element_t *element)
 {
-  return ((mpui_focus_box_t *) screen->focus_box[0])->focus[0] == element;
+  if ((mpui_focus_box_t *) screen->focus_box
+      && ((mpui_focus_box_t *) screen->focus_box[0])->focus)
+    return ((mpui_focus_box_t *) screen->focus_box[0])->focus[0] == element;
+  return 0;
 }
