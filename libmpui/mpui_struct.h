@@ -172,6 +172,7 @@ struct mpui_strings {
 struct mpui_string {
   char *id;
   char *text;
+  size_t len;
   mpui_encoding_t encoding;
 };
 
@@ -389,11 +390,12 @@ mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
 mpui_color_t *mpui_color_dup (mpui_color_t *color);
 void mpui_color_free (mpui_color_t *color);
 
-mpui_string_t *mpui_string_new (char *id, unsigned char *str,
+mpui_string_t *mpui_string_new (char *id, unsigned char *str, size_t len,
                                 mpui_encoding_t encoding);
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
-int mpui_string_get_next_char (unsigned char **txt, mpui_encoding_t encoding);
-void mpui_string_put_next_char (unsigned char **txt, int c,
+int mpui_string_get_next_char (unsigned char **txt, size_t *len,
+                               mpui_encoding_t encoding);
+void mpui_string_put_next_char (unsigned char **txt, size_t *len, int c,
                                 mpui_encoding_t encoding);
 void mpui_string_free (mpui_string_t *string);
 

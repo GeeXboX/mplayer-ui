@@ -213,31 +213,33 @@ mpui_color_free (mpui_color_t *color)
 
 
 mpui_string_t *
-mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
+mpui_string_new (char *id, unsigned char *str, size_t len, mpui_encoding_t encoding)
 {
   mpui_string_t *string;
   unsigned char *dst;
+  size_t dlen;
   int c;
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
-  string->text = dst = (char *) malloc (strlen (str) + 1);
+  string->len = dlen = len;
+  string->text = dst = (char *) malloc (dlen + 1);
   string->encoding = encoding;
 
   do {
-    c = mpui_string_get_next_char (&str, encoding);
+    c = mpui_string_get_next_char (&str, &len, encoding);
     while (c == '\\')
       {
-        c = mpui_string_get_next_char (&str, encoding);
+        c = mpui_string_get_next_char (&str, &len, encoding);
         if (c == 'n')
           {
-            mpui_string_put_next_char (&dst, '\n', encoding);
-            c = mpui_string_get_next_char (&str, encoding);
+            mpui_string_put_next_char (&dst, &dlen, '\n', encoding);
+            c = mpui_string_get_next_char (&str, &len, encoding);
             break;
           }
-        mpui_string_put_next_char (&dst, '\\', encoding);
+        mpui_string_put_next_char (&dst, &dlen, '\\', encoding);
       }
-    mpui_string_put_next_char (&dst, c, encoding);
+    mpui_string_put_next_char (&dst, &dlen, c, encoding);
   } while (c);
 
   return string;
@@ -257,55 +259,126 @@ mpui_string_get (mpui_t *mpui, char *id)
 }
 
 int
-mpui_string_get_next_char (unsigned char **txt, mpui_encoding_t encoding)
+mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t encoding)
 {
-  int c = *(*txt)++;
+  int c;
+
+  if (!*len)
+    return 0;
+  c = *(*txt)++;
+  (*len)--;
+
   switch (encoding)
     {
     case MPUI_ENCODING_ISO_8859_1:
       break;
     case MPUI_ENCODING_UTF8:
-      if ((c & 0xE0) == 0xC0)       /* 2 bytes U+00080..U+0007FF*/
-        c = (c & 0x1F)<<6 | (*(*txt)++ & 0x3F);
-      else if ((c & 0xF0) == 0xE0)  /* 3 bytes U+00800..U+00FFFF*/
-        {
-          c = (((c & 0x0F)<<6) | (*(*txt)++ & 0x3F))<<6;
-          c |= (*(*txt)++ & 0x3F);
-        }
+    {
+      size_t ulen;
+      if ((c & 0x80) == 0x00)
+        break;
+
+      if ((c & 0xE0) == 0xC0)       { ulen = 1; c &= 0x1F; } /* c = 110xxxxx */
+      else if ((c & 0xF0) == 0xE0)  { ulen = 2; c &= 0x0F; } /* c = 1110xxxx */
+      else if ((c & 0xF8) == 0xF0)  { ulen = 3; c &= 0x07; } /* c = 11110xxx */
+      else if ((c & 0xFC) == 0xF8)  { ulen = 4; c &= 0x02; } /* c = 111110xx */
+      else if ((c & 0xFE) == 0xFC)  { ulen = 5; c &= 0x01; } /* c = 1111110x */
+      else                          { return 0; }
+
+      if (*len < ulen)
+        return 0;
+      (*len) -= ulen;
+
+      while (ulen--)
+        c = (c << 6) | (*(*txt)++ & 0x3F); /* **txt = 10xxxxxx */
       break;
+    }
     case MPUI_ENCODING_UTF16:
+      if (*len == 0)
+        return 0;
       c = (c<<8) + *(*txt)++;
+      (*len)--;
+      if (c >= 0xD800 && c <= 0xDFFF)  
+        {
+          if (c > 0xDBFF || /* c = 110110yyyyyyyyyy  */
+              *len < 2 ||   /* there's another 16bit */
+              **txt < 0xDC || 0xDF < **txt) /* **txt = 110111xxxxxxxxxx */
+            return 0;
+          c = (c & 0x3FF) << 10;       /* c = yyyyyyyyyy0000000000 */
+          c |= (*(*txt)++ & 0x3) << 8; /* c = yyyyyyyyyyxx00000000 */
+          c |= (*(*txt)++);            /* c = yyyyyyyyyyxxxxxxxxxx */
+          c += 0x10000;                /* 0x10000 <= c <= 0x10FFFF */
+          (*len) -= 2;
+        }
       break;
     }
   return c;
 }
 
 void
-mpui_string_put_next_char (unsigned char **txt, int c,mpui_encoding_t encoding)
+mpui_string_put_next_char (unsigned char **txt, size_t *len,
+                           int c, mpui_encoding_t encoding)
 {
   switch (encoding)
     {
     case MPUI_ENCODING_ISO_8859_1:
-      *(*txt)++ = c;
+      if (c < 0x100) /* c is 8bit = xxxxxxxx */ 
+        {
+          if (!*len)
+	    break;
+          *(*txt)++ = c; /* encode xxxxxxxx */
+          (*len)--;
+        }
       break;
     case MPUI_ENCODING_UTF8:
-      if (c > 0x7FF)
+    {
+      unsigned char u[6];
+      size_t ulen, i;
+
+      if (c < 0x80)              { ulen = 1; u[0] = 0x00; } /* 0xxxxxxx */
+      else if (c < 0x800)        { ulen = 2; u[0] = 0xC0; } /* 110xxxxx */
+      else if (c < 0x10000)      { ulen = 3; u[0] = 0xE0; } /* 1110xxxx */
+      else if (c < 0x200000)     { ulen = 4; u[0] = 0xF0; } /* 11110xxx */
+      else if (c < 0x4000000)    { ulen = 5; u[0] = 0xF8; } /* 111110xx */
+      else if (c < 0x80000000)   { ulen = 6; u[0] = 0xFC; } /* 1111110x */
+      else                       { break; }
+
+      if (*len < ulen)
+        break;
+      (*len) -= ulen;
+
+      i = ulen;
+      while (--i)
         {
-          *(*txt)++ = (c >> 12) | 0xE0;
-          *(*txt)++ = (c >> 6) & 0x3F;
-          *(*txt)++ = c & 0x3F;
+	  u[i] = (c & 0x3F) | 0x80; /* encode 10xxxxxx */
+	  c >>= 6;
         }
-      else if (c > 0x80)
-        {
-          *(*txt)++ = (c >> 6) | 0xC0;
-          *(*txt)++ = c & 0x3F;
-        }
-      else
-        *(*txt)++ = c;
+      u[0] |= c;
+
+      for (i = 0; i < ulen; i++)
+        *(*txt)++ = u[i];
       break;
+    }
     case MPUI_ENCODING_UTF16:
-      *(*txt)++ = c >> 8;
-      *(*txt)++ = c & 0xFF;
+      if (c < 0x10000) /* c is 16bit = yyyyyyyyxxxxxxxx */
+        {
+          if (*len < 2)
+            break;
+          *(*txt)++ = c >> 8;   /* encode yyyyyyyy */
+          *(*txt)++ = c & 0xFF; /* encode xxxxxxxx */
+          (*len) -= 2;
+        }
+      else if (c <= 0x10FFFF)
+        {
+          if (*len < 4)
+            break;
+          c -= 0x10000; /* c is 20bit = yyyyyyyyyyxxxxxxxxxx */
+          *(*txt)++ = (c >> 18) | 0xD8;        /* encode 110110yy */
+          *(*txt)++ = (c >> 10) & 0xFF;        /* encode yyyyyyyy */
+          *(*txt)++ = ((c >> 8) & 0x3) | 0xDC; /* encode 110111xx */
+          *(*txt)++ = c & 0xFF;                /* encode xxxxxxxx */
+          (*len) -= 4;
+        }
       break;
     }
 }
@@ -325,8 +398,9 @@ mpui_str_get_size (mpui_str_t *str)
   font_desc_t *font = str->font->font_desc;
   int c, w = 0, wmax = 0, htot = 0;
   unsigned char *txt = str->string->text;
+  size_t len = str->string->len;
 
-  while ((c = mpui_string_get_next_char (&txt, str->string->encoding)))
+  while ((c = mpui_string_get_next_char (&txt, &len, str->string->encoding)))
     {
       if (c == '\n')
         {
