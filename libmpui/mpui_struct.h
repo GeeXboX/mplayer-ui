@@ -114,6 +114,7 @@ struct mpui_string {
 struct mpui_str {
   mpui_string_t *string;
   mpui_size_t x, y;
+  mpui_size_t w, h;
   mpui_font_t *font;
   int size;
   mpui_color_t *color;

@@ -121,6 +121,29 @@ mpui_string_free (mpui_string_t *string)
 }
 
 
+static void
+mpui_str_get_size (mpui_str_t *str)
+{
+  font_desc_t *font = str->font->font_desc;
+  char *s = str->string->text;
+  int f, w = 0, h = 0;
+
+  while (*s)
+    {
+      render_one_glyph (font, *s);
+      f = font->font[*s];
+
+      w += font->width[*s] + font->charspace;
+      if (f >= 0 && font->pic_a[f]->h > h)
+        h = font->pic_a[f]->h;
+
+      s++;
+    }
+
+  str->w = w;
+  str->h = h;
+}
+
 mpui_str_t *
 mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
               mpui_font_t *font, int size, mpui_color_t *color,
@@ -137,6 +160,7 @@ mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
   str->color = color;
   str->focused_color = focused_color;
   str->when_focused = when_focused;
+  mpui_str_get_size (str);
   return str;
 }
 
