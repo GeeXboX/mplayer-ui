@@ -108,6 +108,7 @@ read_keycode (int code)
         mpui_focus_next (fb);
       break;
     case KEY_TAB:
+    case KEY_SPACE:
       mpui_focus_box_next (st_priv->mpui->screens->menu);
       break;
     case KEY_ESC:

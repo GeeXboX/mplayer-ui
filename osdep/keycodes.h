@@ -2,6 +2,7 @@
 
 #define KEY_ENTER 13
 #define KEY_TAB 9
+#define KEY_SPACE 32
 
 #define KEY_BASE 0x100
 
