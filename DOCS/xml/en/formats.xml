@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.12 $ -->
+<!-- $Revision: 1.20 $ -->
 <sect1 id="formats">
 <title>Supported formats</title>
 
@@ -7,24 +7,25 @@
 It is important to clarify a common mistake. When people see a file with a
 <filename>.AVI</filename> extension, they immediately conclude that it is
 not an MPEG file.  That is not true. At least not entirely. Contrary to
-popular belief such a file <emphasis>can</emphasis> contain MPEG1 video.
+popular belief such a file <emphasis>can</emphasis> contain MPEG-1 video.
 </para>
 
 <para>
 You see, a <emphasis role="bold">codec</emphasis> is not the same as a
 <emphasis role="bold">file format</emphasis>.
-Examples of video <emphasis role="bold">codecs</emphasis> are: MPEG1, MPEG2, DivX, Indeo5, 3ivx.
+Examples of video <emphasis role="bold">codecs</emphasis> are: MPEG-1, MPEG-2,
+MPEG-4 (DivX), Indeo5, 3ivx.
 Examples of file <emphasis role="bold">formats</emphasis> are: MPG, AVI, ASF.
 </para>
 
 <para>
 In theory, you can put an OpenDivX video and MP3 audio
 into an <emphasis role="bold">MPG format file</emphasis>. However, most
-players will not play it, since they expect MPEG1 video and MP2 audio (unlike
+players will not play it, since they expect MPEG-1 video and MP2 audio (unlike
 <emphasis role="bold">AVI</emphasis>, <emphasis role="bold">MPG</emphasis>
 does not have the necessary fields to describe its video and audio streams).
-Or you might put MPEG1 video into an AVI file.
-<ulink url="http://ffmpeg.sourceforge.net/">FFmpeg</ulink> and
+Or you might put MPEG-1 video into an AVI file.
+<ulink url="http://ffmpeg.org/">FFmpeg</ulink> and
 <link linkend="mencoder"><application>MEncoder</application></link> can create these files.
 </para>
 
@@ -42,7 +43,7 @@ MPEG files come in different guises:
 <itemizedlist>
 <listitem><simpara>
   MPG: This is the most <emphasis role="bold">basic</emphasis> form of the
-  MPEG file formats. It contains MPEG1 video, and MP2 (MPEG-1 layer 2) or
+  MPEG file formats. It contains MPEG-1 video, and MP2 (MPEG-1 layer 2) or
   rarely MP1 audio.
   </simpara></listitem>
 <listitem><simpara>
@@ -55,7 +56,7 @@ MPEG files come in different guises:
 <listitem><simpara>
   VOB: This is the MPEG file format on <emphasis role="bold">DVDs</emphasis>.
   It is the same as MPG, plus the capability to contain subtitles or non-MPEG
-  (AC3) audio. It contains encoded MPEG2 video and usually AC3 audio, but DTS,
+  (AC3) audio. It contains encoded MPEG-2 video and usually AC3 audio, but DTS,
   MP2 and uncompressed LPCM are allowed, too. <emphasis role="bold">Read the
   <link linkend="dvd">DVD</link> section</emphasis>!
   </simpara></listitem>
@@ -84,7 +85,7 @@ option.
 
 <para>
 Designed by Microsoft, <emphasis role="bold">AVI (Audio Video Interleaved)</emphasis>
-is a widespread multipurpose format currently used mostly for DivX and DivX4
+is a widespread multipurpose format currently used mostly for MPEG-4 (DivX and DivX4)
 video. It has many known drawbacks and shortcomings (for example in streaming). It
 supports one video stream and 0 to 99 audio streams and can be as big as
 2GB, but there exists an extension allowing bigger files called
@@ -136,7 +137,7 @@ files:
 <listitem><simpara>
   <emphasis role="bold">bps-based:</emphasis> It is based on the
   bitrate/samplerate of the video/audio stream. This method is used by
-  most players, including <ulink url="http://avifile.sourceforge.net">avifile</ulink>
+  most players, including <ulink url="http://avifile.sf.net">avifile</ulink>
   and <application>Windows Media Player</application>. Files with broken
   headers, and files created with VBR audio but not VBR-compliant encoder
   will result in A/V desync with this method (mostly at seeking).
@@ -176,14 +177,14 @@ v2.0 files :). Note that ASF files nowadays come with the extension
 </sect3>
 
 
-<sect3 id="qt-mov">
+<sect3 id="mov">
 <title>QuickTime/MOV files</title>
 
 <para>
 These formats were designed by Apple and can contain any codec, CBR or VBR.
 They usually have a <filename>.QT</filename> or <filename>.MOV</filename>
-extension. Note that since the MPEG4 group chose QuickTime as the recommended
-file format for MPEG4, their MOV files come with a <filename>.MPG</filename> or
+extension. Note that since the MPEG-4 group chose QuickTime as the recommended
+file format for MPEG-4, their MOV files come with a <filename>.MPG</filename> or
 <filename>.MP4</filename> extension (Interestingly the video and audio
 streams in these files are real MPG and AAC files. You can even extract them with the
 <option>-dumpvideo</option> and <option>-dumpaudio</option> options.).
@@ -254,13 +255,14 @@ linkend="realaudio">RealAudio</link> codecs.
 <sect3 id="nuppelvideo">
 <title>NuppelVideo files</title>
 <para>
-<ulink url="http://mars.tuwien.ac.at/~roman/nuppelvideo">NuppelVideo</ulink>
+<ulink url="http://frost.htu.tuwien.ac.at/~roman/nuppelvideo/">NuppelVideo</ulink>
 is a TV grabber tool (AFAIK:). <application>MPlayer</application> can read
 its <filename>.NUV</filename> files (only NuppelVideo 5.0). Those files can
 contain uncompressed YV12, YV12+RTJpeg compressed, YV12 RTJpeg+lzo
 compressed, and YV12+lzo compressed frames.
 <application>MPlayer</application> decodes (and also <emphasis role="bold">encodes</emphasis>
-them with <application>MEncoder</application> to DivX/etc!) them all. Seeking works.
+them with <application>MEncoder</application> to MPEG-4 (DivX)/etc!) them all.
+Seeking works.
 </para>
 </sect3>
 
@@ -268,7 +270,7 @@ them with <application>MEncoder</application> to DivX/etc!) them all. Seeking wo
 <sect3 id="yuv4mpeg">
 <title>yuv4mpeg files</title>
 <para>
-<ulink url="http://mjpeg.sourceforge.net">yuv4mpeg / yuv4mpeg2</ulink>
+<ulink url="http://mjpeg.sf.net">yuv4mpeg / yuv4mpeg2</ulink>
 is a file format used by the
 <ulink url="http://mjpeg.sf.net">mjpegtools programs</ulink>.
 You can grab, produce, filter or encode video in this format using these tools.
@@ -323,11 +325,6 @@ are required.)
 PVA is an MPEG-like format used by DVB TV boards' software (e.g.:
 <application>MultiDec</application>, <application>WinTV</application> under Windows).
 </para>
-
-<para>
-The PVA specifications can be downloaded from the following address:
-<ulink url="http://www.technotrend.de/download/av_format_v1.pdf"/>
-</para>
 </sect3>
 
 
@@ -378,7 +375,7 @@ produce uncompressed frames to avoid patent issues with LZW compression.
 <para>
 If your distribution does not come with <systemitem class="library">libungif</systemitem>,
 download a copy from the
-<ulink url="http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml">libungif
+<ulink url="http://sourceforge.net/projects/libungif">libungif
 homepage</ulink>. For detailed technical information, have a look at the
 <ulink url="http://www.w3.org/Graphics/GIF/spec-gif89a.txt">GIF89a specification</ulink>.
 </para>
@@ -457,7 +454,7 @@ options to <application>cdparanoia</application>.
 plugins to play many file formats. There are plugins for SNES game tunes, SID
 tunes (from Commodore 64), many Amiga formats, .xm, .it, VQF, musepack, Bonk,
 shorten and many others. You can find them at the
-<ulink url="http://www.xmms.org/plugins_input.html">XMMS input plugin page</ulink>.
+<ulink url="http://www.xmms.org/plugins.php?category=input">XMMS input plugin page</ulink>.
 </para>
 
 <para>

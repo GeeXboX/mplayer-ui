@@ -1,12 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
-#include "wine/mmreg.h"
-#include "wine/avifmt.h"
-#include "wine/vfw.h"
+#include "loader/wine/mmreg.h"
+#include "loader/wine/avifmt.h"
+#include "loader/wine/vfw.h"
 
-#include "muxer.h"
+#include "libmpdemux/muxer.h"
+
+char *info_name;
+char *info_artist;
+char *info_genre;
+char *info_subject;
+char *info_copyright;
+char *info_sourceform;
+char *info_comment;
 
 static const short h263_format[8][2] = {
     { 0, 0 },
@@ -142,21 +151,42 @@ int h263_decode_picture_header(unsigned char *b_ptr)
 
 int postable[32768];
 
-int main(){
+int main(int argc,char ** argv){
 int c;
 unsigned int head=-1;
 int pos=0;
 int frames=0;
-FILE *f=fopen("paulvandykforanangel.viv","rb");
-FILE *f2=fopen("GB1.avi","wb");
-muxer_t* avi=muxer_new_muxer(MUXER_TYPE_AVI,f2);
-muxer_stream_t* mux=muxer_new_stream(avi,MUXER_TYPE_VIDEO);
+FILE *f;
+FILE *f2;
+muxer_t* avi;
+muxer_stream_t* mux;
 //unsigned char* buffer=malloc(0x200000);
 int i,len;
 int v_id=0;
 int flag=0;
 int flag2=0;
 int prefix=0;
+
+// check if enough args were given
+if ( argc < 3 ){
+    printf("Too few arguments given!\n"
+           "Usage: %s <input_file> <output_file>\n", argv[0]);
+
+    return -1;
+}
+// input
+if(!(f=fopen(argv[1],"rb"))){
+       printf("Couldn't open input file.\n");
+       return -1;
+}
+// output
+if(!(f2=fopen(argv[2],"wb"))){
+       printf("Couldn't open output file.\n");
+       return -1;
+}
+
+avi=muxer_new_muxer(MUXER_TYPE_AVI,f2);
+mux=muxer_new_stream(avi,MUXER_TYPE_VIDEO);
 
 mux->buffer_size=0x200000;
 mux->buffer=malloc(mux->buffer_size);

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.49 $ -->
+<!-- $Revision: 1.58 $ -->
 <chapter id="ports" xreflabel="Ports">
 <title>Ports</title>
 
@@ -18,16 +18,34 @@ Report problems to the authors, not to us.
 <para>
 To build a Debian package, run the following command in the
 <application>MPlayer</application> source directory:
+
 <screen>fakeroot debian/rules binary</screen>
+
+If you want to pass custom options to configure, you can set up the
+<envar>DEB_BUILD_OPTIONS</envar> environment variable. For instance,
+if you want GUI and OSD menu support you would use:
+
+<screen>DEB_BUILD_OPTIONS="--enable-gui --enable-menu" fakeroot debian/rules binary</screen>
+
+You can also pass some variables to the Makefile. For example, if you want
+to compile with gcc 3.4 even if it's not the default compiler:
+
+<screen>CC=gcc-3.4 DEB_BUILD_OPTIONS="--enable-gui" fakeroot debian/rules binary</screen>
+
+To clean up the source tree run the following command:
+
+<screen>fakeroot debian/rules clean</screen>
+
 As root you can then install the <filename>.deb</filename> package as usual:
+
 <screen>dpkg -i ../mplayer_<replaceable>version</replaceable>.deb</screen>
 </para>
 
 <para>
-Christian Marillat has been making unofficial Debian
+Christian Marillat has been making unofficial Debian packages of
 <application>MPlayer</application>, <application>MEncoder</application> and
-font packages for a while, you can (apt-)get them from his
-<ulink url="http://marillat.free.fr/">homepage</ulink>.
+our bitmap fonts for a while, you can (apt-)get them from
+<ulink url="http://hpisi.nerim.net/">his homepage</ulink>.
 </para>
 </sect2>
 
@@ -251,6 +269,127 @@ and then go on with building and installing.
 </para>
 </sect1>
 
+
+<sect1 id="hp-ux">
+<title>HP-UX</title>
+<para>
+Joe Page hosts a detailed HP-UX <application>MPlayer</application>
+<ulink url="http://users.rcn.com/joepage/mplayer_on_hpux11.htm">HOWTO</ulink>
+by Martin Gansser on his homepage. With these instructions the build should
+work out of the box. The following information is taken from this HOWTO.
+</para>
+
+<para>
+You need GCC 3.4.0 or later, GNU make 3.80 or later and SDL 1.2.7 or later.
+HP cc will not produce a working program, prior GCC versions are buggy.
+For OpenGL functionality you need to install Mesa and the gl and gl2 video
+output drivers should work, speed may be very bad, depending on the CPU speed,
+though. A good replacement for the rather poor native HP-UX sound system is
+GNU esound.
+</para>
+
+<para>
+Create the DVD device
+scan the SCSI bus with:
+</para>
+
+<screen>
+# ioscan -fn
+
+Class          I            H/W   Path          Driver    S/W State    H/W Type        Description
+...
+ext_bus 1    8/16/5      c720  CLAIMED INTERFACE  Built-in SCSI
+target  3    8/16/5.2    tgt   CLAIMED DEVICE
+disk    4    8/16/5.<emphasis role="bold">2</emphasis>.<emphasis role="bold">0</emphasis>  sdisk CLAIMED DEVICE     <emphasis role="bold">PIONEER DVD-ROM DVD-305</emphasis>
+                         /dev/dsk/c1t2d0 <emphasis role="bold">/dev/rdsk/c1t2d0</emphasis>
+target  4    8/16/5.7    tgt   CLAIMED DEVICE
+ctl     <emphasis role="bold">1</emphasis>    8/16/5.7.0  sctl  CLAIMED DEVICE     Initiator
+                         /dev/rscsi/c1t7d0 /dev/rscsi/c1t7l0 /dev/scsi/c1t7l0
+...
+</screen>
+
+<para>
+The screen output shows a Pioneer DVD-ROM at SCSI address 2.
+The card instance for hardware path 8/16 is 1.
+</para>
+
+<para>
+Create a link from the raw device to the DVD device.
+</para>
+
+<screen>
+# ln -s /dev/rdsk/c<replaceable>&lt;SCSI bus instance&gt;</replaceable>t<replaceable>&lt;SCSI target ID&gt;</replaceable>d<replaceable>&lt;LUN&gt;</replaceable> /dev/<replaceable>&lt;device&gt;</replaceable>
+</screen>
+
+<para>
+Example:
+</para>
+
+<screen>
+# ln -s /dev/rdsk/c1t2d0 /dev/dvd
+</screen>
+
+<para>
+Below are solutions for some common problems:
+</para>
+
+<itemizedlist>
+<listitem>
+<para>
+Crash at Start with the following error message:
+<screen>
+/usr/lib/dld.sl: Unresolved symbol: finite (code) from /usr/local/lib/gcc-lib/hppa2.0n-hp-hpux11.00/3.2/../../../libGL.sl
+</screen>
+</para>
+
+<para>
+This means that the function <systemitem>.finite().</systemitem> is not
+available in the standard HP-UX math library.
+Instead there is <systemitem>.isfinite().</systemitem>.
+Solution: Use the latest Mesa depot file.
+</para>
+</listitem>
+
+<listitem>
+<para>
+Crash at playback with the following error message:
+<screen>
+/usr/lib/dld.sl: Unresolved symbol: sem_init (code) from /usr/local/lib/libSDL-1.2.sl.0
+</screen>
+</para>
+
+<para>
+Solution: Use the extralibdir option of configure
+<option>--with-extralibdir="/usr/lib -lrt"</option>
+</para>
+</listitem>
+
+<listitem>
+<para>
+MPlayer segfaults with a message like this:
+<screen>
+Pid 10166 received a SIGSEGV for stack growth failure.
+Possible causes: insufficient memory or swap space, or stack size exceeded maxssiz.
+Segmentation fault
+</screen>
+</para>
+
+<para>
+Solution:
+The HP-UX kernel has a default stack size of 8MB(?) per process.(11.0 and
+newer 10.20 patches let you increase <systemitem>maxssiz</systemitem> up to
+350MB for 32-bit programs). You need to extend <systemitem>maxssiz</systemitem>
+and recompile the kernel (and reboot). You can use SAM to do this. (While at
+it, check out the <systemitem>maxdsiz</systemitem> parameter for the maximum
+amount of data a program can use. It depends on your applications, if the
+default of 64MB is enough or not.)
+</para>
+</listitem>
+</itemizedlist>
+
+</sect1>
+
+
 <sect1 id="qnx">
 <title>QNX</title>
 <para>
@@ -284,19 +423,20 @@ since QNX has only X <emphasis>emulation</emphasis> which is VERY slow. Use SDL.
   distort sound and video or crash on some systems. If the image is
   distorted, try turning off hardware acceleration with
   <option>-vo directx:noaccel</option>. Download
-  <ulink url="http://www.videolan.org/vlc/dx7headers.tgz">DirectX 7 header files</ulink>
+  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/contrib/dx7headers.tgz">DirectX 7 header files</ulink>
   to compile the DirectX video output driver. Furthermore you need to have
   DirectX 7 or later installed for the DirectX video output driver to work.
   </para>
 
 <para><link linkend="vidix">VIDIX</link> now works under Windows as
   <option>-vo winvidix</option>, although it is still experimental
-	and needs a bit of manual setup. Download
-  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/dhahelper.sys">dhahelper.sys</ulink>
+  and needs a bit of manual setup. Download
+  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/dhahelperwin/dhahelper.sys">dhahelper.sys</ulink> or
+  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/dhahelperwin/withmtrr/dhahelper.sys">dhahelper.sys (with MTRR support)</ulink>
   and copy it to the
   <filename class="directory">libdha/dhahelperwin</filename> directory in your
-	<application>MPlayer</application> source tree.
-	Open a console and change to that directory. Then type
+  <application>MPlayer</application> source tree.
+  Open a console and change to that directory. Then type
 
   <screen>gcc -o dhasetup.exe dhasetup.c</screen>
 
@@ -304,25 +444,25 @@ since QNX has only X <emphasis>emulation</emphasis> which is VERY slow. Use SDL.
 
   <screen>dhasetup.exe install</screen>
 
-  as Administrator.  After that you will have to reboot.  When you are
+  as Administrator. After that you will have to reboot. When you are
   done, copy the <systemitem class="library">.so</systemitem> files from
-	<filename class="directory">vidix/drivers</filename> to the
-	<filename class="directory">mplayer/vidix</filename> directory
+  <filename class="directory">vidix/drivers</filename> to the
+  <filename class="directory">mplayer/vidix</filename> directory
   relative to your <filename>mplayer.exe</filename>.</para>
 
 <para>For best results <application>MPlayer</application> should use a
-  colorspace that your video card supports in hardware.  Unfortunately many
+  colorspace that your video card supports in hardware. Unfortunately many
   Windows graphics drivers wrongly report some colorspaces as supported in
   hardware. To find out which, try
 
   <screen>mplayer -benchmark -nosound -frames 100 -vf format=<replaceable>colorspace</replaceable> <replaceable>movie</replaceable></screen>
 
   where <replaceable>colorspace</replaceable> can be any colorspace
-  printed by the <option>-vf format=fmt=help</option> option.  If you
+  printed by the <option>-vf format=fmt=help</option> option. If you
   find a colorspace your card handles particularly bad
   <option>-vf noformat=<replaceable>colorspace</replaceable></option>
   will keep it from being used. Add this to your config file to permanently
-	keep it from being used.</para>
+  keep it from being used.</para>
 
 <para>You can use Win32 codecs and Real Win32 codecs (not Real Linux codecs)
   if you want to. Put the codecs somewhere in your path or pass
@@ -338,7 +478,7 @@ since QNX has only X <emphasis>emulation</emphasis> which is VERY slow. Use SDL.
   <application>MPlayer</application>.</para>
 
 <para>You can play VCDs by playing the <filename>.DAT</filename> or <filename>.MPG</filename> files
-  that Windows exposes on VCDs.  It works like this (adjust for the drive letter
+  that Windows exposes on VCDs. It works like this (adjust for the drive letter
   of your CD-ROM):</para>
 
 <screen>mplayer <replaceable>d:/mpegav/avseq01.dat</replaceable></screen>
@@ -360,16 +500,13 @@ since QNX has only X <emphasis>emulation</emphasis> which is VERY slow. Use SDL.
 <para>Sascha Sommer releases official Windows binaries from time to time,
   Joey Parrish makes unofficial Windows packages complete with installer.
   Look for these in the Windows section of
-  <ulink url="http://www.mplayerhq.hu/homepage/projects.html#windows">our projects page</ulink>.</para>
+  <ulink url="http://www.mplayerhq.hu/homepage/design7/projects.html#windows">our projects page</ulink>.</para>
 
 <sect2 id="cygwin">
 <title><application>Cygwin</application></title>
 
-<para><application>Cygwin</application> versions prior to 1.5.0 do
-  not include <filename>inttypes.h</filename>. Put this
-  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/contrib/inttypes.h">inttypes.h</ulink>
-  in <filename class="directory">/usr/include/</filename> in order to
-  make <application>MPlayer</application> compile.</para>
+<para>You need to run <application>Cygwin</application> 1.5.0 or later in
+  order to compile <application>MPlayer</application>.</para>
 
 <para>DirectX header files need to be extracted to <filename class="directory">/usr/include/</filename> or
   <filename class="directory">/usr/local/include/</filename>.</para>
@@ -389,10 +526,6 @@ since QNX has only X <emphasis>emulation</emphasis> which is VERY slow. Use SDL.
   works out of the box now. Just install <application>MinGW</application>
   3.1.0 or later and MSYS 1.0.9 or later and tell the MSYS postinstall that
   <application>MinGW</application> is installed.</para>
-
-<para>If you use a version of <application>MinGW</application> before 3.1.0,
-  you need to replace <filename>/mingw/include/sys/types.h</filename> with this
-  <ulink url="http://www.mplayerhq.hu/MPlayer/releases/win32-beta/contrib/types.h"><filename>types.h</filename></ulink>.</para>
 
 <para>Extract DirectX header files to <filename class="directory">/mingw/include/</filename>.</para>
 
@@ -429,21 +562,6 @@ compiled <application>MPlayer</application> binaries for Mac OS X from the
 </para>
 </sect1>
 
-<sect1 id="hp-ux">
-<title>HP-UX</title>
-<para>
-Martin Gansser maintains a valuable
-<ulink url="http://cloud.prohosting.com/patos/docs/mplayer_on_hpux11.htm">HOWTO</ulink>
-about building <application>MPlayer</application> on HP-UX. It even has a FAQ
-section!
-</para>
-
-<para>
-Anyway, our "raw" <application>MPlayer</application> source is used to compile
-on HP-UX without flaws.
-</para>
-</sect1>
-
 <sect1 id="amiga">
 <title>Amiga/MorphOS (GeekGadgets)</title>
 <para>
@@ -463,8 +581,8 @@ Get if from <ulink url="http://www.morphzone.org/">MorphZone</ulink>:
 <application>MPlayer</application> 0.91 source</ulink>
 </para></listitem>
 <listitem><para>
-<ulink url="http://www.morphzone.org/modules/mydownloads/singlefile.php?lid=912">
-<application>MEncoder</application> 0.91 binary</ulink>
+<ulink url="http://www.morphzone.org/modules/mydownloads/singlefile.php?lid=92">
+<application>MEncoder</application> 1.0pre3 binary</ulink>
 </para></listitem>
 </itemizedlist>
 </para>

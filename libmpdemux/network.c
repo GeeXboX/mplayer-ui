@@ -67,9 +67,9 @@ static struct {
 	// MP3 streaming, some MP3 streaming server answer with audio/mpeg
 	{ "audio/mpeg", DEMUXER_TYPE_AUDIO },
 	// MPEG streaming
-	{ "video/mpeg", DEMUXER_TYPE_MPEG_PS },
-	{ "video/x-mpeg", DEMUXER_TYPE_MPEG_PS },
-	{ "video/x-mpeg2", DEMUXER_TYPE_MPEG_PS },
+	{ "video/mpeg", DEMUXER_TYPE_UNKNOWN },
+	{ "video/x-mpeg", DEMUXER_TYPE_UNKNOWN },
+	{ "video/x-mpeg2", DEMUXER_TYPE_UNKNOWN },
 	// AVI ??? => video/x-msvideo
 	{ "video/x-msvideo", DEMUXER_TYPE_AVI },
 	// MOV => video/quicktime
@@ -1036,6 +1036,9 @@ realrtsp_streaming_start( stream_t *stream ) {
 
 		fd = connect2Server( stream->streaming_ctrl->url->hostname,
 			port = (stream->streaming_ctrl->url->port ? stream->streaming_ctrl->url->port : 554),1 );
+		if(fd<0 && !stream->streaming_ctrl->url->port)
+			fd = connect2Server( stream->streaming_ctrl->url->hostname,
+				port = 7070, 1 );
 		if(fd<0) return -1;
 		
 		file = stream->streaming_ctrl->url->file;

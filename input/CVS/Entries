@@ -1,10 +1,10 @@
-/.cvsignore/1.1/Fri Feb  1 11:17:01 2002//
-/Makefile/1.5/Thu Jun 24 12:52:15 2004//
-/input.c/1.101/Thu Oct 14 15:33:09 2004//
-/input.h/1.49/Wed Oct 13 23:38:11 2004//
-/joystick.c/1.6/Wed Jul  9 01:30:22 2003//
-/joystick.h/1.4/Mon Feb 11 11:42:08 2002//
-/lirc.c/1.5/Wed Oct 23 22:23:12 2002//
-/lirc.h/1.2/Wed Oct 23 22:23:12 2002//
-/mouse.h/1.2/Mon Feb 11 11:42:08 2002//
+/.cvsignore/1.1/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/Makefile/1.5/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/input.c/1.106/Tue Jan 18 00:20:47 2005//Tmplayer1_0pre6
+/input.h/1.52/Tue Jan 18 00:20:47 2005//Tmplayer1_0pre6
+/joystick.c/1.6/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/joystick.h/1.4/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/lirc.c/1.5/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/lirc.h/1.2/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mouse.h/1.2/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
 D

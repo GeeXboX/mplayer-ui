@@ -15,7 +15,7 @@
 #include "mp_msg.h"
 #include "help_mp.h"
 
-#include "../osdep/shmem.h"
+#include "osdep/shmem.h"
 
 //int vo_flags=0;
 
@@ -35,7 +35,7 @@ int vo_dbpp=0;
 
 int vo_nomouse_input = 0;
 int vo_grabpointer = 1;
-int vo_doublebuffering = 0;
+int vo_doublebuffering = 1;
 int vo_vsync = 0;
 int vo_fs = 0;
 int vo_fsmode = 0;
@@ -45,6 +45,7 @@ int vo_adapter_num=0;
 int vo_refresh_rate=0;
 int vo_keepaspect=1;
 int vo_rootwin=0;
+int WinID = -1;
 
 int vo_pts=0; // for hw decoding
 float vo_fps=0; // for mp1e rte
@@ -122,8 +123,12 @@ extern vo_functions_t video_out_tga;
 #ifdef MACOSX
 extern vo_functions_t video_out_quartz;
 #endif
+#ifdef HAVE_PNM
 extern vo_functions_t video_out_pnm;
+#endif
+#ifdef HAVE_MD5SUM
 extern vo_functions_t video_out_md5sum;
+#endif
 
 vo_functions_t* video_out_drivers[] =
 {
@@ -237,8 +242,12 @@ vo_functions_t* video_out_drivers[] =
 #ifdef HAVE_TGA
         &video_out_tga,
 #endif
+#ifdef HAVE_PNM
     &video_out_pnm,
+#endif
+#ifdef HAVE_MD5SUM
     &video_out_md5sum,
+#endif
         NULL
 };
 

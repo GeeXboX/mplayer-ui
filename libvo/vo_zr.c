@@ -3,7 +3,7 @@
  * Copyright (C) Rik Snel 2001,2002, License GNU GPL v2
  */
 
-/* $Id: vo_zr.c,v 1.28 2003/11/03 17:38:50 rik Exp $ */
+/* $Id: vo_zr.c,v 1.29 2004/10/28 01:15:52 diego Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,8 +24,8 @@
 
 #include "video_out.h"
 #include "video_out_internal.h"
-#include "../mp_msg.h"
-#include "../m_option.h"
+#include "mp_msg.h"
+#include "m_option.h"
 #include "fastmemcpy.h"
 
 #include "jpeg_enc.h"

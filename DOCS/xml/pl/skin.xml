@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-2"?>
-<!-- synced with 1.10 -->
+<!-- synced with 1.11 -->
 <appendix id="skin">
 <title>Format skórki <application>MPlayera</application></title>
 <para>
@@ -1080,7 +1080,7 @@ Sygnał pusty - nic nie robi (może za wyjątkiem wersji z CVS:-)).
 </varlistentry>
 
 <varlistentry>
-  <term><emphasis role="bold">evPlayList</emphasis></term>
+  <term><emphasis role="bold">evPlaylist</emphasis></term>
   <listitem><para>
 Otwórz/zamknij okno listy odtwarzania.
     </para></listitem>

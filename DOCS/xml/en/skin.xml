@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.10 $ -->
+<!-- $Revision: 1.11 $ -->
 <appendix id="skin">
 <title><application>MPlayer</application> skin format</title>
 <para>
@@ -1061,7 +1061,7 @@ Empty message, it has no effect (except maybe in CVS versions :-)).
 </varlistentry>
 
 <varlistentry>
-  <term><emphasis role="bold">evPlayList</emphasis></term>
+  <term><emphasis role="bold">evPlaylist</emphasis></term>
   <listitem><para>
 Open/close the playlist window.
     </para></listitem>

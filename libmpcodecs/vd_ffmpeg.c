@@ -105,6 +105,7 @@ static int lavc_param_skip_top=0;
 static int lavc_param_skip_bottom=0;
 static int lavc_param_fast=0;
 static int lavc_param_lowres=0;
+static char *lavc_param_lowres_str=NULL;
 
 m_option_t lavc_decode_opts_conf[]={
 	{"bug", &lavc_param_workaround_bugs, CONF_TYPE_INT, CONF_RANGE, -1, 999999, NULL},
@@ -120,7 +121,7 @@ m_option_t lavc_decode_opts_conf[]={
 #ifdef CODEC_FLAG2_FAST
         {"fast", &lavc_param_fast, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG2_FAST, NULL},
 #endif
-	{"lowres", &lavc_param_lowres, CONF_TYPE_INT, CONF_RANGE, 0, 16, NULL},
+	{"lowres", &lavc_param_lowres_str, CONF_TYPE_STRING, 0, 0, 0, NULL},
 	{NULL, NULL, 0, 0, 0, 0, NULL}
 };
 
@@ -163,6 +164,9 @@ static int init(sh_video_t *sh){
     AVCodecContext *avctx;
     vd_ffmpeg_ctx *ctx;
     AVCodec *lavc_codec;
+#if LIBAVCODEC_BUILD >= 4722
+    int lowres_w=0;
+#endif
     int do_vis_debug= lavc_param_vismv || (lavc_param_debug&(FF_DEBUG_VIS_MB_TYPE|FF_DEBUG_VIS_QP));
 
     if(!avcodec_inited){
@@ -259,7 +263,13 @@ static int init(sh_video_t *sh){
     avctx->skip_bottom= lavc_param_skip_bottom;
 #endif    
 #if LIBAVCODEC_BUILD >= 4722
-    avctx->lowres= lavc_param_lowres;
+    if(lavc_param_lowres_str != NULL)
+    {
+        sscanf(lavc_param_lowres_str, "%d,%d", &lavc_param_lowres, &lowres_w);
+        if(lavc_param_lowres < 1 || lavc_param_lowres > 16 || (lowres_w > 0 && avctx->width < lowres_w))
+            lavc_param_lowres = 0;
+        avctx->lowres = lavc_param_lowres;
+    }
 #endif    
     mp_dbg(MSGT_DECVIDEO,MSGL_DBG2,"libavcodec.size: %d x %d\n",avctx->width,avctx->height);
     /* AVRn stores huffman table in AVI header */
@@ -303,9 +313,9 @@ static int init(sh_video_t *sh){
         } else {
 	    /* has extra slice header (demux_rm or rm->avi streamcopy) */
 	    unsigned int* extrahdr=(unsigned int*)(sh->bih+1);
-	    ((uint32_t*)avctx->extradata)[0] = extrahdr[0];
-	    avctx->sub_id=
-	    ((uint32_t*)avctx->extradata)[1] = extrahdr[1];
+	    ((uint32_t*)avctx->extradata)[0] = be2me_32(extrahdr[0]);
+	    avctx->sub_id= extrahdr[1];
+	    ((uint32_t*)avctx->extradata)[1] = be2me_32(extrahdr[1]);
 	}
 
 //        printf("%X %X %d %d\n", extrahdr[0], extrahdr[1]);
@@ -314,6 +324,7 @@ static int init(sh_video_t *sh){
 	(sh->format == mmioFOURCC('M','4','S','2') ||
 	 sh->format == mmioFOURCC('M','P','4','S') ||
 	 sh->format == mmioFOURCC('H','F','Y','U') ||
+	 sh->format == mmioFOURCC('F','F','V','H') ||
 	 sh->format == mmioFOURCC('W','M','V','2') ||
 	 sh->format == mmioFOURCC('A','S','V','1') ||
 	 sh->format == mmioFOURCC('A','S','V','2') ||

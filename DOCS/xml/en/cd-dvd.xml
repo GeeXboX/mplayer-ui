@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.11 $ -->
+<!-- $Revision: 1.14 $ -->
 <chapter id="cd-dvd">
 <title>CD/DVD usage</title>
 
@@ -29,7 +29,7 @@ Many CD-ROM drives are annoyingly loud, a lower speed may reduce the noise.
 
 <para>
 You can reduce the speed of IDE CD-ROM drives with <command>hdparm</command> or a
-program called <command>setcd</command>.  It works like this:
+program called <command>setcd</command>. It works like this:
 <screen>hdparm -E <replaceable>[speed]</replaceable> <replaceable>[cdrom device]</replaceable></screen>
 <screen>setcd -x <replaceable>[speed]</replaceable> <replaceable>[cdrom device]</replaceable></screen>
 </para>
@@ -235,10 +235,11 @@ RPC2 drive (slow).
 RPC-1 DVD drives only protect region settings through software. RPC-2 drives
 have a hardware protection that allows 5 changes only. It might be
 needed/recommended to upgrade the firmware to RPC-1 if you have a RPC-2 DVD
-drive. Firmware upgrades can be found on this
-<ulink url="http://www.firmware-flash.com">firmware page</ulink>. If there is
-no firmware upgrade available for your device, use the
-<ulink url="http://www.linuxtv.org/download/dvd/dvd_disc_20000215.tar.gz">regionset tool</ulink>
+drive. You can try finding firmware upgrades for your drive on the internet,
+<ulink url="http://forum.rpc-1.com/dl_all.php">this firmware forum</ulink>
+may be a good starting point for your search.
+If there is no firmware upgrade available for your device, use the
+<ulink url="http://linvdr.org/projects/regionset/">regionset tool</ulink>
 to set the region code of your DVD drive (under Linux).
 <emphasis role="bold">Warning</emphasis>: You can only set the region 5 times.
 </para>
@@ -259,7 +260,7 @@ with the <option>-cdrom-device</option> option.
 
 <note><para>
 At least Plextor and some Toshiba SCSI CD-ROM drives have horrible performance
-reading VCDs. This is because the the CDROMREADRAW <systemitem>ioctl</systemitem>
+reading VCDs. This is because the CDROMREADRAW <systemitem>ioctl</systemitem>
 is not fully implemented for these drives. If you have some knowledge of SCSI
 programming, please <ulink url="../../tech/patches.txt">help us</ulink>
 implement generic SCSI support for VCDs.
@@ -267,34 +268,55 @@ implement generic SCSI support for VCDs.
 
 <para>
 In the meantime you can extract data from VCDs with
-<ulink url="http://140.132.1.204/OS/Linux/packages/X/viewers/readvcd/">readvcd</ulink>
+<ulink url="http://miketeo.net/links/readvcd-0.3.tgz">readvcd</ulink>
 and play the resulting file with <application>MPlayer</application>.
 </para>
 
 <formalpara>
 <title>VCD structure</title>
-<para>VCD disks consist of one or more tracks:</para>
+
+<para>
+A Video CD (VCD) is made up of CD-ROM XA sectors, i.e. CD-ROM mode 2
+form 1 and 2 tracks:</para>
 </formalpara>
 
 <itemizedlist>
 <listitem><para>
-The first track is a small 2048 bytes/sector data track with an iso9660
-filesystem, usually containing Windows VCD player programs and maybe other
-information (images, text, etc).
+The first track is in mode 2 form 2 format which means it uses L2
+error correction. The track contains an ISO-9660 filesystem with 2048
+bytes/sector. This filesystem contains VCD metadata information, as
+well as still frames often used in menus. MPEG segments for menus can
+also be stored in this first track, but the MPEGs have to be broken up
+into a series of 150-sector chunks. The ISO-9660 filesystem may
+contain other files or programs that are not essential for VCD
+operation.
 </para></listitem>
 
 <listitem><para>
-The second and other tracks are raw 2324 bytes/sector MPEG (movie)
-tracks, containing one MPEG PS data packet per sector instead of a
-filesystem. Similar to audio CD tracks, these tracks <emphasis role="bold">cannot
-be mounted</emphasis> (Did you ever mount an audio CD to play it?).
-As most movies are inside this track, you should try <option>vcd://2</option> first.
-</para></listitem>
+The second and remaining tracks are generally raw 2324 bytes/sector
+MPEG (movie) tracks, containing one MPEG PS data packet per
+sector. These are in mode 2 form 1 format, so they store more data per
+sector at the loss of some error correction. It is also legal to have
+CD-DA tracks in a VCD after the first track as well.
+On some operating systems there is some trickery that goes on to make
+these non-ISO-9660 tracks appear in a filesystem. On other operating
+systems like GNU/Linux this is not the case (yet). Here the MPEG data
+<emphasis role="bold">cannot be mounted</emphasis>. As most movies are
+inside this kind of track, you should try <option>vcd://2</option>
+first.</para></listitem>
 
 <listitem><para>
 There exist VCD disks without the first track (single track and no filesystem
 at all). They are still playable, but cannot be mounted.
 </para></listitem>
+
+<listitem><para> The definition of the Video CD standard is called the
+Philips "White Book" and it is not generally available online as it
+must be purchased from Philips. More detailed information about Video
+CDs can be found in the
+<ulink url="http://www.vcdimager.org/pub/vcdimager/manuals/0.7/vcdimager.html#SEC4">vcdimager documentation</ulink>.
+</para></listitem>
+
 </itemizedlist>
 
 <formalpara>
@@ -314,7 +336,7 @@ work with the standard iso9660 driver of the Linux kernel! Use
 <option>vcd://</option> instead. Alternatives for VCD copying are the
 new <ulink url="http://www.elis.rug.ac.be/~ronsse/cdfs/">cdfs</ulink> kernel
 driver (not part of the official kernel) that shows CD sessions as image files and
-<ulink url="http://cdrdao.sourceforge.net/">cdrdao</ulink>, a bit-by-bit
+<ulink url="http://cdrdao.sf.net/">cdrdao</ulink>, a bit-by-bit
 CD grabbing/copying application.
 </para>
 </formalpara>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.46 $ -->
+<!-- $Revision: 1.50 $ -->
 <sect1 id="install">
 <title>Installation</title>
 
@@ -101,7 +101,7 @@ You need a fairly recent system. On Linux, 2.4.x kernels are recommended.
   </para></listitem>
 <listitem><para>
   <emphasis role="bold">directfb</emphasis> - optional, from
-  <ulink url="http://www.directfb.org"/>
+  <ulink url="http://www.directfb.org"/>. At least 0.9.13 is required.
   </para></listitem>
 <listitem><para>
   <emphasis role="bold">cdparanoia</emphasis> - optional, for CDDA support
@@ -151,7 +151,7 @@ You need a fairly recent system. On Linux, 2.4.x kernels are recommended.
     </simpara></listitem>
   <listitem><simpara>
     this codec is the <emphasis role="bold">fastest codec available</emphasis> for
-    DivX/3/4/5 and other MPEG4 types. Recommended!
+    DivX/3/4/5 and other MPEG-4 types. Recommended!
     </simpara></listitem>
   </itemizedlist>
   </para></listitem>
@@ -241,10 +241,9 @@ You need a fairly recent system. On Linux, 2.4.x kernels are recommended.
   </para></listitem>
 <listitem><para>
   For <emphasis role="bold">Ogg Vorbis</emphasis> audio decoding you need to
-  install <systemitem class="library">libvorbis</systemitem> properly. Use
-  deb/rpm packages if available, or compile from
-  <ulink url="http://ogg.org/ogg/vorbis/download/vorbis_nightly_cvs.tgz">source</ulink>
-  (this is a nightly updated tarball of Vorbis CVS).
+  install <systemitem class="library">libvorbis</systemitem> properly.
+  You can get binary packages and source code from the
+  <ulink url="http://www.vorbis.com/download.psp">Ogg Vorbis site</ulink>.
   </para></listitem>
 <listitem><para>
   <application>MPlayer</application> can use the libraries of RealPlayer 8
@@ -429,7 +428,7 @@ it works with the following drivers:
 <listitem><simpara>
   Features of <emphasis role="bold">other cards</emphasis> aren't supported by
   <application>MPlayer</application>. <emphasis role="bold">It's very recommended
-  to read the <link linkend="audio-dev">sound card</link> section!</emphasis>
+  to read the <link linkend="audio">sound card</link> section!</emphasis>
   </simpara></listitem>
 </itemizedlist>
 </sect2>
@@ -741,7 +740,7 @@ OSD/SUB feature. There are many ways to get it:
 <listitem><para>
   Use the font generator <application>GIMP</application> plugin at <filename
   class="directory">TOOLS/subfont-GIMP</filename> (note: you must have HSI
-  RAW plugin too, see <ulink url="http://realtime.ssu.ac.kr/~lethean/mplayer/" />).
+  RAW plugin too, see <ulink url="http://realtime.ssu.ac.kr/~lethean/index.php?pagename=MplayerKoreanFonts" />).
  </para></listitem>
 <listitem><para>
   using a TrueType (TTF) font, by the means of the <systemitem class="library">freetype</systemitem>
@@ -799,7 +798,7 @@ OSD/SUB feature. There are many ways to get it:
     various fonts by users
     </entry></row>
   <row><entry>
-    <ulink url="http://realtime.ssu.ac.kr/~lethean/mplayer/"></ulink>
+    <ulink url="http://realtime.ssu.ac.kr/~lethean/index.php?pagename=MplayerKoreanFonts"></ulink>
     </entry><entry>
     Korean fonts and RAW plugin
     </entry></row>

@@ -118,6 +118,7 @@ static void c_longcount_tsc(long long* z)
 	 "movl %%edx, 4(%%ebx)\n\t"
 	 "popl %%ebx\n\t"
 	 ::"a"(z)
+	 :"edx"
 	);
 }
 static unsigned int c_localcount_notsc()
@@ -4315,10 +4316,15 @@ static void exp_ftol(void)
 	);
 }
 
-#warning check for _CIpow
-static double exp_CIpow(double x, double y)
+#define FPU_DOUBLES(var1,var2) double var1,var2; \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var2) : ); \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var1) : )
+
+static double exp_CIpow(void)
 {
-    /*printf("Pow %f  %f    0x%Lx  0x%Lx  => %f\n", x, y, *((int64_t*)&x), *((int64_t*)&y), pow(x, y));*/
+    FPU_DOUBLES(x,y);
+
+    dbgprintf("_CIpow(%lf, %lf)\n", x, y);
     return pow(x, y);
 }
 
@@ -4700,6 +4706,25 @@ static double expfloor(double x)
     return floor(x);
 }
 
+#define FPU_DOUBLE(var) double var; \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var) : )
+
+static double exp_CIcos(void)
+{
+    FPU_DOUBLE(x);
+
+    dbgprintf("_CIcos(%lf)\n", x);
+    return cos(x);
+}
+
+static double exp_CIsin(void)
+{
+    FPU_DOUBLE(x);
+
+    dbgprintf("_CIsin(%lf)\n", x);
+    return sin(x);
+}
+
 struct exports
 {
     char name[64];
@@ -4909,6 +4934,8 @@ struct exports exp_msvcrt[]={
     FF(cos, -1)
     FF(_ftol,-1)
     FF(_CIpow,-1)
+    FF(_CIcos,-1)
+    FF(_CIsin,-1)
     FF(ldexp,-1)
     FF(frexp,-1)
     FF(sprintf,-1)
@@ -5227,7 +5254,7 @@ void* LookupExternal(const char* library, int ordinal)
 
 #ifndef LOADLIB_TRY_NATIVE
   /* hack for truespeech and vssh264*/
-  if (!strcmp(library, "tsd32.dll") || !strcmp(library,"vssh264dec.dll") || !strcmp(library,"LCMW2.dll"))
+  if (!strcmp(library, "tsd32.dll") || !strcmp(library,"vssh264dec.dll") || !strcmp(library,"LCMW2.dll") || !strcmp(library,"VDODEC32.dll"))
 #endif
     /* ok, this is a hack, and a big memory leak. should be fixed. - alex */
     {

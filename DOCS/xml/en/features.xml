@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.3 $ -->
+<!-- $Revision: 1.4 $ -->
 <chapter id="features">
 <title>Features</title>
 
 &formats.xml;
 &codecs.xml;
 
-<sect1 id="devices">
-<title>Output devices</title>
 &video.xml;
 &audio.xml;
-</sect1>
 
 &tvinput.xml;
 

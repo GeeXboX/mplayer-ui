@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../config.h"
+#include "config.h"
 #include "audio_out.h"
 #include "afmt.h"
 
-#include "../mp_msg.h"
-#include "../help_mp.h"
+#include "mp_msg.h"
+#include "help_mp.h"
 
 // there are some globals:
 ao_data_t ao_data={0,0,0,0,OUTBURST,-1,0};
@@ -24,6 +24,9 @@ extern ao_functions_t audio_out_arts;
 #endif
 #ifdef USE_ESD
 extern ao_functions_t audio_out_esd;
+#endif
+#ifdef USE_POLYP
+extern ao_functions_t audio_out_polyp;
 #endif
 #ifdef USE_JACK
 extern ao_functions_t audio_out_jack;
@@ -102,6 +105,9 @@ ao_functions_t* audio_out_drivers[] =
 #endif
 #ifdef USE_ESD
         &audio_out_esd,
+#endif
+#ifdef USE_POLYP
+        &audio_out_polyp,
 #endif
 #ifdef USE_JACK
         &audio_out_jack,

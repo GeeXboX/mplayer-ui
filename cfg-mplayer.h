@@ -16,10 +16,6 @@ extern char *monitor_dotclock_str;
 extern char *fb_dev_name;
 extern char *fb_mode_cfgfile;
 extern char *fb_mode_name;
-#else
-#ifdef HAVE_DIRECTFB
-extern char *fb_dev_name;
-#endif
 #endif
 #ifdef HAVE_DIRECTFB
 #if DIRECTFBVERSION > 912
@@ -79,8 +75,8 @@ extern int fs_layer;
 extern int stop_xscreensaver;
 extern char **vo_fstype_list;
 extern int vo_nomouse_input;
-extern int WinID;
 #endif
+extern int WinID;
 
 #ifdef HAVE_MENU
 extern int menu_startup;
@@ -174,6 +170,9 @@ m_option_t mplayer_opts[]={
 	{"dsp", "Use -ao oss:dsp_path.\n", CONF_TYPE_PRINT, CONF_NOCFG, 0, 0, NULL},
         {"mixer", &mixer_device, CONF_TYPE_STRING, 0, 0, 0, NULL},
         {"mixer-channel", &mixer_channel, CONF_TYPE_STRING, 0, 0, 0, NULL},
+        {"softvol", &soft_vol, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+        {"nosoftvol", &soft_vol, CONF_TYPE_FLAG, 0, 1, 0, NULL},
+        {"softvol-max", &soft_vol_max, CONF_TYPE_FLOAT, CONF_RANGE, 10, 10000, NULL},
 	{"volstep", &volstep, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
 	{"master", "Option -master has been removed, use -aop list=volume instead.\n", CONF_TYPE_PRINT, 0, 0, 0, NULL},
 	// override audio buffer size (used only by -ao oss, anyway obsolete...)
@@ -230,10 +229,6 @@ m_option_t mplayer_opts[]={
 	{"fb", &fb_dev_name, CONF_TYPE_STRING, 0, 0, 0, NULL},
 	{"fbmode", &fb_mode_name, CONF_TYPE_STRING, 0, 0, 0, NULL},
 	{"fbmodeconfig", &fb_mode_cfgfile, CONF_TYPE_STRING, 0, 0, 0, NULL},
-#else
-#ifdef HAVE_DIRECTFB
-	{"fb", &fb_dev_name, CONF_TYPE_STRING, 0, 0, 0, NULL},
-#endif
 #endif
 #ifdef HAVE_DIRECTFB
 #if DIRECTFBVERSION > 912
@@ -277,9 +272,9 @@ m_option_t mplayer_opts[]={
 	
     {"adapter", &vo_adapter_num, CONF_TYPE_INT, CONF_RANGE, 0, 5, NULL},
     {"refreshrate",&vo_refresh_rate,CONF_TYPE_INT,CONF_RANGE, 0,100, NULL},
+	{"wid", &WinID, CONF_TYPE_INT, 0, 0, 0, NULL},
 #ifdef HAVE_X11
 	// x11,xv,xmga,xvidix
-	{"wid", &WinID, CONF_TYPE_INT, 0, 0, 0, NULL},
 	{"icelayer", "-icelayer is obsolete. Use -fstype layer:<number> instead.\n", CONF_TYPE_PRINT, 0, 0, 0, NULL},
 	{"stop-xscreensaver", &stop_xscreensaver, CONF_TYPE_FLAG, 0, 0, 1, NULL},
 	{"nostop-xscreensaver", &stop_xscreensaver, CONF_TYPE_FLAG, 0, 1, 0, NULL},
@@ -329,6 +324,10 @@ m_option_t mplayer_opts[]={
 
 //---------------------- mplayer-only options ------------------------
 
+#ifdef CRASH_DEBUG
+	{"crash-debug", &crash_debug, CONF_TYPE_FLAG, CONF_GLOBAL, 0, 1, NULL},
+	{"nocrash-debug", &crash_debug, CONF_TYPE_FLAG, CONF_GLOBAL, 1, 0, NULL},
+#endif
 	{"osdlevel", &osd_level, CONF_TYPE_INT, CONF_RANGE, 0, 3, NULL},
 #ifdef HAVE_MENU
 	{"menu", &use_menu, CONF_TYPE_FLAG, CONF_GLOBAL, 0, 1, NULL},
@@ -406,6 +405,7 @@ m_option_t mplayer_opts[]={
 
 	{"slave", &slave_mode, CONF_TYPE_FLAG,CONF_GLOBAL , 0, 1, NULL},
 	{"use-stdin", "-use-stdin has been renamed to -noconsolecontrols, use that instead.", CONF_TYPE_PRINT, 0, 0, 0, NULL},
+	{"key-fifo-size", &key_fifo_size, CONF_TYPE_INT, CONF_RANGE, 2, 65000, NULL},
 	{"noconsolecontrols", &noconsolecontrols, CONF_TYPE_FLAG, CONF_GLOBAL, 0, 1, NULL},
 	{"consolecontrols", &noconsolecontrols, CONF_TYPE_FLAG, CONF_GLOBAL, 0, 0, NULL},
 

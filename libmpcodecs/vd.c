@@ -253,7 +253,8 @@ csp_again:
     if(vo_flags&VFCAP_FLIPPED) flip^=1;
     if(flip && !(vo_flags&VFCAP_FLIP)){
 	// we need to flip, but no flipping filter avail.
-	sh->vfilter=vf=vf_open_filter(vf,"flip",NULL);
+	vf_add_before_vo(&vf, "flip", NULL);
+	sh->vfilter = vf;
     }
 
     // time to do aspect ratio corrections...
@@ -306,6 +307,8 @@ csp_again:
                       fullscreen|(vidmode<<1)|(softzoom<<2)|(flip<<3),
                       "MPlayer",out_fmt);
 
+    vf->w = sh->disp_w;
+    vf->h = sh->disp_h;
     if(vf->config(vf,sh->disp_w,sh->disp_h,
                       screen_size_x,screen_size_y,
                       fullscreen|(vidmode<<1)|(softzoom<<2)|(flip<<3),

@@ -143,6 +143,8 @@ static int add_to_format(char *s, char *alias,unsigned int *fourcc, unsigned int
 		{"444P",  IMGFMT_444P},
 		{"422P",  IMGFMT_422P},
 		{"411P",  IMGFMT_411P},
+		{"Y800",  IMGFMT_Y800},
+		{"Y8",    IMGFMT_Y8},
 
 		{"YUY2",  IMGFMT_YUY2},
 		{"UYVY",  IMGFMT_UYVY},
@@ -332,13 +334,12 @@ static int validate_codec(codecs_t *c, int type)
 		mp_msg(MSGT_CODECCFG,MSGL_ERR,MSGTR_CodecLacksFourcc, c->name);
 		return 0;
 	}
+#endif
 
-	/* XXX fix this: shitty with 'null' codec */
-	if (!c->driver) {
+	if (!c->drv) {
 		mp_msg(MSGT_CODECCFG,MSGL_ERR,MSGTR_CodecLacksDriver, c->name);
 		return 0;
 	}
-#endif
 
 #if 0
 #warning codec->driver == 4;... <- ezt nem kellene belehegeszteni...
@@ -487,11 +488,7 @@ int parse_codec_cfg(char *cfgfile)
 	int tmp, i;
 	
 	// in case we call it a second time
-	if(video_codecs!=NULL)free(video_codecs);
-	video_codecs=NULL;
- 
- 	if(audio_codecs!=NULL)free(audio_codecs);
-	audio_codecs=NULL;
+	codecs_uninit_free();
 	
 	nr_vcodecs = 0;
 	nr_acodecs = 0;
@@ -508,10 +505,10 @@ int parse_codec_cfg(char *cfgfile)
 #endif
 	}
 	
-	mp_msg(MSGT_CODECCFG,MSGL_INFO,MSGTR_ReadingFile, cfgfile);
+	mp_msg(MSGT_CODECCFG,MSGL_V,MSGTR_ReadingFile, cfgfile);
 
 	if ((fp = fopen(cfgfile, "r")) == NULL) {
-		mp_msg(MSGT_CODECCFG,MSGL_ERR,MSGTR_CantOpenFileError, cfgfile, strerror(errno));
+		mp_msg(MSGT_CODECCFG,MSGL_V,MSGTR_CantOpenFileError, cfgfile, strerror(errno));
 		return 0;
 	}
 
@@ -715,12 +712,7 @@ err_out_parse_error:
 err_out_print_linenum:
 	PRINT_LINENUM;
 err_out:
-	if (audio_codecs)
-		free(audio_codecs);
-	if (video_codecs)
-		free(video_codecs);
-	video_codecs=NULL;
-	audio_codecs=NULL;
+	codecs_uninit_free();
 
 	free(line);
 	line=NULL;
@@ -733,6 +725,34 @@ err_out_not_valid:
 err_out_release_num:
 	mp_msg(MSGT_CODECCFG,MSGL_ERR,MSGTR_OutdatedCodecsConf);
 	goto err_out_print_linenum;
+}
+
+static void codecs_free(codecs_t* codecs,int count) {
+	int i;
+		for ( i = 0; i < count; i++)
+			if ( (codecs[i]).name ) {
+				if( (codecs[i]).name )
+					free((codecs[i]).name);
+				if( (codecs[i]).info )
+					free((codecs[i]).info);
+				if( (codecs[i]).comment )
+					free((codecs[i]).comment);
+				if( (codecs[i]).dll )
+					free((codecs[i]).dll);
+				if( (codecs[i]).drv )
+					free((codecs[i]).drv);
+			}
+		if (codecs)
+			free(codecs);
+}
+
+void codecs_uninit_free() {
+	if (video_codecs)
+	codecs_free(video_codecs,nr_vcodecs);
+	video_codecs=NULL;
+	if (audio_codecs)
+	codecs_free(audio_codecs,nr_acodecs);
+	audio_codecs=NULL;
 }
 
 codecs_t *find_audio_codec(unsigned int fourcc, unsigned int *fourccmap,

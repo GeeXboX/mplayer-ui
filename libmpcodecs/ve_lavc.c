@@ -324,6 +324,8 @@ struct vf_priv_s {
 #define FF_QP2LAMBDA 1
 #endif
 
+static int encode_frame(struct vf_instance_s* vf, AVFrame *pic);
+
 static int config(struct vf_instance_s* vf,
         int width, int height, int d_width, int d_height,
 	unsigned int flags, unsigned int outfmt){
@@ -740,7 +742,14 @@ static int config(struct vf_instance_s* vf,
 
 static int control(struct vf_instance_s* vf, int request, void* data){
 
-    return CONTROL_UNKNOWN;
+    switch(request){
+        case VFCTRL_FLUSH_FRAMES:
+            if(vf->priv->codec->capabilities & CODEC_CAP_DELAY)
+                while(encode_frame(vf, NULL) > 0);
+            return CONTROL_TRUE;
+        default:
+            return CONTROL_UNKNOWN;
+    }
 }
 
 static int query_format(struct vf_instance_s* vf, unsigned int fmt){
@@ -781,8 +790,6 @@ static double psnr(double d){
 }
 
 static int put_image(struct vf_instance_s* vf, mp_image_t *mpi){
-    const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
-    int out_size;
     AVFrame *pic= vf->priv->pic;
 
     pic->data[0]=mpi->planes[0];
@@ -804,9 +811,18 @@ static int put_image(struct vf_instance_s* vf, mp_image_t *mpi){
     }
 #endif
 
+    return (encode_frame(vf, pic) >= 0);
+}
+
+static int encode_frame(struct vf_instance_s* vf, AVFrame *pic){
+    const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
+    int out_size;
+
 	out_size = avcodec_encode_video(lavc_venc_context, mux_v->buffer, mux_v->buffer_size,
 	    pic);
 
+    if(out_size == 0)
+        return 0;
            
     muxer_write_chunk(mux_v,out_size,lavc_venc_context->coded_frame->key_frame?0x10:0);
         
@@ -835,7 +851,7 @@ static int put_image(struct vf_instance_s* vf, mp_image_t *mpi){
                 perror("fopen");
                 lavc_param_psnr=0; // disable block
                 mp_msg(MSGT_MENCODER,MSGL_ERR,"Can't open %s for writing. Check its permissions.\n",filename);
-                return 0; 
+                return -1;
                 /*exit(1);*/
             }
         }
@@ -870,7 +886,7 @@ static int put_image(struct vf_instance_s* vf, mp_image_t *mpi){
     /* store stats if there are any */
     if(lavc_venc_context->stats_out && stats_file) 
         fprintf(stats_file, "%s", lavc_venc_context->stats_out);
-    return 1;
+    return out_size;
 }
 
 static void uninit(struct vf_instance_s* vf){
@@ -932,7 +948,8 @@ static int vf_open(vf_instance_t *vf, char* args){
 	memset(mux_v->bih, 0, sizeof(BITMAPINFOHEADER)+28);
 	mux_v->bih->biSize=sizeof(BITMAPINFOHEADER)+28;
     }
-    else if (lavc_param_vcodec && !strcasecmp(lavc_param_vcodec, "huffyuv"))
+    else if (lavc_param_vcodec && (!strcasecmp(lavc_param_vcodec, "huffyuv")
+                                || !strcasecmp(lavc_param_vcodec, "ffvhuff")))
     {
     /* XXX: hack: huffyuv needs to store huffman tables (allthough we dunno the size yet ...) */
 	mux_v->bih=malloc(sizeof(BITMAPINFOHEADER)+1000);
@@ -997,6 +1014,8 @@ static int vf_open(vf_instance_t *vf, char* args){
 	mux_v->bih->biCompression = mmioFOURCC('W', 'M', 'V', '2');
     else if (!strcasecmp(lavc_param_vcodec, "huffyuv"))
 	mux_v->bih->biCompression = mmioFOURCC('H', 'F', 'Y', 'U');
+    else if (!strcasecmp(lavc_param_vcodec, "ffvhuff"))
+	mux_v->bih->biCompression = mmioFOURCC('F', 'F', 'V', 'H');
     else if (!strcasecmp(lavc_param_vcodec, "asv1"))
 	mux_v->bih->biCompression = mmioFOURCC('A', 'S', 'V', '1');
     else if (!strcasecmp(lavc_param_vcodec, "asv2"))

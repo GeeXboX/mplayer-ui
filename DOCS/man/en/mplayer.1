@@ -1,4 +1,4 @@
-.\" $Revision: 1.788 $
+.\" $Revision: 1.831 $
 .\" MPlayer (C) 2000-2004 MPlayer Team
 .\" This man page was/is done by Gabucino, Diego Biurrun, Jonas Jermann
 .
@@ -33,7 +33,7 @@
 .\" Title
 .\" --------------------------------------------------------------------------
 .
-.TH MPlayer 1 "2004-10-20" "The MPlayer Project" "The Movie Player"
+.TH MPlayer 1 "2004-11-30" "The MPlayer Project" "The Movie Player"
 .
 .SH NAME
 mplayer  \- movie player
@@ -183,8 +183,8 @@ DVD subtitles (SPU streams, VOBsub and Closed Captions).
 (MPlayer's Movie Encoder) is a simple movie encoder, designed to encode
 MPlayer-playable movies (see above) to other MPlayer-playable formats (see
 below).
-It encodes to DivX4, XviD, one of the libavcodec codecs and PCM/\:MP3/\:VBRMP3
-audio in 1, 2 or 3\ passes.
+It encodes to MPEG-4 (DivX/XviD), one of the libavcodec codecs and
+PCM/\:MP3/\:VBRMP3 audio in 1, 2 or 3\ passes.
 Furthermore it has stream copying abilities, a powerful filter system (crop,
 expand, flip, postprocess, rotate, scale, noise, rgb/\:yuv conversion) and
 more.
@@ -219,6 +219,12 @@ Seek backward/\:forward 10 seconds.
 Seek backward/\:forward 1 minute.
 .IPs "pgup and pgdown"
 Seek backward/\:forward 10 minutes.
+.IPs "[ and ]"
+Decreases/increases current playback speed by 10%.
+.IPs "{ and }"
+Halves/doubles current playback speed.
+.IPs "Backspace"
+Reset playback speed to normal.
 .IPs "< and >"
 backward/\:forward in playlist
 .IPs "HOME and END"
@@ -226,8 +232,8 @@ next/\:previous playtree entry in the parent list
 .IPs "INS and DEL"
 next/\:previous alternative source (ASX playlist only)
 .IPs "p / SPACE"
-Pause movie (any key unpauses).
-.IPs "."
+Pause movie (pressing again unpauses).
+.IPs .\ \ \ \ 
 Step forward.
 Pressing once will pause movie, every consecutive press will play one frame
 and then go into pause mode again (any other key unpauses).
@@ -283,6 +289,25 @@ Adjust brightness.
 Adjust hue.
 .IPs "7 and 8"
 Adjust saturation.
+.RE
+.PD 1
+.PP
+(The following keys are valid only when using the quartz video output driver.)
+.PP
+.PD 0
+.RSs
+.IPs "option + 0"
+Resize movie window to half its original size.
+.IPs "option + 1"
+Resize movie window to its original size.
+.IPs "option + 2"
+Resize movie window to double its original size.
+.IPs "option + f"
+Toggle fullscreen (also see \-fs).
+.IPs "option + [ and option + ]"
+Set movie window alpha.
+.IPs T\ \ \ \ 
+Toggle video layer: ontop/below/normal (also see \-ontop).
 .RE
 .PD 1
 .
@@ -437,14 +462,20 @@ only video (you can think of that as infinite fps).
 .B \-colorkey <number>
 Changes the colorkey to an RGB value of your choice.
 0x000000 is black and 0xffffff is white.
-Only supported by the cvidix, fbdev, svga, vesa, winvidix, xmga, xvidix and
-xover video out drivers.
+Only supported by the cvidix, fbdev, svga, vesa, winvidix, xmga, xvidix,
+xover and directx video out drivers.
 .
 .TP
 .B \-nocolorkey
 Disables colorkeying.
 Only supported by the cvidix, fbdev, svga, vesa, winvidix, xmga, xvidix and
 xover video out drivers.
+.
+.TP
+.B \-crash-debug (DEBUG CODE)
+Automatically attaches gdb upon crash or SIGTRAP.
+Support must be compiled in by configuring with --enable-crash-debug or
+by having a .developer file in the source tree.
 .
 .TP
 .B \-edl <filename> (EDL only)
@@ -472,7 +503,7 @@ immediately.
 Enforces a fixed video system for multiple files (one (un)initialisation for
 all files).
 Therefore only one window will be opened for all files.
-Currently the following drivers are fixed-vo compliant: gl2, mga, svga, x11,
+Currently the following drivers are fixed-vo compliant: gl, gl2, mga, svga, x11,
 xmga, xv, xvidix and dfbmga.
 .
 .TP
@@ -493,6 +524,8 @@ Leads to image distortion!
 .TP
 .B \-identify
 Show file parameters in an easily parseable format.
+Also prints more detailed information about subtitle and audio
+track languages and IDs.
 The wrapper script TOOLS/\:midentify suppresses the other MPlayer output and
 (hopefully) shellescapes the filenames.
 .
@@ -531,6 +564,17 @@ When the given file is a FIFO MPlayer opens both ends so you can do
 several 'echo "seek 10" > mp_pipe' and the pipe will stay valid.
 .RE
 .PD 1
+.
+.TP
+.B \-key-fifo-size <2\-65000>
+Specify the size of the FIFO that buffers key events (default: 10).
+A FIFO of size n can buffer (n-1) events.
+If it is too small some events may be lost
+(leading to "stuck mouse buttons" and similar effects).
+If it is too big, MPlayer may seem to hang while it
+processes the buffered events.
+To get the same behaviour as before this option was introduced,
+set it to 2 for Linux or 1024 for Windows.
 .
 .TP
 .B \-lircconf <filename> (LIRC only)
@@ -649,6 +693,8 @@ Slow down or speed up playback by the factor given as parameter.
 .B \-sstep <sec>
 Display one frame every <sec> seconds.
 Useful for slideshows.
+Since MPlayer can only seek to the next keyframe this may be inexact.
+Most formats have one keyframe every <sec> and <sec>+20 seconds.
 .
 .
 .
@@ -859,7 +905,7 @@ or ~/.mplayer/\:channels.conf as a last resort.
 .B \-dvd-device <path\ to\ device> (DVD only)
 Specify the DVD device (default: /dev/\:dvd).
 You can also specify a directory that contains files previously copied directly
-from a DVD (such as with vobcopy).
+from a DVD (with e.g.\& vobcopy).
 Note that using \-dumpstream is usually a better way to
 copy DVD titles in the first place (see the examples).
 .
@@ -1019,7 +1065,7 @@ set standard image size
 image width in pixels
 .IPs h=<value>
 image height in pixels
-.IPs y420|yv12|yuy2|y8
+.IPs i420|yv12|yuy2|y8
 set colorspace
 .IPs format=<value>
 colorspace (fourcc) in hex
@@ -1051,7 +1097,7 @@ Useful for playback from CD-ROM images or VOB files with junk at the beginning.
 .TP
 .B \-srate <Hz>
 Selects the given output sampling rate, resampling if necessary.
-The type of resampling can be controlled by the -af-adv option.
+The type of resampling can be controlled by the \-af-adv option.
 The default is fast resampling that may cause distortion.
 MEncoder passes this value to LAME for resampling.
 .
@@ -1120,10 +1166,13 @@ framerate at which to capture video (frames per second)
 .IPs buffersize=<value>
 maximum size of the capture buffer in megabytes (default: dynamical)
 .IPs norm=<value>
-available: PAL, SECAM, NTSC.
-For v4l2 use the normid option below.
+For bsdbt848 and v4l, PAL, SECAM, NTSC are available.
+For v4l2, see the console output for a list of all available norms,
+also see the normid option below.
 .IPs "normid=<value> (v4l2 only)"
-See console output for a list of available TV norms.
+Sets the TV norm to the given numeric ID.
+The TV norm depends on the capture card.
+See the console output for a list of available TV norms.
 .IPs channel=<value>
 Set tuner to <value> channel.
 .IPs chanlist=<value>
@@ -1408,13 +1457,13 @@ uses swscaler gaussian blur (looks very good)
 Specify how SPU (DVD/\:VOBsub) subtitles should be aligned.
 .PD 0
 .RSs
-.IPs -1
+.IPs "-1"
 original position
-.IPs 0
+.IPs " 0"
 align at top (original/\:default behavior)
-.IPs 1
+.IPs " 1"
 align at center
-.IPs 2
+.IPs " 2"
 align at bottom
 .RE
 .PD 1
@@ -1657,25 +1706,25 @@ Select the format used for output from the filter layer (according to the
 defines in libao2/\:afmt.h):
 .PD 0
 .RSs
-.IPs 1
+.IPs "   1"
 Mu-Law
-.IPs 2
+.IPs "   2"
 A-Law
-.IPs 4
+.IPs "   4"
 Ima-ADPCM
-.IPs 8
+.IPs "   8"
 unsigned 8-bit
-.IPs 16
+.IPs "  16"
 signed 16-bit (little-endian)
-.IPs 32
+.IPs "  32"
 signed 16-bit (big-endian)
-.IPs 64
+.IPs "  64"
 signed 8-bit
-.IPs 128
+.IPs " 128"
 unsigned 16-bit (little-endian)
-.IPs 256
+.IPs " 256"
 unsigned 16-bit (big-endian)
-.IPs 512
+.IPs " 512"
 MPEG (2) Audio
 .IPs 1024
 AC3
@@ -1707,6 +1756,18 @@ ALSA mixer channel names followed by a number must be specified in the
 <name,number> format, i.e.\& a channel labeled 'PCM 1' in alsamixer must
 be converted to
 .BR PCM,1 .
+.TP
+.B \-softvol
+Force the use of the software mixer, instead of using the sound card
+mixer.
+.
+.TP
+.B \-softvol-max <10.0\-10000.0>
+Set the maximum amplification level in percent (default: 110).
+A value of 200 will allow you to adjust the volume up to a maximum of
+double the current level.
+With values below 100 the initial volume (which is 100%) will be above
+the maximum, which e.g.\& the OSD cannot display correctly.
 .
 .TP
 .B \-nowaveheader (\-ao pcm only)
@@ -1763,16 +1824,6 @@ Make sure you do not set this when you want hwac3 output via S/PDIF, unless
 you really know how to set it correctly.
 .RE
 .PD 1
-.
-.TP
-.B alsa1x (OBSOLETE)
-ALSA 1.x audio output driver.
-Obsoleted by the general alsa audio output driver.
-.
-.TP
-.B alsa9 (OBSOLETE)
-ALSA 0.9 audio output driver.
-Obsoleted by the general alsa audio output driver.
 .
 .TP
 .B alsa5\ \ 
@@ -1911,15 +1962,6 @@ on.
 \-display xtest.localdomain:0
 .RE
 .PD 1
-.
-.TP
-.B \-double
-Enables double buffering.
-Fixes flicker by storing two frames in memory, and displaying one while
-decoding another.
-Can affect OSD negatively, but often it removes OSD flickering.
-Needs twice the memory of a single buffer, so it won't work on cards with
-very little video memory.
 .
 .TP
 .B \-dr \ \ \ 
@@ -2092,6 +2134,9 @@ screen to the top-left of the image being displayed, however if a percentage
 sign is given after the argument it turns the value into a percentage of the
 screen size in that direction.
 It also supports the standard X11 \-geometry option format.
+If an external window is specified using the \-wid option, then the x and
+y coordinates are relative to the top-left corner of the window rather
+than the screen.
 .br
 .I NOTE:
 This option is only supported by the x11, xmga, xv, xvmc, xvidix,
@@ -2149,6 +2194,13 @@ Set the aspect ratio of your monitor or TV screen.
 .PD 1
 .
 .TP
+.B \-nodouble
+Disables double buffering, mostly for debugging purposes.
+Double buffering fixes flicker by storing two frames in memory, and
+displaying one while decoding another.
+It can affect OSD negatively, but often removes OSD flickering.
+.
+.TP
 .B \-nograbpointer
 Do not grab the mouse pointer after a video mode change (\-vm).
 Useful for multihead setups.
@@ -2174,7 +2226,7 @@ as well as directx and gl2.
 Enables pan-and-scan functionality (cropping the sides of e.g.\& a 16:9
 movie to make it fit a 4:3 display without black bands).
 The range controls how much of the image is cropped.
-Only works with the xv, xmga, mga, gl and xvidix video output drivers.
+Only works with the xv, xmga, mga, gl, quartz and xvidix video output drivers.
 .
 .TP
 .B \-refreshrate <Hz>
@@ -2220,8 +2272,8 @@ the new display mode.
 Enables VBI for the vesa, dfbmga and svga video output drivers.
 .
 .TP
-.B \-wid <window\ ID> (also see \-guiwid) (X11 only)
-This tells MPlayer to attach to an existing X11 window.
+.B \-wid <window\ ID> (also see \-guiwid) (X11 and DirectX only)
+This tells MPlayer to attach to an existing window.
 Useful to embed MPlayer in a browser (e.g.\& the plugger extension).
 .
 .TP
@@ -2357,7 +2409,7 @@ Select the driver to use as source to overlay on top of X11.
 .TP
 .B xvmc (X11 with \-vc ffmpeg12mc only)
 Video output driver that uses the XvMC (X Video Motion Compensation)
-extension of XFree86 4.x to speed up MPEG1/\:2 and VCR2 decoding.
+extension of XFree86 4.x to speed up MPEG-1/2 and VCR2 decoding.
 .PD 0
 .RSs
 .IPs benchmark
@@ -2404,7 +2456,8 @@ Very fast video output driver on cards that support it.
 .IPs <subdevice>
 Explicitly choose the VIDIX subdevice driver to use.
 Available subdevice drivers are cyberblade_vid, mach64_vid, mga_crtc2_vid,
-mga_vid, nvidia_vid, pm3_vid, radeon_vid, rage128_vid and sis_vid.
+mga_vid, nvidia_vid, pm3_vid, radeon_vid, rage128_vid, sis_vid and
+unichrome_vid.
 .RE
 .PD 1
 .
@@ -2459,6 +2512,8 @@ packed YUV output format, with e.g.\& \-vf format=yuy2.
 .RSs
 .IPs device_id=<number>
 Choose the display device to use in fullscreen.
+.IPs fs_res=<width>:<height>
+Specify the fullscreen resolution (useful on slow systems).
 .RE
 .PD 1
 .
@@ -2823,17 +2878,20 @@ Specify the output filename (default: ./md5sums).
 .TP
 .B yuv4mpeg
 Transforms the video stream into a sequence of uncompressed YUV 4:2:0
-images and stores it in a file called 'stream.yuv' in the current
-directory.
+images and stores it in a file (default: ./stream.yuv).
 The format is the same as the one employed by mjpegtools, so this is
 useful if you want to process the video with the mjpegtools suite.
 It supports the YV12, RGB (24 bpp) and BGR (24 bpp) format.
+You can combine it with the \-fixed-vo option to concatenate files
+with the same dimensions and fps value.
 .PD 0
 .RSs
 .IPs interlaced
 Write the output as interlaced frames, top field first.
 .IPs interlaced_bf
 Write the output as interlaced frames, bottom field first.
+.IPs file=<filename>
+Write the output to <filename> instead of the default stream.yuv.
 .REss
 .PD 1
 .RS
@@ -2905,15 +2963,15 @@ It supports PPM, PGM and PGMYUV files in both raw and ASCII mode.
 Also see pnm(5), ppm(5) and pgm(5).
 .PD 0
 .RSs
-.IPs ppm
+.IPs ppm\ \ 
 Write PPM files (default).
-.IPs pgm
+.IPs pgm\ \ 
 Write PGM files.
 .IPs pgmyuv
 Write PGMYUV files.
 PGMYUV is like PGM, but it also contains the U and V plane, appended at the
 bottom of the picture.
-.IPs raw
+.IPs raw\ \ 
 Write PNM files in raw mode (default).
 .IPs ascii
 Write PNM files in ASCII mode.
@@ -2979,91 +3037,6 @@ Try hardware AC3 passthrough, software AC3, then others.
 Skip FFmpeg's MP3 decoder.
 .RE
 .PD 1
-.
-.TP
-.B \-af <filter1[=parameter1:parameter2:...],filter2,...>
-Activate a comma separated list of audio filters and their options.
-Also see the audio filters section of the documentation.
-.br
-.I NOTE:
-To get a full list of available audio filters, see \-af help.
-.sp 1
-Available filters are:
-.RSs
-.IPs resample[=srate[:sloppy][:type]]
-Changes the sample rate of the audio stream to an integer srate in Hz.
-It only supports the 16-bit little-endian format.
-.IPs channels[=nch]
-Change the number of channels to nch output channels.
-If the number of output channels is bigger than the number of input channels
-empty channels are inserted (except when mixing from mono to stereo, then
-the mono channel is repeated in both of the output channels).
-If the number of output channels is smaller than the number of input channels
-the exceeding channels are truncated.
-.IPs format[=bps:f]
-Select the bytes per sample and the format used for output from the
-filter layer.
-The option bps is an integer and denotes Bytes per sample.
-The format f is a string containing a concatenated mix of:
-.br
-alaw, mulaw or imaadpcm
-.br
-float or int
-.br
-unsigned or signed
-.br
-le or be (little- or big-endian)
-.br
-.IPs volume[=v:sc]
-Select the output volume level.
-This filter is not reentrant and can therefore only be enabled once for every
-audio stream.
-.RSss
-v: Sets the desired gain in dB for all channels in the stream
-from -200dB to +60dB (where -200dB mutes the sound
-completely and +60dB equals a gain of 1000).
-.br
-sc: Enable soft clipping.
-.REss
-.IPs pan[=n:l01:l02:...l10:l11:l12:...ln0:ln1:ln2:...]
-Mixes channels arbitrarily, see DOCS/\:HTML/\:en/\:devices.html#audio-dev for details.
-.RSss
-n: number of input channels (1\-6)
-.br
-lij: How much of input channel j is mixed into output channel i.
-.REss
-.IPs sub[=fc:ch]
-Add subwoofer channel.
-.RSss
-fc: cutoff frequency for low-pass filter (20Hz to 300Hz) (default: 60Hz)
-.br
-ch: channel number for the sub-channel
-.REss
-.IPs surround[=d]
-Decoder for matrix encoded surround sound, works on many 2 channel files.
-.RSss
-d: delay time in ms for the rear speakers (0ms to 1000ms) (default: 15ms)
-.REss
-.IPs delay[=ch1:ch2:...]
-Delays the sound output.
-Specify the delay separately for each channel in milliseconds (floating point
-number between 0 and 1000).
-.IPs export[=mmapped_file[:nsamples]]
-Exports the incoming signal to other processes using memory mapping (mmap()).
-.RSss
-mmapped_file: file to map data to (default: ~/.mplayer/\:mplayer-af_export)
-.br
-nsamples: number of samples per channel (default: 512)
-.REss
-.IPs extrastereo[=mul]
-Increases the difference between left and right channels to add some
-sort of "live" effect to playback.
-.RSss
-mul: difference coefficient (default: 2.5)
-.REss
-.IPs volnorm
-Maximizes the volume without distorting the sound.
-.RE
 .
 .TP
 .B \-af-adv <force=(0\-3):list=(filters)> (also see \-af)
@@ -3141,7 +3114,7 @@ Available options are:
 .RE
 .RSs
 .IPs bug=<value>
-Manually work around encoder bugs:
+Manually work around encoder bugs.
 .RSss
 0: nothing
 .br
@@ -3168,7 +3141,7 @@ Manually work around encoder bugs:
 1024 (mpeg4): edge padding bug (autodetected per fourcc/\:version)
 .REss
 .IPs debug=<value>
-debug:
+Display debugging information.
 .RSss
 .br
 0: disabled
@@ -3200,7 +3173,7 @@ debug:
 0x1000: bugs
 .REss
 .IPs ec=<value>
-error concealment:
+Set error concealment strategy.
 .RSss
 1: Use strong deblock filter for damaged MBs.
 .br
@@ -3209,7 +3182,7 @@ error concealment:
 3: all (default)
 .REss
 .IPs er=<value>
-error resilience:
+Set error resilience strategy.
 .RSss
 .br
 0: disabled
@@ -3232,7 +3205,7 @@ grayscale only decoding (a bit faster than with color)
 .IPs "idct=<0\-99> (see \-lavcopts)"
 For best decoding quality use the same IDCT algorithm for decoding and encoding.
 This may come at a price in accuracy, though.
-.IPs lowres=<number>
+.IPs lowres=<number>[,<w>]
 Decode at lower resolutions.
 Low resolution decoding is not supported by all codecs, and it will
 often result in ugly artifacts.
@@ -3247,12 +3220,16 @@ This is not a bug, but a side effect of not decoding at full resolution.
 .br
 3: 1/8 resolution
 .REss
-.IPs "sb=<number> (MPEG2 only)"
+.RS
+If <w> is specified lowres decoding will be used only if the width of the
+video is major than or equal to <w>.
+.RE
+.IPs "sb=<number> (MPEG-2 only)"
 Skip the given number of macroblock rows at the bottom.
-.IPs "st=<number> (MPEG2 only)"
+.IPs "st=<number> (MPEG-2 only)"
 Skip the given number of macroblock rows at the top.
 .IPs vismv=<value>
-vismv:
+Visualize motion vectors.
 .RSss
 .br
 0: disabled
@@ -3406,7 +3383,7 @@ Try divx4linux codec first, then fall back on others.
 .IPs "\-vc -divxds,-divx,"
 Skip Win32 DivX codecs.
 .IPs "\-vc ffmpeg12,mpeg12,"
-Try libavcodec's MPEG1/\:2 codec, then libmpeg2, then others.
+Try libavcodec's MPEG-1/2 codec, then libmpeg2, then others.
 .RE
 .PD 1
 .
@@ -3495,6 +3472,190 @@ Can be used to force scaling with \-vf scale.
 .I NOTE:
 \-vf scale will ignore \-x / \-y / \-xy / \-fs / \-aspect without
 \-zoom.
+.
+.
+.
+.SH "AUDIO FILTERS"
+Audio filters allow you to modify the audio stream and its properties.
+The syntax is:
+.
+.TP
+.B \-af <filter1[=parameter1:parameter2:...],filter2,...>
+Setup a chain of audio filters.
+.PP
+.I NOTE:
+To get a full list of available audio filters, see \-af help.
+.PP
+Available filters are:
+.
+.TP
+.B resample[=srate[:sloppy][:type]]
+Changes the sample rate of the audio stream to an integer srate in Hz.
+It only supports the 16-bit little-endian format.
+With MEncoder, you need to also use \-srate <srate>.
+.
+.TP
+.B lavcresample[=srate[:length[:linear[:count[:cutoff]]]]]
+Changes the sample rate of the audio stream to an integer srate in Hz.
+It only supports the 16-bit little-endian format.
+With MEncoder, you need to also use \-srate <srate>.
+.PD 0
+.RSs
+.IPs srate
+the output sample rate
+.IPs length
+length of the filter with respect to the lower sampling rate (default: 16)
+.IPs linear
+if 1 then filters will be linearly interpolated between polyphase entries
+.IPs count
+log2 of the number of polyphase entries
+(..., 10->1024, 11->2048, 12->4096, ...)
+(default: 10->1024)
+.IPs cutoff
+cutoff frequency (0.0-1.0), default set depending upon filter length
+.RE
+.PD 1
+.
+.TP
+.B sweep[=speed]
+sine sweep
+.
+.TP
+.B hrtf\ \ \ 
+Head-related transfer function: Converts multichannel audio to
+2 channel output for headphones, preserving the spatiality of the sound.
+.
+.TP
+.B channels[=nch]
+Change the number of channels to nch output channels.
+If the number of output channels is bigger than the number of input channels
+empty channels are inserted (except when mixing from mono to stereo, then
+the mono channel is repeated in both of the output channels).
+If the number of output channels is smaller than the number of input channels
+the exceeding channels are truncated.
+.
+.TP
+.B format[=bps:f]
+Select the bytes per sample and the format used for output from the
+filter layer.
+The option bps is an integer and denotes Bytes per sample.
+The format f is a string containing a concatenated mix of:
+.br
+alaw, mulaw or imaadpcm
+.br
+float or int
+.br
+unsigned or signed
+.br
+le or be (little- or big-endian)
+.br
+.
+.TP
+.B volume[=v:sc]
+Select the output volume level.
+This filter is not reentrant and can therefore only be enabled once for every
+audio stream.
+.PD 0
+.RSs
+.IPs v
+Sets the desired gain in dB for all channels in the stream
+from -200dB to +60dB (where -200dB mutes the sound
+completely and +60dB equals a gain of 1000).
+.IPs sc
+Enable soft clipping.
+.RE
+.PD 1
+.
+.TP
+.B pan[=n:l01:l02:...l10:l11:l12:...ln0:ln1:ln2:...]
+Mixes channels arbitrarily, see DOCS/\:HTML/\:en/\:audio.html for details.
+.PD 0
+.RSs
+.IPs n
+number of input channels (1\-6)
+.IPs lij
+How much of input channel j is mixed into output channel i.
+.RE
+.PD 1
+.
+.TP
+.B sub[=fc:ch]
+Add subwoofer channel.
+.PD 0
+.RSs
+.IPs fc
+cutoff frequency for low-pass filter (20Hz to 300Hz) (default: 60Hz)
+.IPs ch
+channel number for the sub-channel
+.RE
+.PD 1
+.
+.TP
+.B surround[=d]
+Decoder for matrix encoded surround sound, works on many 2 channel files.
+.PD 0
+.RSs
+.IPs d
+delay time in ms for the rear speakers (0ms to 1000ms) (default: 15ms)
+.RE
+.PD 1
+.
+.TP
+.B delay[=ch1:ch2:...]
+Delays the sound output.
+Specify the delay separately for each channel in milliseconds (floating point
+number between 0 and 1000).
+.
+.TP
+.B export[=mmapped_file[:nsamples]]
+Exports the incoming signal to other processes using memory mapping (mmap()).
+.PD 0
+.RSs
+.IPs mmapped_file
+file to map data to (default: ~/.mplayer/\:mplayer-af_export)
+.IPs nsamples
+number of samples per channel (default: 512)
+.RE
+.PD 1
+.
+.TP
+.B extrastereo[=mul]
+Increases the difference between left and right channels to add some
+sort of "live" effect to playback.
+.PD 0
+.RSs
+.IPs mul\ \ 
+difference coefficient (default: 2.5)
+.RE
+.PD 1
+.
+.TP
+.B volnorm
+Maximizes the volume without distorting the sound.
+.
+.TP
+.B ladspa=file:label[:controls...]
+Load a LADSPA (Linux Audio Developer's Simple Plugin API) plugin.
+This filter is reentrant, so multiple LADSPA plugins can be used at once.
+.PD 0
+.RSs
+.IPs file\ 
+Specifies the LADSPA plugin library file.
+If LADSPA_PATH is set, it searches for the specified file.
+If it is not set, you must supply a fully specified pathname.
+.IPs label
+Specifies the filter within the library.
+Some libraries contain only one filter, but others contain many of them.
+Entering 'help' here, will list all available filters within the specified
+library, which eliminates the use of 'listplugins' from the LADSPA SDK.
+.IPs controls
+Controls are zero or more floating point values that determine the
+behaviour of the loaded plugin (for example delay, threshold or gain).
+In verbose mode (add -v to the MPlayer command line), all available controls
+and their valid ranges are printed.
+This eliminates the use of 'analyseplugin' from the LADSPA SDK.
+.RE
+.PD 1
 .
 .
 .
@@ -3639,9 +3800,19 @@ Mirrors the image on the Y axis.
 .
 .TP
 .B rotate[=<0\-7>]
-Rotates and flips (optional) the image +/\:- 90 degrees.
-For parameters between 4\-7 rotation is only done if the movie's geometry is
+Rotates the image by 90 degrees and optionally flips it.
+For values between 4\-7 rotation is only done if the movie geometry is
 portrait and not landscape.
+.RSs
+.IPs 0
+Rotate by 90 degrees clockwise and flip.
+.IPs 1
+Rotate by 90 degrees clockwise.
+.IPs 2
+Rotate by 90 degrees counterclockwise.
+.IPs 3
+Rotate by 90 degrees counterclockwise and flip.
+.RE
 .
 .TP
 .B scale[=w:h[:interlaced[:chr_drop[:param[:param2[:presize]]]]]]
@@ -3864,7 +4035,7 @@ You should see a red, green and blue stripe from top to bottom.
 .
 .TP
 .B lavc[=quality:fps]
-Fast software YV12 to MPEG1 conversion with libavcodec for use with DVB/\:DXR3.
+Fast software YV12 to MPEG-1 conversion with libavcodec for use with DVB/\:DXR3.
 Faster and of better quality than \-vf fame.
 .RSs
 .IPs quality
@@ -3879,7 +4050,7 @@ force output fps (float value) (default: 0, autodetect based on height)
 .
 .TP
 .B fame\ \ \ 
-Fast software YV12 to MPEG1 conversion with libfame for use with DVB/\:DXR3.
+Fast software YV12 to MPEG-1 conversion with libfame for use with DVB/\:DXR3.
 .
 .TP
 .B dvbscale[=aspect]
@@ -3962,6 +4133,17 @@ and contrast adjustment.
 Note that it uses the same MMX optimized code as \-vf eq if all
 gamma values are 1.0.
 The parameters are given as floating point values.
+.PD 0
+.RSs
+.IPs rg
+gamma value for the red component
+.IPs gg
+gamma value for the green component
+.IPs bg
+gamma value for the blue component
+.REss
+.PD 1
+.RS
 Parameters rg, gg, bg are the independent gamma values for the red, green
 and blue components.
 The weight parameter can be used to reduce the effect of a high gamma value on
@@ -3974,6 +4156,7 @@ weight=1.0.
 Value ranges are 0.1\-10 for gamma, -2\-2 for contrast (negative values result
 in a negative image), -1\-1 for brightness, 0\-3 for saturation and 0\-1 for
 weight.
+.RE
 .
 .TP
 .B hue[=hue:saturation]
@@ -4317,7 +4500,7 @@ Sum of Absolute Difference threshold, default is 64.
 .
 .TP
 .B softpulldown
-This filter works only correct with MEncoder and acts on the MPEG2 flags
+This filter works only correct with MEncoder and acts on the MPEG-2 flags
 used for soft 3:2 pulldown (soft telecine).
 If you want to use the ivtc or detc filter on movies that are partly soft
 telecined, inserting this filter before them should make them more reliable.
@@ -5243,7 +5426,7 @@ H.263
 .IPs h263p
 H.263+
 .IPs mpeg4
-DivX 4/\:5
+MPEG-4 (DivX 4/5)
 .IPs msmpeg4
 DivX 3
 .IPs msmpeg4v2
@@ -5255,9 +5438,9 @@ Windows Media Video, version 2 (AKA WMV8)
 .IPs rv10\ 
 an old RealVideo codec
 .IPs mpeg1video
-MPEG1 video
+MPEG-1 video
 .IPs mpeg2video
-MPEG2 video
+MPEG-2 video
 .IPs huffyuv
 HuffYUV
 .IPs asv1\ 
@@ -5309,15 +5492,16 @@ Maximum quantizer (pass\ 1/\:2), 10\-31 should be a sane range (default: 31).
 .
 .TP
 .B mbqmin=<1\-31>
-minimum macroblock quantizer (pass\ 1/\:2) (default: 2)
+obsolete, use vqmin
 .
 .TP
 .B mbqmax=<1\-31>
-maximum macroblock quantizer (pass\ 1/\:2) (default: 31)
+obsolete, use vqmax
 .
 .TP
 .B vqdiff=<1\-31>
-maximum quantizer difference between I- or P-frames (pass\ 1/\:2) (default: 3)
+maximum quantizer difference between consecutive I- or P-frames
+(pass\ 1/\:2) (default: 3)
 .
 .TP
 .B vmax_b_frames=<0\-4>
@@ -5327,7 +5511,7 @@ maximum number of B-frames between non-B-frames:
 .IPs 0
 no B-frames (default)
 .IPs 0\-2
-sane range for MPEG4
+sane range for MPEG-4
 .RE
 .PD 1
 .
@@ -5406,12 +5590,13 @@ Does absolutely nothing at the moment.
 .B keyint=<0\-300>
 maximum interval between keyframes in frames (default: 250 or one
 keyframe every ten seconds in a 25fps movie).
-Keyframes are needed for seeking as seeking is only possible to a keyframe but
-keyframes need more space than other frames so larger numbers here mean
-slightly smaller files, but less precise seeking, 0 means no keyframes.
+Keyframes are needed for seeking as seeking is only possible to a keyframe, but
+keyframes need more space than other frames, so larger numbers here mean
+slightly smaller files but less precise seeking.
+0 is equivalent to 1, which makes every frame a keyframe.
 Values >300 are not recommended as the quality might be bad depending upon
 decoder, encoder and luck.
-For a strict MPEG1/\:2/\:4 compliance this would have to be <=132.
+For a strict MPEG-1/2/4 compliance this would have to be <=132.
 .
 .TP
 .B sc_threshold=<-1000000\-1000000>
@@ -5423,14 +5608,13 @@ no scene changes are detected (default 0).
 .
 .TP
 .B vb_strategy=<0\-1>
-strategy to choose between I/\:P/\:B-frames (pass\ 2):
+strategy to choose between I/\:P/\:B-frames (pass\ 1):
 .PD 0
 .RSs
 .IPs 0
 Always use the maximum number of B-frames (default).
 .IPs 1
 Avoid B-frames in high motion scenes.
-This will cause bitrate misprediction.
 .RE
 .PD 1
 .
@@ -5457,7 +5641,7 @@ mode does.
 In two pass mode, the second pass (vpass=2) reads the stats file and
 bases ratecontrol decisions on it.
 .br
-In three pass mode, the second pass (vpass=3, that is not a typo )
+In three pass mode, the second pass (vpass=3, that is not a typo)
 does both: It first reads the stats, then overwrites them.
 You might want to backup divx2pass.log before doing this if there is
 any possibility that you will have to cancel MEncoder.
@@ -5553,7 +5737,7 @@ minimum bitrate in kbit/\:sec (pass\ 1/\:2)
 .TP
 .B vrc_buf_size=<value>
 buffer size in kbit (pass\ 1/\:2).
-For MPEG1/\:2 this also sets the vbv buffer size, use 327 for VCD,
+For MPEG-1/2 this also sets the vbv buffer size, use 327 for VCD,
 917 for SVCD and 1835 for DVD.
 .
 .TP
@@ -5756,7 +5940,7 @@ strict standard compliance
 disabled (default)
 .IPs 1
 Only recommended if you want to feed the output into the
-MPEG4 reference decoder.
+MPEG-4 reference decoder.
 .IPs -1
 Allows non-standard YV12 HuffYUV encoding (20% smaller files, but cannot be
 played by the official HuffYUV codec).
@@ -6426,7 +6610,7 @@ Precision is gained at the expense of CPU time so decrease this setting if
 you need realtime encoding.
 .
 .TP
-.B interlacing
+.B (no)interlacing
 Encode the fields of interlaced video material.
 Turn this option on for interlaced content.
 .br
@@ -6440,8 +6624,8 @@ Use 4 motion vectors per macroblock.
 This might give better compression, but slows down encoding.
 .br
 .I WARNING:
-This option is deprecated in XviD-1.0.x, as all is now taken care of
-by the me_quality option.
+As of XviD-1.0.x, this option is no longer available separately, and its
+functionality is included in the me_quality option.
 When me_quality > 4, 4mv is activated.
 .
 .TP
@@ -6470,7 +6654,7 @@ CBR mode: min & max quantizer for all frames (default: 2\-31)
 2pass mode: min & max quantizer for I/\:P-frames (default: 2\-31/\:2\-31)
 .br
 .I WARNING:
-This option is deprecated in XviD-1.0.x, and is replaced by the
+As of XviD-1.0.x, this option is replaced by the
 [min|max]_[i|p|b]quant options.
 .
 .TP
@@ -6489,8 +6673,7 @@ For low bitrates, the smoothing of H.263 will give you less block noise.
 When using custom matrices, MPEG must be used.
 .br
 .I WARNING:
-This option is deprecated in XviD-1.0.x, and is replaced by the quant_type
-option.
+As of XviD-1.0.x, this option is replaced by the quant_type option.
 .
 .TP
 .B mod_quant
@@ -6499,10 +6682,10 @@ Decide whether to use MPEG or H.263 quantizers on a frame-by-frame basis
 .br
 .I WARNING:
 This will generate an illegal bitstream, and most likely not be decodable
-by any MPEG4 decoder besides libavcodec or XviD.
+by any MPEG-4 decoder besides libavcodec or XviD.
 .br
 .I WARNING:
-This option is deprecated in XviD-1.0.x.
+As of XviD-1.0.x, this option is no longer available.
 .
 .TP
 .B keyframe_boost=<0\-1000>
@@ -6524,7 +6707,15 @@ The last I-frame will get treated normally.
 (default: 30, 2pass mode only)
 .
 .TP
-.B greyscale
+.B divx5bvop
+Generate DivX5 compatible B-frames (default: on).
+This seems to be mandatory only for old versions of DivX's decoder.
+.br
+.I WARNING:
+As of XviD-1.0.x, this option is replaced by the closed_gop option.
+.
+.TP
+.B (no)greyscale
 Make XviD discard chroma planes so the encoded video is greyscale only.
 Note that this does not speed up encoding, it just prevents chroma data
 from being written in the last stage of encoding.
@@ -6541,20 +6732,21 @@ The following options are only available with the latest stable
 releases of XviD 1.0.x (api4).
 .
 .TP
-.B packed\ 
-Create a bitstream which can be decoded delay-free.
+.B (no)packed
+This option is meant to solve frame-order issues when encoding to
+container formats like AVI that cannot cope with out-of-order frames.
+In practice, most decoders (both software and hardware) are able to deal
+with frame-order themselves, and may get confused when this option is
+turned on, so you can safely leave if off, unless you really know what
+you are doing.
 .br
 .I WARNING:
 This will generate an illegal bitstream, and will not be
-decodable by ISO-MPEG4 decoders except DivX/\:libavcodec/\:XviD.
+decodable by ISO-MPEG-4 decoders except DivX/\:libavcodec/\:XviD.
 .br
 .I WARNING:
 This will also store a fake DivX version in the file so the bug
 autodetection of some decoders might be confused.
-.
-.TP
-.B divx5bvop
-Generate DivX5 compatible B-frames (default: on).
 .
 .TP
 .B max_bframes=<0\-4>
@@ -6580,6 +6772,14 @@ The higher the value, the higher the probability of B-frames being used.
 (default: 0)
 .
 .TP
+.B (no)closed_gop
+This option tells XviD to close every GOP (Group Of Pictures bounded
+by two I-frames), which makes GOPs independent from each other.
+This just implies that the last frame of the GOP is eiter a P-frame or a
+N-frame but not a B-frame.
+It is usually a good idea to turn this option on (default: on).
+.
+.TP
 .B frame_drop_ratio=<0\-100> (max_bframes=0 only)
 This setting allows the creation of variable framerate video streams.
 The value of the setting specifies a threshold under which, if the
@@ -6593,8 +6793,8 @@ Playing with this setting may result in a jerky video, so use it at your
 own risks!
 .
 .TP
-.B qpel\ \ \ 
-MPEG4 uses a half pixel precision for its motion search by default.
+.B (no)qpel
+MPEG-4 uses a half pixel precision for its motion search by default.
 The standard proposes a mode where encoders are allowed to use quarter
 pixel precision.
 This option usually results in a sharper image.
@@ -6605,14 +6805,14 @@ It's better to test with and without this option and see whether it
 is worth activating.
 .
 .TP
-.B gmc\ \ \ \ 
+.B (no)gmc
 Enable Global Motion Compensation, which makes XviD generate special
 frames (GMC-frames) which are well suited for Pan/\:Zoom/\:Rotating images.
 Whether or not the use of this option will save bits is highly
 dependent on the source material.
 .
 .TP
-.B trellis
+.B (no)trellis
 Trellis Quantization is a kind of adaptive quantization method that
 saves bits by modifying quantized coefficients to make them more
 compressible by the entropy encoder.
@@ -6621,7 +6821,7 @@ this setting can be a good alternative to save a few bits (and gain
 quality at fixed bitrate) at a lesser cost than with VHQ.
 .
 .TP
-.B cartoon
+.B (no)cartoon
 Activate this if your encoded sequence is an anime/\:cartoon.
 It modifies some XviD internal thresholds so XviD takes better decisions on
 frame types and motion vectors for flat looking cartoons.
@@ -6634,7 +6834,7 @@ For low bitrates, the smoothing of H.263 will give you less block noise.
 When using custom matrices, MPEG quantization must be used.
 .
 .TP
-.B chroma_me
+.B (no)chroma_me
 The usual motion estimation algorithm uses only the luminance information to
 find the best motion vector.
 However for some video material, using the chroma planes can help find
@@ -6642,7 +6842,7 @@ better vectors.
 This setting toggles the use of chroma planes for motion estimation.
 .
 .TP
-.B chroma_opt
+.B (no)chroma_opt
 Enable a chroma optimizer prefilter.
 It will do some extra magic on color information to minimize the
 stepped-stairs effect on edges.
@@ -6653,7 +6853,7 @@ Since it works with color information, you might want to turn it off when
 encoding in greyscale.
 .
 .TP
-.B hq_ac\ \ 
+.B (no)hq_ac
 Activates High Quality AC coefficient prediction from neighbor blocks.
 .
 .TP
@@ -6783,7 +6983,7 @@ the Display Aspect Ratio).
 PAR is the ratio of the width and height of a single pixel.
 So both are related like this: DAR = PAR * (width/height).
 .br
-MPEG4 defines 5 pixel aspect ratios and one extended
+MPEG-4 defines 5 pixel aspect ratios and one extended
 one, giving the opportunity to specify a specific pixel aspect
 ratio.
 5 standard modes can be specified:
@@ -6806,9 +7006,10 @@ Allows you to specify your own pixel aspect ratio with par_width and
 par_height.
 .RE
 .PD 1
-.br
+.RS
 .I NOTE:
 In general, setting aspect and autoaspect options is enough.
+.RE
 .
 .TP
 .B par_width=<1\-255> (par=ext only)
@@ -6827,7 +7028,7 @@ will display them with the wrong aspect.
 The aspect parameter can be given as a ratio or a floating point number.
 .
 .TP
-.B autoaspect
+.B (no)autoaspect
 Same as the aspect option, but automatically computes aspect, taking
 into account all the adjustments (crop/\:expand/\:scale/\:etc.) made in the
 filter chain.
@@ -6900,7 +7101,7 @@ Some decoders are unable to deal with large frameref values.
 number of consecutive B-frames between I- and P-frames (default: 0)
 .
 .TP
-.B deblock | nodeblock
+.B (no)deblock
 Use deblocking filter (default: on).
 As it takes very little time compared to its quality gain, it's not
 recommend to disable it.
@@ -6927,7 +7128,7 @@ Beta parameter of deblocking filter (default: 0).
 Affects the maximum allowed gradient within two adjacent blocks.
 .
 .TP
-.B cabac | nocabac
+.B (no)cabac
 Use CABAC (Context-Adaptive Binary Arithmetic Coding) (default: on).
 Slightly slows down encoding and decoding, but should save 10-15% bitrate.
 Unless you are looking for speed, you should not disable it.
@@ -6988,11 +7189,11 @@ ratecontrol sensitivity (default: 4)
 .
 .TP
 .B ip_factor=<value>
-quantizer factor between I- and P-frames (default: 2.0)
+quantizer factor between I- and P-frames (default: 1.4)
 .
 .TP
 .B pb_factor=<value>
-quantizer factor between P- and B-frames (default: 2.0)
+quantizer factor between P- and B-frames (default: 1.4)
 .
 .TP
 .B pass=<1\-3>
@@ -7044,18 +7245,29 @@ bitrate more constant, while a higher value makes the quantization parameter
 more constant.
 .
 .TP
+.B cplx_blur=<0\-999>
+Temporal blur of the estimated frame complexity, before curve compression
+(default: 20).
+Lower values allow the quantizer value to jump around more,
+higher values force it to vary more smoothly.
+cplx_blur ensures that each I-frame has quality comparable to the following
+P-frames, and ensures that alternating high and low complexity frames
+(e.g. low fps animation) do not waste bits on fluctuating quantizer.
+.
+.TP
 .B qblur=<0\-99>
-Temporal blur of the quantization parameter (default: 0.5).
+Temporal blur of the quantization parameter, after curve compression
+(default: 0.5).
 Lower values allow the quantizer value to jump around more,
 higher values force it to vary more smoothly.
 .
 .TP
-.B fullinter | nofullinter
+.B (no)4x4mv
 Use all available interframe macroblock types (i16x16, i4x4, p16x16,
-p16x8, p8x16, p8x8, p8x4, p4x8, p4x4, pskip)
+p16x8, p8x16, p8x8, p8x4, p4x8, p4x4, skip)
 The idea is to find the type and size that best describe a certain area
 of the picture, i.e.\& very effective for Anime, which usually contains
-large areas of the same color (default: i16x16, i4x4, p16x16-8x8).
+large areas of the same color (default: i16x16, i4x4, p16x16-8x8, skip).
 Depending on the source material, it can improve or degrade quality, use
 it with care.
 .
@@ -7096,7 +7308,7 @@ Adjust the amount of logging info printed to the screen.
 .REss
 .
 .TP
-.B psnr | nopsnr
+.B (no)psnr
 Print signal-to-noise ratio statistics.
 .br
 .I NOTE:

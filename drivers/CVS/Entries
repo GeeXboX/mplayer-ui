@@ -1,11 +1,11 @@
-/.cvsignore/1.1/Sat Jul 13 15:10:33 2002//
-/3dfx.h/1.7/Wed Mar 12 11:09:23 2003//
-/Makefile/1.7/Sat Jun 26 14:03:06 2004//
-/README/1.1.1.1/Sat Feb 24 20:29:02 2001//
-/mga_vid.c/1.55/Sat Oct  4 17:28:54 2003//
-/mga_vid.h/1.8/Sun Mar 10 03:36:16 2002//
-/mga_vid_test.c/1.4/Fri May 31 21:42:15 2002//
-/tdfx_vid.c/1.7/Wed Jul  9 01:30:21 2003//
-/tdfx_vid.h/1.3/Wed Mar 12 11:09:23 2003//
-/tdfx_vid_tst.c/1.1/Fri Mar  7 18:42:08 2003//
 D/radeon////
+/.cvsignore/1.1/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/3dfx.h/1.7/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/Makefile/1.7/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/README/1.1.1.1/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mga_vid.c/1.55/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mga_vid.h/1.8/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mga_vid_test.c/1.4/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/tdfx_vid.c/1.7/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/tdfx_vid.h/1.3/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/tdfx_vid_tst.c/1.1/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6

@@ -81,14 +81,14 @@ Bérczi, Gábor (Gabucino) <gabucino@mplayerhq.hu>
 Berecz, Szabolcs (Szabi) <szabi@inf.elte.hu>
     * codecs.conf file parser
     * config file and command line parser
-    * mga_vid fixes, module option etc.
-    * fbdev support in libvo
+    * mga_vid fixes, module option, etc
+    * fbdev video output driver
     * type #7 subtitle support
 
 Beregszászi, Alex (al3x) <alex@fsn.hu>
     * second project maintainer
-    * ALSA output driver in libao2
-    * vo_ggi output driver in libvo (www.ggi-project.org)
+    * alsa5 and alsa9 audio output drivers in libao2
+    * ggi video output driver (www.ggi-project.org)
     * XAnim codecs support
     * VIVO files, codecs support
     * TV grabbing support
@@ -141,9 +141,9 @@ Bulgroz, Eviv <ebulgroz@yahoo.com>
 Bünemann, Felix (Atmos) <atmosfear@users.sourceforge.net>
     * additional YUV formats fixes
     * new font (mp_font2.zip)
-    * PNG file output support in libvo
+    * png video output driver
     * flipping support (for Indeo 3/4, etc)
-    * SDL audio driver in libao2
+    * SDL audio output driver in libao2
     * RAW PCM/WAVE file writer for libao2
     * Ogg Vorbis audio support
     * aspect ratio code improvements, prescaling support
@@ -194,6 +194,8 @@ Dobbelaere, Jeroen <jeroen.dobbelaere@acunia.com>
 
 Döffinger, Reimar (reimar) <reimar.doeffinger@stud.uni-karlsruhe.de>
     * GL code fixes
+    * various fixes all over the place
+    * reworked live changing playback speed
 
 Dolbeau, Romain <romain@dolbeau.org>
     * random AltiVec (PowerPC multimedia extensions) stuff
@@ -203,6 +205,9 @@ Dolbeau, Romain <romain@dolbeau.org>
 Dönmez, Ismail (cartman) <ismail.donmez@boun.edu.tr>
     * compile fix for mga_vid to compile with Linux 2.5/2.6 kernels
     * small fixes all around
+
+Egger, Christoph <christoph_egger@gmx.de>
+    * vo_ggi updates
 
 Ernesti, Bernd <mplayer@lists.veego.de>
     * NetBSD support patches
@@ -239,8 +244,9 @@ Finlayson, Ross <finlayson@live.com>
 
 Forghieri, Daniele (xdanny) <guru@digitalfantasy.it>
     * TGA output driver
-    * framestep & tile filters
+    * framestep & tile video filters
     * initial Italian man page translation
+    * fixes and improvements to lavc audio encoding
 
 Foth, Kilian A. <foth@informatik.uni-hamburg.de>
     * slave mode
@@ -262,7 +268,7 @@ Gereöffy, Árpád (A'rpi/ESP-team) <arpi@thot.banki.hu>
     * getch2 [keyboard handler]
     * some changes in libmpeg2 code (progressive frames, bitrate & fps support)
     * libvo improvements: adding OpenGL support, bug fix in mga driver...
-    * triple buffering & YUY2 support (for DivX/MPEG4) into mga_vid driver
+    * triple buffering & YUY2 support (for DivX/MPEG-4) into mga_vid driver
     * OSD & subtitle display code
     * FFmpeg/libavcodec integration
     * DivX4Linux (Project Mayo) support (see documentation)
@@ -287,12 +293,12 @@ Graffam, Michael <mgraffam@idsi.net>
     * video mode switching code to vo_dga
 
 Gritsenko, Andriy N. (AG_LS) <andrej@lucky.net>
-    * skip-deinterlace video filter
-    * MUXER layer, and new MPEG-PS muxer
+    * drop-deinterlace (dint) video filter
+    * muxer layer, and new MPEG-PS muxer
 
 Guyomarch, Rémi (rguyom) <rguyom@pobox.com>
     * various fixes
-    * 'unsharp' video filter
+    * unsharp video filter
     * XviD encoding support
 
 Hammelmann, Jürgen <juergen.hammelmann@gmx.de>
@@ -300,6 +306,10 @@ Hammelmann, Jürgen <juergen.hammelmann@gmx.de>
 
 Hertel, Christopher R. <crh@ubiqx.mn.org>
     * md5sum code used by vo_md5sum. part of uCIFS library.
+
+Heryan, Jiri <technik@domotech.cz>
+    * Czech man page translation
+    * some other Czech translation related work
 
 Hess, Andreas <jaska@gmx.net>
     * upgrading libdvdcss in libmpdvdkit2
@@ -309,7 +319,7 @@ Hickey, Corey <bugfood-ml@fatooh.org>
     * telecine/interlacing HOWTO for the MEncoder documentation
 
 Hidvégi, Zoltán <mplayer@hzoli.com>
-    * filmdint filter
+    * filmdint video filter
 
 Hoffmann, Jens <hoffmajs@gmx.de>
     * additional YUV formats support
@@ -322,7 +332,7 @@ Horst, Bohdan (Nexus) <nexus@irc.pl>
     * FreeBSD support
 
 Hug, Hampa <hhug@student.ethz.ch>
-    * LUT-based soft eq video filter (-vf eq2)
+    * LUT-based soft eq video filter (vf_eq2)
     * .ogm demuxer endianness fixes
 
 Hurka, Tomas <tom@hukatronic.cz>
@@ -364,7 +374,7 @@ Kalinski, Filip (filon) <filon@pld.org.pl>
     * X11 fulscreen switching fixes/cleanup
 
 Kalvachev, Ivan (iive) <iive@yahoo.com>
-    * interlaced MPEG2 support (libmpeg2)
+    * interlaced MPEG-2 support (libmpeg2)
     * libvo2 draft
     * configfile parser fixes
     * SRT subtitle dump support
@@ -388,9 +398,9 @@ Kärkkäinen, Samuli <skarkkai@woods.iki.fi>
 Keil, Jürgen <jk@tools.de>
     * patched MPlayer to work on Solaris 8 x86
     * various fixes (Win32, configure, etc)
-    * SUN audio driver in libao2
+    * sun audio output driver in libao2
     * mediaLib support in libavcodec
-    * ESD driver in libao2
+    * esd audio output driver in libao2
 
 Kesterson, Robert <robertk@robertk.com>
     * yuv4mpeg video output driver
@@ -423,7 +433,7 @@ Kurshev, Nick <nickols_k@mail.ru>
     * further 3DNow! optimizations into mp3lib and libac3 and FFmpeg
     * first Russian documentation translation (outdated)
     * radeon_vid, rage128_vid, radeonfb
-    * libvo driver: vo_vesa
+    * vesa video output driver
     * VIDIX and libdha design, programming, Rage128/Radeon VIDIX drivers
 
 Kuschak, Brian <bkuschak@yahoo.com>
@@ -518,10 +528,16 @@ Milushev, Mihail <lanzz@lanzz.org>
 Mistry, Nehal (Nehal) <nehalmistry@gmx.net>
     * various audio driver fixes
 
+Mizda, Gábor (Gabrov) <gabrov@freemail.hu>
+	* Hungarian translation
+
 Mohari, András <mayday@varoshaza.nagyatad.hu>
     * skin documentation
     * various docs updates and fixes
     * 1st half of the documentation HTML --> XML conversion
+
+Mueller, Steven <diffusor@ugcs.caltech.edu>
+    * first implementation of live changing playback speed
 
 MPlayerPL - Polish MPlayer Translation Team (http://mplayerpl.emdej.com)
     * Waclaw Schiller (Torinthiel) <torinthiel@wp.pl>
@@ -571,8 +587,12 @@ Pietrzak, Dariusz (Eyck) <eyck@ghost.anime.pl>
 
 Plourde, Nicolas <nicolas.plourde@sympatico.ca>
     * quartz video output driver for Mac OS X
+    * Darwin VCD/SVCD support
 
-Poirier, Guillaume <guillaume.poirier@ifsic.univ-rennes1.fr>
+Poettering, Lennart <mzzcynlre@0pointer.de>
+    * audio driver for the Polypaudio sound server
+
+Poirier, Guillaume <guillaume.poirier@etudiant.univ-rennes1.fr>
     * French documentation translation and synchronization
     * XviD documentation
     * lavc's turbo mode
@@ -583,7 +603,7 @@ Ponekker, Zoltán (Pontscho/fresh!mindworkz) <pontscho@makacs.poliod.hu>
     * 3DNow! support into mp3lib and fastmemcpy.h
     * various X11 driver changes, fixes (keyboard handling, fullscreen,
       bpp detect, etc)
-    * libvo: adding xmga driver
+    * xmga video output driver
     * audio mixer (volume) support
 
 van Poorten, Ivo (ivop) <ivop@euronet.nl>
@@ -591,6 +611,7 @@ van Poorten, Ivo (ivop) <ivop@euronet.nl>
     * vo_jpeg suboptions parser
     * vo_pnm video output driver
     * vo_md5sum video output driver
+    * af_ladspa LADSPA plugin loader
 
 Ran, Lu <hephooey@fastmail.fm>
     * Chinese documentation translation
@@ -608,7 +629,7 @@ Rune Petersen <runner@mail.tele.dk>
     * adapter selection support for vo_directx
 
 Saari, Ville <vs@iki.fi>
-    * divtc & phase filters
+    * divtc & phase video filters
 
 Sabbi, Nico <nsabbi@tiscali.it>
     * DVB input support
@@ -619,6 +640,9 @@ Sandell, Björn <biorn@dce.chalmers.se>
 
 Sauerbeck, Tilman <tsauerbeck@users.sourceforge.net>
     * TGA decoder (RLE/uncomp), -mf tga support
+
+Scherthan, Frank <scherthan@uni-landau.de>
+    * added OSD handling for live changing playback speed
 
 Schneider, Florian <flo-mplayer-dev@gmx.net>
     * RealVideo codec libraries interface, .rm demuxer fixes
@@ -727,7 +751,7 @@ Bellard, Fabrice <fabrice.bellard@free.fr>
       DivX, WMA, DV etc audio/video en/decoder)
 
 Chappelier, Vivien and Vincent, Damien
-    * libFAME authors [fast MPEG1 encoder, used by -vo mpegpes/-vo dxr3]
+    * libFAME authors [fast MPEG-1 encoder, used by -vo mpegpes/-vo dxr3]
 
 Hipp, Michael
     * mpglib author [not used directly but some parts are in mp3lib]
@@ -735,7 +759,7 @@ Hipp, Michael
 Holtzman, Aaron <aholtzma@engr.uvic.ca>
     * ac3dec (and libac3) author [old AC3 audio decoder]
     * the original mga_vid driver [Matrox G200/G400 YUV backend scaler]
-    * mpeg2dec [Fast MPEG1/MPEG2 video decoder, currently used in player]
+    * mpeg2dec [Fast MPEG-1/MPEG-2 video decoder, currently used in player]
 
 Janovetz, Jake
     * remez.c author [Used to calculate audio filter coefficients]
@@ -767,7 +791,7 @@ but I've got some ideas or other technical help from:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Farin, Dirk <farin@ti.uni-mannheim.de>
-    * dvdview author [MPEG1/MPEG2 video decoder, used in v0.5-v0.8]
+    * dvdview author [MPEG-1/MPEG-2 video decoder, used in v0.5-v0.8]
 
 Lee, Avery <phaeron@virtualdub.org>
     * VirtualDub author, help understanding AVI with VBR audio and
@@ -778,7 +802,7 @@ McGowan, John F. <http://www.jmcgowan.com>
       and AVI format]
 
 Williams, Adam <broadcast@earthling.net>
-    * libmpeg3 (and xmovie) author [MPEG1/MPEG2 video decoder, used in
+    * libmpeg3 (and xmovie) author [MPEG-1/MPEG-2 video decoder, used in
       v0.1-v0.4]
 
 
@@ -795,7 +819,7 @@ Bekesi, Viktor (FRD)
 bleachie <toku4@cox.net>
     * bluecurve
 
-Burt.S. decex@poczta.onet.pl>
+Burt.S. <decex@poczta.onet.pl>
     * mplayer_red
 
 caparuni <pelesiran@softhome.net>
@@ -806,6 +830,9 @@ Carpenter, Andrew <acarpent@microbits.com.au>
 
 DogFaceMonk <werenotworthy5018@yahoo.dot.com>
     * OSX-Mod
+
+Foucault, Charles <charlesay.foucault@free.fr>
+    * QuickSilver
 
 funkydrummer@postmaster.co.uk
     * Dushku

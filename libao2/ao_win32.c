@@ -26,8 +26,8 @@
 #include "afmt.h"
 #include "audio_out.h"
 #include "audio_out_internal.h"
-#include "../mp_msg.h"
-#include "../libvo/fastmemcpy.h"
+#include "mp_msg.h"
+#include "libvo/fastmemcpy.h"
 #include "osdep/timer.h"
 
 #define WAVE_FORMAT_DOLBY_AC3_SPDIF 0x0092
@@ -148,6 +148,16 @@ static int init(int rate,int channels,int format,int flags)
 	unsigned char* buffer;
 	int i;
    
+	switch(format){
+		case AFMT_AC3:
+		case AFMT_S24_LE:
+		case AFMT_S16_LE:
+		case AFMT_S8:
+			break;
+		default:
+			mp_msg(MSGT_AO, MSGL_V,"ao_win32: format %s not supported defaulting to Signed 16-bit Little-Endian\n",audio_out_format_name(format));
+			format=AFMT_S16_LE;
+	}   
 	//fill global ao_data 
 	ao_data.channels=channels;
 	ao_data.samplerate=rate;
@@ -166,7 +176,7 @@ static int init(int rate,int channels,int format,int flags)
 	
 	//fill waveformatex
     ZeroMemory( &wformat, sizeof(WAVEFORMATEXTENSIBLE));
-    wformat.Format.cbSize          = (channels>2)?sizeof(WAVEFORMATEXTENSIBLE):0;
+    wformat.Format.cbSize          = (channels>2)?sizeof(WAVEFORMATEXTENSIBLE)-sizeof(WAVEFORMATEX):0;
     wformat.Format.nChannels       = channels;                
     wformat.Format.nSamplesPerSec  = rate;            
     if(format == AFMT_AC3)
@@ -222,6 +232,10 @@ static int init(int rate,int channels,int format,int flags)
         waveBlocks[i].lpData = buffer;
         buffer += BUFFER_SIZE;
     }
+    buf_write=0;
+    buf_write_pos=0;
+    full_buffers=0;
+    buffered_bytes=0;
 
     return 1;
 }

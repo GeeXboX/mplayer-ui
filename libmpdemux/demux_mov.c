@@ -629,6 +629,9 @@ static void lschunks(demuxer_t* demuxer,int level,off_t endpos,mov_track_t* trak
 		    off_t pos=stream_tell(demuxer->stream);
 		    off_t len=stream_read_dword(demuxer->stream);
 		    unsigned int fourcc=stream_read_dword_le(demuxer->stream);
+		    /* some files created with Broadcast 2000 (e.g. ilacetest.mov)
+		       contain raw I420 video but have a yv12 fourcc */
+		    if(fourcc==mmioFOURCC('y','v','1','2')) fourcc=mmioFOURCC('I','4','2','0');
 		    if(len<8) break; // error
 		    mp_msg(MSGT_DEMUX,MSGL_V,"MOV: %*s desc #%d: %.4s  (%d bytes)\n",level,"",i,&fourcc,len-16);
 		    if(fourcc!=trak->fourcc && i)
@@ -946,7 +949,7 @@ static void lschunks(demuxer_t* demuxer,int level,off_t endpos,mov_track_t* trak
 			    sh->i_bps = esds.avgBitrate/8; 
 
 //			    printf("######## audio format = %d ########\n",esds.objectTypeId);
-			    if(esds.objectTypeId==107)
+			    if(esds.objectTypeId==MP4OTI_MPEG1Audio || esds.objectTypeId==MP4OTI_MPEG2AudioPart3)
 				sh->format=0x55; // .mp3
 
 			    // dump away the codec specific configuration for the AAC decoder
@@ -1103,6 +1106,13 @@ static void lschunks(demuxer_t* demuxer,int level,off_t endpos,mov_track_t* trak
       			esds_t esds; 				  
 			if(!mp4_parse_esds(trak->stdata+pos+8, atom_len-8, &esds)) {
     
+			  if(esds.objectTypeId==MP4OTI_MPEG2VisualSimple || esds.objectTypeId==MP4OTI_MPEG2VisualMain ||
+			     esds.objectTypeId==MP4OTI_MPEG2VisualSNR || esds.objectTypeId==MP4OTI_MPEG2VisualSpatial ||
+			     esds.objectTypeId==MP4OTI_MPEG2VisualHigh || esds.objectTypeId==MP4OTI_MPEG2Visual422)
+			    sh->format=mmioFOURCC('m', 'p', 'g', '2');
+			  else if(esds.objectTypeId==MP4OTI_MPEG1Visual)
+			    sh->format=mmioFOURCC('m', 'p', 'g', '1');
+
 			  // dump away the codec specific configuration for the AAC decoder
 			  trak->stream_header_len = esds.decoderConfigLen;
 			  trak->stream_header = (unsigned char *)malloc(trak->stream_header_len);
@@ -1686,6 +1696,18 @@ int mov_read_header(demuxer_t* demuxer){
     return 1;
 }
 
+/**
+ * \brief return the mov track that belongs to a demuxer stream
+ * \param ds the demuxer stream, may be NULL
+ * \return the mov track info structure belonging to the stream,
+ *          NULL if not found
+ */
+static mov_track_t *stream_track(mov_priv_t *priv, demux_stream_t *ds) {
+  if (ds && (ds->id >= 0) && (ds->id < priv->track_db))
+    return priv->tracks[ds->id];
+  return NULL;
+}
+
 // return value:
 //     0 = EOF or no stream found
 //     1 = successfully read a packet
@@ -1696,8 +1718,8 @@ int demux_mov_fill_buffer(demuxer_t *demuxer,demux_stream_t* ds){
     int x;
     off_t pos;
     
-    if(ds->id<0 || ds->id>=priv->track_db) return 0;
-    trak=priv->tracks[ds->id];
+    trak = stream_track(priv, ds);
+    if (!trak) return 0;
 
 if(trak->samplesize){
     // read chunk:
@@ -1825,12 +1847,13 @@ return pts;
 void demux_seek_mov(demuxer_t *demuxer,float pts,int flags){
     mov_priv_t* priv=demuxer->priv;
     demux_stream_t* ds;
+    mov_track_t* trak;
 
 //    printf("MOV seek called  %5.3f  flag=%d  \n",pts,flags);
     
     ds=demuxer->video;
-    if(ds && ds->id>=0 && ds->id<priv->track_db){
-	mov_track_t* trak=priv->tracks[ds->id];
+    trak = stream_track(priv, ds);
+    if (trak) {
 	//if(flags&2) pts*=(float)trak->length/(float)trak->timescale;
 	//if(!(flags&1)) pts+=ds->pts;
 	pts=ds->pts=mov_seek_track(trak,pts,flags);
@@ -1838,12 +1861,43 @@ void demux_seek_mov(demuxer_t *demuxer,float pts,int flags){
     }
 
     ds=demuxer->audio;
-    if(ds && ds->id>=0 && ds->id<priv->track_db){
-	mov_track_t* trak=priv->tracks[ds->id];
+    trak = stream_track(priv, ds);
+    if (trak) {
 	//if(flags&2) pts*=(float)trak->length/(float)trak->timescale;
 	//if(!(flags&1)) pts+=ds->pts;
 	ds->pts=mov_seek_track(trak,pts,flags);
     }
 
+}
+
+int demux_mov_control(demuxer_t *demuxer, int cmd, void *arg){
+  mov_track_t* track;
+
+  // try the video track
+  track = stream_track(demuxer->priv, demuxer->video);
+  if (!track || !track->length)
+    // otherwise try to get the info from the audio track
+    track = stream_track(demuxer->priv, demuxer->audio);
+
+  if (!track || !track->length)
+    return DEMUXER_CTRL_DONTKNOW;
+
+  switch(cmd) {
+    case DEMUXER_CTRL_GET_TIME_LENGTH:
+      if (!track->timescale)
+        return DEMUXER_CTRL_DONTKNOW;
+      *((unsigned long *)arg) = track->length / track->timescale;
+      return DEMUXER_CTRL_OK;
+
+    case DEMUXER_CTRL_GET_PERCENT_POS:
+      {
+        off_t pos = track->pos;
+        if (track->durmap_size >= 1)
+          pos *= track->durmap[0].dur;
+        *((int *)arg) = (int)(100 * pos / track->length);
+        return DEMUXER_CTRL_OK;
+      }
+  }
+  return DEMUXER_CTRL_NOTIMPL;
 }
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.44 $ -->
+<!-- $Revision: 1.56 $ -->
 <chapter id="faq" xreflabel="FAQ">
 <title>Frequently Asked Questions</title>
 
@@ -389,7 +389,7 @@ I have problems playing files with the ... codec. Can I use them?
 <answer><para>
 Check the <ulink url="http://www.mplayerhq.hu/homepage/codecs-status.html">codec status</ulink>,
 if it doesn't contain your codec, read the <link linkend="codecs">codec documentation</link>,
-especially the <link linkend="win32-codecs">codec importing HOWTO</link> and contact us.
+especially the <link linkend="codec-importing">codec importing HOWTO</link> and contact us.
 </para></answer>
 </qandaentry>
 
@@ -462,6 +462,7 @@ video_out)</para></listitem>
 <listitem><para>current level of image postprocessing (when using
 <option>-autoq</option>)</para></listitem>
 <listitem><para>current cache size used (around 50% is normal)</para></listitem>
+<listitem><para>playback speed as a factor of original speed</para></listitem>
 </itemizedlist>
 Most of them are for debug purposes and will be removed at some point.
 </para></answer>
@@ -530,7 +531,7 @@ LIRC doesn't work, because ...
 </para></question>
 <answer><para>
 Are you sure you are using <command>mplayer</command> instead of
-<command>mplayer_lirc</command>?  Note that it was <command>mplayer_lirc</command>
+<command>mplayer_lirc</command>? Note that it was <command>mplayer_lirc</command>
 for a long time, including the 0.60 release, but it was recently changed back to
 <command>mplayer</command>.
 </para></answer>
@@ -553,7 +554,7 @@ and replace <systemitem>#undef FAST_OSD</systemitem> with
 The onscreen display (OSD) is flickering!
 </para></question>
 <answer><para>
-You use a vo driver with single buffering (x11,xv). With xv, use the
+You use a vo driver with single buffering (x11, xv). With xv, use the
 <option>-double</option> option. Also try <option>-vf expand</option>.
 </para></answer>
 </qandaentry>
@@ -918,7 +919,7 @@ If it is an AVI, maybe it has bad interleaving. Try the <option>-ni</option> opt
 </para></listitem>
 <listitem><para>
 Your sound driver is buggy, or you use ALSA 0.5 with <option>-ao oss</option>.
-See the <link linkend="audio-dev">sound card section</link>.
+See the <link linkend="audio">sound card section</link>.
 </para></listitem>
 <listitem><para>
 The AVI has a bad header, try the <option>-nobps</option> option, and/or <option>-mc 0</option>.
@@ -955,7 +956,7 @@ I have A/V sync problems. Some of my AVIs play fine, but some play with double s
 </para></question>
 <answer><para>
 You have a buggy sound card/driver. Most likely it's fixed at 44100Hz, and you
-try to play a file which has 22050Hz audio. Try the resample audio plugin.
+try to play a file which has 22050Hz audio. Try the resample audio filter.
 </para></answer>
 </qandaentry>
 
@@ -1105,7 +1106,7 @@ The <systemitem>tdfx</systemitem> driver in XFree86 4.0.2/4.0.3 had this bug. Th
 solved by <ulink url="http://www.xfree86.org/cvs/changes_4_1.html">bug fix #621
 of the XFree86 4.1.0 CVS log</ulink>. So upgrade to XFree86 4.1.0 or later.
 Alternatively, either download (at least) DRI version 0.6 from the
-<ulink url="http://dri.sourceforge.net">DRI homepage</ulink>, or use CVS DRI.
+<ulink url="http://dri.sf.net">DRI homepage</ulink>, or use CVS DRI.
 </para></answer>
 </qandaentry>
 
@@ -1218,7 +1219,7 @@ Yes. See the <link linkend="dvd">DVD chapter</link>.
 How can I set the region code of my DVD-drive? I don't have Windows!
 </para></question>
 <answer><para>
-Use the <ulink url="http://www.linuxtv.org/download/dvd/dvd_disc_20000215.tar.gz">regionset tool</ulink>.
+Use the <ulink url="http://linvdr.org/projects/regionset/">regionset tool</ulink>.
 </para></answer>
 </qandaentry>
 
@@ -1419,7 +1420,7 @@ movie on any CD. Check if you have libmp3lame installed properly.
 
 <qandaentry>
 <question><para>
-I can't encode ASF files to AVI/DivX because it uses 1000 fps?
+I can't encode an ASF file to AVI/MPEG-4 (DivX) because it uses 1000 fps.
 </para></question>
 <answer><para>
 Because ASF uses variable frame rate but AVI uses a fixed one, you
@@ -1435,6 +1436,26 @@ How can I put subtitles in the output file?
 <answer><para>
 Just pass the <option>-sub &lt;filename&gt;</option> (or <option>-sid</option>,
 respectively) option to <application>MEncoder</application>.
+</para></answer>
+</qandaentry>
+
+<qandaentry>
+<question><para>
+How do I encode only sound from a music video?
+</para></question>
+<answer><para>
+It's not possible directly, but you can try this (note the
+<emphasis role="bold">&amp;</emphasis> at the end of
+<command>mplayer</command> command):
+<screen>
+    mkfifo encode
+    mplayer -ao pcm -aofile encode dvd://1 &amp;
+    lame <replaceable>your_opts</replaceable> encode music.mp3
+    rm encode
+</screen>
+This allows you to use any encoder, not only <application>LAME</application>,
+just replace <command>lame</command> with your favorite audio encoder in the
+above command.
 </para></answer>
 </qandaentry>
 

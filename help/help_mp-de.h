@@ -4,7 +4,7 @@
 // Alexander Strasser <eclipse7@gmx.net>
 // Sebastian Krämer <mplayer@skraemer.de>
 
-// In synch with rev 1.131
+// In synch with rev 1.153
 
 // ========================= MPlayer help ===========================
 
@@ -47,9 +47,11 @@ static char help_text[]=
 " z oder x         Untertitelverzögerung um +/- 0.1 Sekunde anpassen\n"
 " r oder t         Verschiebe die Untertitel-Position, siehe auch '-vf expand'\n"
 "\n"
-" * * * SIEHE MANPAGE FÜR DETAILS, WEITERE OPTIONEN UND TASTEN* * *\n"
+" * * * SIEHE MANPAGE FÜR DETAILS, WEITERE OPTIONEN UND TASTEN * * *\n"
 "\n";
 #endif
+
+#define MSGTR_SamplesWanted "Beispiele für dieses Format werden gebraucht, um die Unterstützung zu verbessern. Bitte kontaktiere die Entwickler.\n"
 
 // ========================= MPlayer Ausgaben ===========================
 
@@ -87,7 +89,7 @@ static char help_text[]=
 "         ***************************************************\n"\
 "Mögliche Gründe, Probleme, Workarounds: \n"\
 "- Häufigste Ursache: defekter/fehlerhafter _Audio_treiber.\n"\
-"  - Versuche -ao sdl, verwende ALSA 0.5 oder die OSS Emulation von ALSA 0.9.\n"\
+"  - Versuche -ao sdl oder die OSS-Emulation von ALSA.\n"\
 "  - Experimentiere mit verschiedenen Werten für -autosync, 30 ist ein guter Startwert."\
 "- Langsame Videoausgabe\n"\
 "  - Versuche einen anderen -vo Treiber (-vo help für eine Liste)\n"\
@@ -117,8 +119,8 @@ static char help_text[]=
 #define MSGTR_AvailableAudioOutputDrivers "Verfügbare Audioausgabetreiber:\n"
 #define MSGTR_AvailableAudioCodecs "Verfügbare Audiocodecs:\n"
 #define MSGTR_AvailableVideoCodecs "Verfügbare Videocodecs:\n"
-#define MSGTR_AvailableAudioFm "\nVerfügbare (in das Binary kompilierte) Audio Codec Familien:\n"
-#define MSGTR_AvailableVideoFm "\nVerfügbare (in das Binary kompilierte) Video Codec Familien:\n"
+#define MSGTR_AvailableAudioFm "Verfügbare (in das Binary kompilierte) Audio Codec Familien:\n"
+#define MSGTR_AvailableVideoFm "Verfügbare (in das Binary kompilierte) Video Codec Familien:\n"
 #define MSGTR_AvailableFsType "Verfügbare Vollbildschirm-Modi:\n"
 #define MSGTR_UsingRTCTiming "Verwende Linux Hardware RTC-Timing (%ldHz).\n"
 #define MSGTR_CannotReadVideoProperties "Video: Kann Eigenschaften nicht lesen.\n"
@@ -152,12 +154,49 @@ static char help_text[]=
 "  lies DOCS/de/bugreports.html und folge den dortigen Anweisungen.\n"\
 "  Wir können und werden dir nicht helfen, wenn du nicht alle dort aufgeführten\n"\
 "  Informationen zur Verfügung stellst.\n"
+#define MSGTR_LoadingConfig "Lade Konfiguration '%s'\n"
+#define MSGTR_AddedSubtitleFile "SUB: Untertiteldatei (%d) hinzugefügt: %s\n"
+#define MSGTR_ErrorOpeningOutputFile "Fehler beim Öffnen von Datei [%s] zum Schreiben!\n"
+#define MSGTR_CommandLine "Kommandozeile:"
+#define MSGTR_RTCDeviceNotOpenable "Konnte %s nicht öffnen: %s (sollte für den Benutzer lesbar sein.)\n"
+#define MSGTR_LinuxRTCInitErrorIrqpSet "Linux RTC-Initialisierungsfehler in ioctl (rtc_irqp_set %lu): %s\n"
+#define MSGTR_IncreaseRTCMaxUserFreq "Versuche, \"echo %lu > /proc/sys/dev/rtc/max-user-freq\" zu deinen Systemstartskripten hinzuzufügen.\n"
+#define MSGTR_LinuxRTCInitErrorPieOn "Linux RTC-Initialisierungsfehler in ioctl (rtc_pie_on): %s\n"
+#define MSGTR_UsingTimingType "Benutze %s-Zeitgeber.\n"
+#define MSGTR_MenuInitialized "Menü initialisiert: %s\n"
+#define MSGTR_MenuInitFailed "Initialisierung des Menüs fehlgeschlagen.\n"
+#define MSGTR_Getch2InitializedTwice "WARNUNG: getch2_init doppelt aufgerufen!\n"
+#define MSGTR_DumpstreamFdUnavailable "Kann Dump dieses Streams nicht anlegen - kein 'fd' verfügbar.\n"
+#define MSGTR_FallingBackOnPlaylist "Falle zurück auf den Versuch, Playlist %s einzulesen...\n"
+#define MSGTR_CantOpenLibmenuFilterWithThisRootMenu "Kann den libmenu-Videofilter nicht mit dem Ursprungsmenü %s öffnen.\n"
+#define MSGTR_AudioFilterChainPreinitError "Fehler bei der Vorinitialisierung der Audiofilterkette!\n"
+#define MSGTR_LinuxRTCReadError "Linux RTC-Lesefehler: %s\n"
+#define MSGTR_SoftsleepUnderflow "Warnung! Unterlauf des Softsleep!\n"
+#define MSGTR_AnsSubVisibility "ANS_SUB_VISIBILITY=%ld\n"
+#define MSGTR_AnsLength "ANS_LENGTH=%ld\n"
+#define MSGTR_AnsVoFullscreen "ANS_VO_FULLSCREEN=%ld\n"
+#define MSGTR_AnsPercentPos "ANS_PERCENT_POSITION=%ld\n"
+#define MSGTR_DvdnavNullEvent "DVDNAV-Ereignis NULL?!\n"
+#define MSGTR_DvdnavHighlightEventBroken "DVDNAV-Ereignis: Hervorhebungs-Ereignis kaputt\n"
+#define MSGTR_DvdnavEvent "DVDNAV-Ereignis: %s\n"
+#define MSGTR_DvdnavHighlightHide "DVDNAV-Ereignis: Hervorhebung verbergen\n"
+#define MSGTR_DvdnavStillFrame "######################################## DVDNAV-Ereignis: Standbild: %d Sekunde(n)\n"
+#define MSGTR_DvdnavNavStop "DVDNAV-Ereignis: Nav Stop\n"
+#define MSGTR_DvdnavNavNOP "DVDNAV-Ereignis: Nav NOP\n"
+#define MSGTR_DvdnavNavSpuStreamChangeVerbose "DVDNAV-Ereignis: Nav SPU Stream Change: phys: %d/%d/%d logisch: %d\n"
+#define MSGTR_DvdnavNavSpuStreamChange "DVDNAV-Ereignis: Nav SPU Stream-Änderung: phys: %d logisch: %d\n"
+#define MSGTR_DvdnavNavAudioStreamChange "DVDNAV-Ereignis: Nav Audio Stream-Änderung: phys: %d logisch: %d\n"
+#define MSGTR_DvdnavNavVTSChange "DVDNAV-Ereignis: Nav VTS-Änderung\n"
+#define MSGTR_DvdnavNavCellChange "DVDNAV-Ereignis: Nav Cell-Änderung\n"
+#define MSGTR_DvdnavNavSpuClutChange "DVDNAV-Ereignis: Nav SPU CLUT-Änderung\n"
+#define MSGTR_DvdnavNavSeekDone "DVDNAV-Ereignis: Nav Suche beendet.\n"
+#define MSGTR_MenuCall "Menü-Aufruf\n"
 
 #define MSGTR_EdlCantUseBothModes "Kann -edl und -edlout nicht zur selben Zeit benutzen.\n"
 #define MSGTR_EdlOutOfMem "Kann nicht genug Speicher für EDL-Daten reservieren.\n"
 #define MSGTR_EdlRecordsNo "%d EDL-Aktionen gelesen.\n"
 #define MSGTR_EdlQueueEmpty "Es gibt keine auszuführenden EDL-Aktionen.\n"
-#define MSGTR_EdlCantOpenForWrite "Fehler beim Öffnen [%s] zum Schreiben.\n"
+#define MSGTR_EdlCantOpenForWrite "Kann EDL-Datei [%s] nicht zum Schreiben öffnen.\n"
 #define MSGTR_EdlCantOpenForRead "Kann EDL-Datei [%s] nicht zum Lesen öffnen.\n"
 #define MSGTR_EdlNOsh_video "Kann EDL nicht ohne Video verwenden, deaktiviere.\n"
 #define MSGTR_EdlNOValidLine "Ungültige EDL-Zeile: %s\n"
@@ -369,6 +408,53 @@ static char help_text[]=
 "                 (320 kbps Bitrate)\n"\
 "                 <8-320>: ABR-Enkodierung mit der angegebenen durchschnittlichen\n"\
 "                          Bitrate\n\n"
+
+//codec-cfg.c:
+#define MSGTR_DuplicateFourcc "doppeltes FourCC"
+#define MSGTR_TooManyFourccs "zu viele FourCCs/Formate..."
+#define MSGTR_ParseError "Fehler beim Parsen"
+#define MSGTR_ParseErrorFIDNotNumber "Fehler beim Parsen (Format-ID keine Nummer?)"
+#define MSGTR_ParseErrorFIDAliasNotNumber "Fehler beim Parsen (Alias der Format-ID keine Nummer?)"
+#define MSGTR_DuplicateFID "doppelte Format-ID"
+#define MSGTR_TooManyOut "zu viele aus..."
+#define MSGTR_InvalidCodecName "\nCodecname(%s) ist ungültig!\n"
+#define MSGTR_CodecLacksFourcc "\nCodec(%s) hat kein FourCC/Format!\n"
+#define MSGTR_CodecLacksDriver "\nCodec(%s) hat keinen Treiber!\n"
+#define MSGTR_CodecNeedsDLL "\nCodec(%s) braucht eine 'dll'!\n"
+#define MSGTR_CodecNeedsOutfmt "\nCodec(%s) braucht ein 'outfmt'!\n"
+#define MSGTR_CantAllocateComment "Kann Speicher für Kommentar nicht allozieren. "
+#define MSGTR_GetTokenMaxNotLessThanMAX_NR_TOKEN "get_token(): max >= MAX_MR_TOKEN!"
+#define MSGTR_ReadingFile "Lese %s: "
+#define MSGTR_CantOpenFileError "Kann '%s' nicht öffnen: %s\n"
+#define MSGTR_CantGetMemoryForLine "Bekomme keinen Speicher für 'line': %s\n"
+#define MSGTR_CantReallocCodecsp "Kann '*codecsp' nicht erneut allozieren: %s\n"
+#define MSGTR_CodecNameNotUnique "Codecname '%s' ist nicht eindeutig."
+#define MSGTR_CantStrdupName "Kann strdup nicht ausführen -> 'name': %s\n"
+#define MSGTR_CantStrdupInfo "Kann strdup nicht ausführen -> 'info': %s\n"
+#define MSGTR_CantStrdupDriver "Kann strdup nicht ausführen -> 'driver': %s\n"
+#define MSGTR_CantStrdupDLL "Kann strdup nicht ausführen -> 'dll': %s"
+#define MSGTR_AudioVideoCodecTotals "%d Audio- & %d Videocodecs\n"
+#define MSGTR_CodecDefinitionIncorrect "Codec ist nicht korrekt definiert."
+#define MSGTR_OutdatedCodecsConf "Diese codecs.conf ist zu alt und nicht kompatibel mit dieser Version von MPlayer!"
+
+// divx4_vbr.c:
+#define MSGTR_OutOfMemory "Kein Speicher mehr verfügbar!"
+#define MSGTR_OverridingTooLowBitrate "Angegebene Bitrate ist zu niedrig für diesen Clip.\n"\
+"Minimal mögliche Bitrate für den Clip ist %.0f kbps. Hebe\n"\
+"den vom Benutzer angegebenen Wert auf.\n"
+
+// fifo.c
+#define MSGTR_CannotMakePipe "Kann PIPE nicht anlegen!\n"
+
+// m_config.c
+#define MSGTR_SaveSlotTooOld "Zu alte Speicherstelle gefunden von lvl %d: %d !!!\n"
+#define MSGTR_InvalidCfgfileOption "Die Option %s kann in Konfigurationsdateien nicht verwendet werden.\n"
+#define MSGTR_InvalidCmdlineOption "Die Option %s kann auf der Kommandozeile nicht verwendet werden.\n"
+#define MSGTR_InvalidSuboption "Fehler: Option '%s' hat keine Unteroption '%s'.\n"
+#define MSGTR_MissingSuboptionParameter "Fehler: Unteroption '%s' von '%s' benötigt einen Parameter!\n"
+#define MSGTR_MissingOptionParameter "Fehler: Option '%s' benötigt einen Parameter!\n"
+#define MSGTR_OptionListHeader "\n Name                 Typ             Min        Max      Global  CL    Cfg\n\n"
+#define MSGTR_TotalOptions "\nInsgesamt: %d Optionen\n"
 
 // open.c, stream.c:
 #define MSGTR_CdDevNotfound "CD-ROM-Laufwerk '%s' nicht gefunden.\n"
@@ -775,3 +861,132 @@ static char help_text[]=
 #define MSGTR_VO_JPEG_BaselineJPEG "Baseline-JPEG aktiviert."
 #define MSGTR_VO_JPEG_NoBaselineJPEG "Baseline-JPEG deaktiviert."
 
+// vo_pnm.c
+#define MSGTR_VO_PNM_ASCIIMode "ASCII-Modus aktiviert."
+#define MSGTR_VO_PNM_RawMode "Raw-Modus aktiviert."
+#define MSGTR_VO_PNM_PPMType "Werde PPM-Dateien schreiben."
+#define MSGTR_VO_PNM_PGMType "Werde PGM-Dateien schreiben."
+#define MSGTR_VO_PNM_PGMYUVType "Werde PGMYUV-Dateien schreiben."
+
+// vo_yuv4mpeg.c
+#define MSGTR_VO_YUV4MPEG_InterlacedHeightDivisibleBy4 "Interlaced-Modus benötigt eine durch 4 teilbare Bildhöhe."
+#define MSGTR_VO_YUV4MPEG_InterlacedLineBufAllocFail "Kann Linien-Buffer für den Interlaced-Modus nicht allozieren."
+#define MSGTR_VO_YUV4MPEG_InterlacedInputNotRGB "Eingabe ist nicht RGB, kann Chrominanz nicht in Felder separieren!"
+#define MSGTR_VO_YUV4MPEG_WidthDivisibleBy2 "Bildhöhe muss durch 2 teilbar sein."
+#define MSGTR_VO_YUV4MPEG_NoMemRGBFrameBuf "Nicht genug Speicher, um RGB-Framebuffer zu allozieren."
+#define MSGTR_VO_YUV4MPEG_OutFileOpenError "Bekomme keinen Speicher oder Datei-Handle, um \"%s\" zu schreiben!"
+#define MSGTR_VO_YUV4MPEG_OutFileWriteError "Fehler beim Schreiben des Bildes auf die Ausgabe!"
+#define MSGTR_VO_YUV4MPEG_UnknownSubDev "Unbekanntes Subdevice: %s"
+#define MSGTR_VO_YUV4MPEG_InterlacedTFFMode "Benutze Interlaced-Ausgabemodus, oberes Feld (top-field) zuerst."
+#define MSGTR_VO_YUV4MPEG_InterlacedBFFMode "Benutze Interlaced-Ausgabemodus, unteres Feld (bottom-field) zuerst."
+#define MSGTR_VO_YUV4MPEG_ProgressiveMode "Benutze (Standard-) Progressive-Frame-Modus."
+
+// Old vo drivers that have been replaced
+
+#define MSGTR_VO_PGM_HasBeenReplaced "Der pgm-Videoausgabetreiber wurde ersetzt durch -vo pnm:pgmyuv.\n"
+#define MSGTR_VO_MD5_HasBeenReplaced "Der md5-Videoausgabetreiber wurde ersetzt durch -vo md5sum.\n"
+
+// ======================= AO Audio Output drivers ========================
+
+// libao2
+
+// audio_out.c
+#define MSGTR_AO_ALSA9_1x_Removed "audio_out: Die Module alsa9 und alsa1x wurden entfernt, benutze stattdessen -ao alsa.\n"
+
+// ao_oss.c
+#define MSGTR_AO_OSS_CantOpenMixer "[AO OSS] audio_setup: Kann Mixer %s: %s nicht öffnen.\n"
+#define MSGTR_AO_OSS_ChanNotFound "[AO OSS] audio_setup: Soundkartenmixer hat Kanal '%s' nicht, benutze Standard.\n"
+#define MSGTR_AO_OSS_CantOpenDev "[AO OSS] audio_setup: Kann Audiogerät %s nicht öffnen: %s\n"
+#define MSGTR_AO_OSS_CantMakeFd "[AO OSS] audio_setup: Kann Dateideskriptor nicht anlegen, blockiert: %s\n"
+#define MSGTR_AO_OSS_CantSetAC3 "[AO OSS] Kann Audiogerät %s nicht auf AC3-Ausgabe setzen, versuche S16...\n"
+#define MSGTR_AO_OSS_CantSetChans "[AO OSS] audio_setup: Audiogerät auf %d Kanäle zu setzen ist fehlgeschlagen.\n"
+#define MSGTR_AO_OSS_CantUseGetospace "[AO OSS] audio_setup: Treiber unterstützt SNDCTL_DSP_GETOSPACE nicht :-(\n"
+#define MSGTR_AO_OSS_CantUseSelect "[AO OSS]\n   *** Dein Audiotreiber unterstützt select() NICHT ***\nKompiliere MPlayer mit #undef HAVE_AUDIO_SELECT in der Datei config.h !\n\n"
+#define MSGTR_AO_OSS_CantReopen "[AO OSS]\nKritischer Fehler: *** KANN AUDIO-GERÄT NICHT ERNEUT ÖFFNEN / ZURÜCKSETZEN *** %s\n"
+
+// ao_arts.c
+#define MSGTR_AO_ARTS_CantInit "[AO ARTS] %s\n"
+#define MSGTR_AO_ARTS_ServerConnect "[AO ARTS] Verbindung zum Soundserver hergestellt.\n"
+#define MSGTR_AO_ARTS_CantOpenStream "[AO ARTS] Kann keinen Stream öffnen.\n"
+#define MSGTR_AO_ARTS_StreamOpen "[AO ARTS] Stream geöffnet.\n"
+#define MSGTR_AO_ARTS_BufferSize "[AO ARTS] Größe des Buffers: %d\n"
+
+// ao_dxr2.c
+#define MSGTR_AO_DXR2_SetVolFailed "[AO DXR2] Die Lautstärke auf %d zu setzen ist fehlgeschlagen.\n"
+#define MSGTR_AO_DXR2_UnsupSamplerate "[AO DXR2] dxr2: %d Hz nicht unterstützt, versuche \"-aop list=resample\"\n"
+
+// ao_esd.c
+#define MSGTR_AO_ESD_CantOpenSound "[AO ESD] esd_open_sound fehlgeschlagen: %s\n"
+#define MSGTR_AO_ESD_LatencyInfo "[AO ESD] Latenz: [Server: %0.2fs, Netz: %0.2fs] (Anpassung %0.2fs)\n"
+#define MSGTR_AO_ESD_CantOpenPBStream "[AO ESD] Öffnen des esd-Wiedergabestreams fehlgeschlagen: %s\n"
+
+// ao_mpegpes.c
+#define MSGTR_AO_MPEGPES_CantSetMixer "[AO MPEGPES] Setzen des DVB-Audiomixers fehlgeschlagen: %s\n"
+#define MSGTR_AO_MPEGPES_UnsupSamplerate "[AO MPEGPES] %d Hz nicht unterstützt, versuche Resampling...\n"
+
+// ao_null.c
+// Der hier hat weder mp_msg noch printf's?? [CHECK]
+
+// ao_pcm.c
+#define MSGTR_AO_PCM_FileInfo "[AO PCM] Datei: %s (%s)\nPCM: Samplerate: %iHz Kanäle: %s Format %s\n"
+#define MSGTR_AO_PCM_HintInfo "[AO PCM] Info: Das Anlegen von Dump-Dateien wird am Schnellsten mit -vc dummy -vo null erreicht.\nPCM: Info: Um WAVE-Dateien zu schreiben, benutze -waveheader (Standard).\n"
+#define MSGTR_AO_PCM_CantOpenOutputFile "[AO PCM] Öffnen von %s zum Schreiben fehlgeschlagen!\n"
+
+// ao_sdl.c
+#define MSGTR_AO_SDL_INFO "[AO SDL] Samplerate: %iHz Kanäle: %s Format %s\n"
+#define MSGTR_AO_SDL_DriverInfo "[AO SDL] benutze Audiotreiber %s.\n"
+#define MSGTR_AO_SDL_UnsupportedAudioFmt "[AO SDL] Nichtunterstütztes Audioformat: 0x%x.\n"
+#define MSGTR_AO_SDL_CantInit "[AO SDL] Initialisierung von SDL-Audio fehlgeschlagen: %s\n"
+#define MSGTR_AO_SDL_CantOpenAudio "[AO SDL] Kann Audio nicht öffnen: %s\n"
+
+// ao_sgi.c
+#define MSGTR_AO_SGI_INFO "[AO SGI] Kontrolle.\n"
+#define MSGTR_AO_SGI_InitInfo "[AO SGI] init: Samplerate: %iHz Kanäle: %s Format %s\n"
+#define MSGTR_AO_SGI_InvalidDevice "[AO SGI] Wiedergabe: Ungültiges Gerät.\n"
+#define MSGTR_AO_SGI_CantSetParms_Samplerate "[AO SGI] init: setparams fehlgeschlagen: %s\nKonnte gewünschte Samplerate nicht setzen.\n"
+#define MSGTR_AO_SGI_CantSetAlRate "[AO SGI] init: AL_RATE wurde von der angegebenen Ressource nicht akzeptiert.\n"
+#define MSGTR_AO_SGI_CantGetParms "[AO SGI] init: getparams fehlgeschlagen: %s\n"
+#define MSGTR_AO_SGI_SampleRateInfo "[AO SGI] init: Samplerate ist jetzt %lf (gewünschte Rate ist %lf)\n"
+#define MSGTR_AO_SGI_InitConfigError "[AO SGI] init: %s\n"
+#define MSGTR_AO_SGI_InitOpenAudioFailed "[AO SGI] init: Konnte Audiokanal nicht öffnen: %s\n"
+#define MSGTR_AO_SGI_Uninit "[AO SGI] uninit: ...\n"
+#define MSGTR_AO_SGI_Reset "[AO SGI] reset: ...\n"
+#define MSGTR_AO_SGI_PauseInfo "[AO SGI] audio_pause: ...\n"
+#define MSGTR_AO_SGI_ResumeInfo "[AO SGI] audio_resume: ...\n"
+
+// ao_sun.c
+#define MSGTR_AO_SUN_RtscSetinfoFailed "[AO SUN] rtsc: SETINFO fehlgeschlagen.\n"
+#define MSGTR_AO_SUN_RtscWriteFailed "[AO SUN] rtsc: Schreiben fehlgeschlagen."
+#define MSGTR_AO_SUN_CantOpenAudioDev "[AO SUN] Kann Audiogerät %s nicht öffnen, %s  -> nosound.\n"
+#define MSGTR_AO_SUN_UnsupSampleRate "[AO SUN] audio_setup: Deine Karte unterstützt %d Kanäle nicht, %s, %d Hz Samplerate.\n"
+#define MSGTR_AO_SUN_CantUseSelect "[AO SUN]\n   *** Dein Audiotreiber unterstützt select() NICHT ***\nKompiliere MPlayer mit #undef HAVE_AUDIO_SELECT in der Datei config.h !\n\n"
+#define MSGTR_AO_SUN_CantReopenReset "[AO SUN]\nKritischer Fehler: *** KANN AUDIO-GERÄT NICHT ERNEUT ÖFFNEN / ZURÜCKSETZEN *** %s\n"
+
+// ao_alsa5.c
+#define MSGTR_AO_ALSA5_InitInfo "[AO ALSA5] alsa-init: angefordertes Format: %d Hz, %d Kanäle, %s\n"
+#define MSGTR_AO_ALSA5_SoundCardNotFound "[AO ALSA5] alsa-init: Keine Soundkarten gefunden.\n"
+#define MSGTR_AO_ALSA5_InvalidFormatReq "[AO ALSA5] alsa-init: ungültiges Format (%s) angefordert - Ausgabe deaktiviert.\n"
+#define MSGTR_AO_ALSA5_PlayBackError "[AO ALSA5] alsa-init: Fehler beim Öffnen der Wiedergabe: %s\n"
+#define MSGTR_AO_ALSA5_PcmInfoError "[AO ALSA5] alsa-init: PCM-Informatationsfehler: %s\n"
+#define MSGTR_AO_ALSA5_SoundcardsFound "[AO ALSA5] alsa-init: %d Soundkarte(n) gefunden, benutze: %s\n"
+#define MSGTR_AO_ALSA5_PcmChanInfoError "[AO ALSA5] alsa-init: PCM-Kanal-Informationsfehler: %s\n"
+#define MSGTR_AO_ALSA5_CantSetParms "[AO ALSA5] alsa-init: Fehler beim Setzen der Parameter: %s\n"
+#define MSGTR_AO_ALSA5_CantSetChan "[AO ALSA5] alsa-init: Fehler beim Setzen des Kanals: %s\n"
+#define MSGTR_AO_ALSA5_ChanPrepareError "[AO ALSA5] alsa-init: Fehler beim Vorbereiten des Kanals: %s\n"
+#define MSGTR_AO_ALSA5_DrainError "[AO ALSA5] alsa-uninit: Fehler beim Ablauf der Wiedergabe: %s\n"
+#define MSGTR_AO_ALSA5_FlushError "[AO ALSA5] alsa-uninit: Wiedergabe-Flush-Fehler: %s\n"
+#define MSGTR_AO_ALSA5_PcmCloseError "[AO ALSA5] alsa-uninit: Fehler beim Schließen von PCM: %s\n"
+#define MSGTR_AO_ALSA5_ResetDrainError "[AO ALSA5] alsa-reset: Fehler beim Ablauf der Wiedergabe: %s\n"
+#define MSGTR_AO_ALSA5_ResetFlushError "[AO ALSA5] alsa-reset: Wiedergabe-Flush-Fehler: %s\n"
+#define MSGTR_AO_ALSA5_ResetChanPrepareError "[AO ALSA5] alsa-reset: Fehler beim Vorbereiten des Kanals: %s\n"
+#define MSGTR_AO_ALSA5_PauseDrainError "[AO ALSA5] alsa-pause: Fehler beim Ablauf der Wiedergabe: %s\n"
+#define MSGTR_AO_ALSA5_PauseFlushError "[AO ALSA5] alsa-pause: Wiedergabe-Flush-Fehler: %s\n"
+#define MSGTR_AO_ALSA5_ResumePrepareError "[AO ALSA5] alsa-resume: Fehler beim Vorbereiten des Kanals: %s\n"
+#define MSGTR_AO_ALSA5_Underrun "[AO ALSA5] alsa-play: Alsa-Underrun, setze Stream zurück.\n"
+#define MSGTR_AO_ALSA5_PlaybackPrepareError "[AO ALSA5] alsa-play: Fehler beim Vorbereiten der Wiedergabe: %s\n"
+#define MSGTR_AO_ALSA5_WriteErrorAfterReset "[AO ALSA5] alsa-play: Schreibfehler nach Rücksetzen: %s - gebe auf.\n"
+#define MSGTR_AO_ALSA5_OutPutError "[AO ALSA5] alsa-play: Ausgabefehler: %s\n"
+
+// ao_plugin.c
+
+#define MSGTR_AO_PLUGIN_InvalidPlugin "[AO PLUGIN] ungültiges Plugin: %s\n"

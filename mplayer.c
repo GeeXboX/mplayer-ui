@@ -356,13 +356,14 @@ static char* rtc_device;
 #endif
 
 #ifdef USE_EDL
-edl_record_ptr edl_records = NULL; /// EDL entries memory area
-edl_record_ptr next_edl_record = NULL; /// only for traversing edl_records
-int edl_memory_slots = 0; /// number of EDL entries (1 for skip + 2 for each mute)
-int edl_operations = 0; /// number of EDL operations, skip + mute
-short edl_decision = 0; /// 1 when an EDL operation has been made
-FILE* edl_fd = NULL; /// fd to write to when in -edlout mode
-int edl_mute_count = 0; /// even number when mute and unmute has been matched
+edl_record_ptr edl_records = NULL; ///< EDL entries memory area
+edl_record_ptr next_edl_record = NULL; ///< only for traversing edl_records
+int edl_memory_slots = 0; ///< number of EDL entries (1 for skip + 2 for each mute)
+int edl_operations = 0; ///< number of EDL operations, skip + mute
+short user_muted = 0; ///< Stores whether User wanted muted mode.
+short edl_muted  = 0; ///< Stores whether EDL is currently in muted mode.
+short edl_decision = 0; ///< 1 when an EDL operation has been made
+FILE* edl_fd = NULL; ///< fd to write to when in -edlout mode
 #endif
 
 static unsigned int inited_flags=0;
@@ -482,7 +483,17 @@ static void exit_player_with_rc(char* how, int rc){
   vo_uninit();	// close the X11 connection (if any opened)
 #endif
 
+#ifdef HAVE_FREETYPE
+  current_module="uninit_font";
+  if (vo_font) free_font_desc(vo_font);
+  vo_font = NULL;
+  done_freetype();
+#endif
+
   current_module="exit_player";
+
+// free mplayer config
+  free(mconfig);
 
 #ifdef USE_EDL
   if(edl_records != NULL) free(edl_records); // free mem allocated for EDL
@@ -504,8 +515,16 @@ static void child_sighandler(int x){
 }
 #endif
 
+#ifdef CRASH_DEBUG
+static char *prog_path;
+static int crash_debug = 0;
+#endif
+
 static void exit_sighandler(int x){
   static int sig_count=0;
+#ifdef CRASH_DEBUG
+  if (!crash_debug || x != SIGTRAP)
+#endif
   ++sig_count;
   if(inited_flags==0 && sig_count>1) exit(1);
   if(sig_count==5)
@@ -527,7 +546,7 @@ static void exit_sighandler(int x){
   mp_msg(MSGT_CPLAYER,MSGL_FATAL,"\n" MSGTR_IntBySignal,x,
       current_module?current_module:mp_gettext("unknown")
   );
-  if(sig_count==1)
+  if(sig_count<=1)
   switch(x){
   case SIGINT:
   case SIGQUIT:
@@ -545,6 +564,26 @@ static void exit_sighandler(int x){
       mp_msg(MSGT_CPLAYER,MSGL_FATAL,MSGTR_Exit_SIGSEGV_SIGFPE);
   default:
       mp_msg(MSGT_CPLAYER,MSGL_FATAL,MSGTR_Exit_SIGCRASH);
+#ifdef CRASH_DEBUG
+      if (crash_debug) {
+        int gdb_pid;
+        char spid[20];
+        snprintf(spid, 19, "%i", getpid());
+        spid[19] = 0;
+        mp_msg(MSGT_CPLAYER, MSGL_INFO, "Forking...\n");
+        gdb_pid = fork();
+        mp_msg(MSGT_CPLAYER, MSGL_INFO, "Forked...\n");
+        if (gdb_pid == 0) { // We are the child
+          if (execlp("gdb", "gdb", prog_path, spid, NULL) == -1)
+            mp_msg(MSGT_CPLAYER, MSGL_ERR, "Couldn't start gdb\n");
+        } else if (gdb_pid < 0) 
+          mp_msg(MSGT_CPLAYER, MSGL_ERR, "Couldn't fork\n");
+        else {
+          waitpid(gdb_pid, NULL, 0);
+        }
+        if (x == SIGTRAP) return;
+      }
+#endif  
   }
   exit_player(NULL);
 }
@@ -721,6 +760,11 @@ void add_subtitles(char *filename, float fps, int silent)
         mp_msg(MSGT_CPLAYER, MSGL_ERR, MSGTR_CantLoadSub, filename);
     if (subd == NULL || set_of_sub_size >= MAX_SUBTITLE_FILES) return;
     set_of_subtitles[set_of_sub_size] = subd;
+    if (identify)
+    {
+      mp_msg(MSGT_GLOBAL, MSGL_INFO, "ID_FILE_SUB_ID=%d\n", set_of_sub_size);
+      mp_msg(MSGT_GLOBAL, MSGL_INFO, "ID_FILE_SUB_FILENAME=%s\n", filename);
+    }
     ++set_of_sub_size;
     mp_msg(MSGT_FIXME, MSGL_FIXME, MSGTR_AddedSubtitleFile, set_of_sub_size, filename);
 }
@@ -756,6 +800,153 @@ void update_set_of_subtitles()
 #include <SDL.h>
 #endif
 
+/**
+ * \brief append a formatted string
+ * \param buf buffer to print into
+ * \param pos position of terminating 0 in buf
+ * \param len maximum number of characters in buf, not including terminating 0
+ * \param format printf format string
+ */
+static void saddf(char *buf, unsigned *pos, int len, const char *format, ...)
+{
+  va_list va;
+  va_start(va, format);
+  *pos += vsnprintf(&buf[*pos], len - *pos, format, va);
+  va_end(va);
+  if (*pos >= len ) {
+    buf[len] = 0;
+    *pos = len;
+  }
+}
+
+/**
+ * \brief print the status line
+ * \param a_pos audio position
+ * \param a_v A-V desynchronization
+ * \param corr amount out A-V synchronization
+ */
+static void print_status(float a_pos, float a_v, float corr)
+{
+  int width;
+  char *line;
+  unsigned pos = 0;
+  get_screen_size();
+  if (screen_width > 0)
+    width = screen_width;
+  else
+  width = 80;
+#ifdef WIN32
+  // windows command line is broken (MinGW's rxvt works though, but we
+  // should not depend on that).
+  width--;
+#endif
+  line = malloc(width + 1); // one additional for terminating null
+  
+  // Audio time
+  if (sh_audio) {
+    saddf(line, &pos, width, "A:%6.1f ", a_pos);
+    if (!sh_video) {
+      // convert time to HH:MM:SS.F format
+      long tenths = 10 * a_pos;
+      int f1 = tenths % 10;
+      int ss = (tenths /  10) % 60;
+      int mm = (tenths / 600) % 60;
+      int hh = (tenths / 36000) % 100;
+      saddf(line, &pos, width, "(");
+      if (hh > 0)
+        saddf(line, &pos, width, "%2d:", hh);
+      if (hh > 0 || mm > 0)
+        saddf(line, &pos, width, "%02d:", mm);
+      saddf(line, &pos, width, "%02d.", ss);
+      saddf(line, &pos, width, "%1d", f1);
+      saddf(line, &pos, width, ") ");
+    }
+  }
+
+  // Video time
+  if (sh_video)
+    saddf(line, &pos, width, "V:%6.1f ", sh_video->pts);
+
+  // A-V sync
+  if (sh_audio && sh_video)
+    saddf(line, &pos, width, "A-V:%7.3f ct:%7.3f ", a_v, corr);
+
+  // Video stats
+  if (sh_video)
+    saddf(line, &pos, width, "%3d/%3d ",
+      (int)sh_video->num_frames,
+      (int)sh_video->num_frames_decoded);
+
+  // CPU usage
+  if (sh_video) {
+    if (sh_video->timer > 0.5)
+      saddf(line, &pos, width, "%2d%% %2d%% %4.1f%% ",
+        (int)(100.0*video_time_usage*playback_speed/(double)sh_video->timer),
+        (int)(100.0*vout_time_usage*playback_speed/(double)sh_video->timer),
+        (100.0*audio_time_usage*playback_speed/(double)sh_video->timer));
+    else
+      saddf(line, &pos, width, "??%% ??%% ??,?%% ");
+  } else if (sh_audio) {
+    if (sh_audio->delay > 0.5)
+      saddf(line, &pos, width, "%4.1f%% ",
+        100.0*audio_time_usage/(double)sh_audio->delay);
+    else
+      saddf(line, &pos, width, "??,?%% ");
+  }
+
+  // VO stats
+  if (sh_video) 
+    saddf(line, &pos, width, "%d %d ", drop_frame_cnt, output_quality);
+
+#ifdef USE_STREAM_CACHE
+  // cache stats
+  if (stream_cache_size > 0)
+    saddf(line, &pos, width, "%d%% ", cache_fill_status);
+#endif
+
+  // other
+  if (playback_speed != 1)
+    saddf(line, &pos, width, "%4.2fx ", playback_speed);
+
+  // end
+  memset(&line[pos], ' ', width - pos);
+  line[width] = 0;
+  mp_msg(MSGT_AVSYNC, MSGL_STATUS, "%s\r", line);
+  free(line);
+}
+
+/**
+ * \brief build a chain of audio filters that converts the input format
+ * to the ao's format, taking into account the current playback_speed.
+ * \param sh_audio describes the requested input format of the chain.
+ * \param ao_data describes the requested output format of the chain.
+ */
+static int build_afilter_chain(sh_audio_t *sh_audio, ao_data_t *ao_data)
+{
+  int new_srate;
+  int result;
+  if (!sh_audio)
+  {
+    mixer.afilter = NULL;
+    return 0;
+  }
+  new_srate = sh_audio->samplerate * playback_speed;
+  if (new_srate != ao_data->samplerate) {
+    // limits are taken from libaf/af_resample.c
+    if (new_srate < 8000)
+      new_srate = 8000;
+    if (new_srate > 192000)
+      new_srate = 192000;
+    playback_speed = (float)new_srate / (float)sh_audio->samplerate;
+  }
+  result =  init_audio_filters(sh_audio, new_srate,
+           sh_audio->channels, sh_audio->sample_format, sh_audio->samplesize,
+           ao_data->samplerate, ao_data->channels, ao_data->format,
+           audio_out_format_bits(ao_data->format) / 8, /* ao_data.bps, */
+           ao_data->outburst * 4, ao_data->buffersize);
+  mixer.afilter = sh_audio->afilter;
+  return result;
+}
 
 int main(int argc,char* argv[]){
 
@@ -776,6 +967,7 @@ int osd_function=OSD_PLAY;
 int osd_last_pts=-303;
 int osd_show_av_delay = 0;
 int osd_show_text = 0;
+int osd_show_speed = 0;
 int osd_show_sub_delay = 0;
 int osd_show_sub_pos = 0;
 int osd_show_sub_visibility = 0;
@@ -803,7 +995,7 @@ int gui_no_filename=0;
   mp_msg_init();
   mp_msg_set_level(MSGL_STATUS);
 
-  mp_msg(MSGT_CPLAYER,MSGL_INFO, "MPlayer " VERSION " (C) 2000-2004 MPlayer Team\n\n");
+  mp_msg(MSGT_CPLAYER,MSGL_INFO, "MPlayer " VERSION " (C) 2000-2004 MPlayer Team\n");
   /* Test for cpu capabilities (and corresponding OS support) for optimizing */
   GetCpuCaps(&gCpuCaps);
 #ifdef ARCH_X86
@@ -949,7 +1141,7 @@ if(!codecs_file || !parse_codec_cfg(codecs_file)){
 	mp_msg(MSGT_CPLAYER,MSGL_HINT,MSGTR_CopyCodecsConf);
         exit_player_with_rc(NULL, 0);
       }
-      mp_msg(MSGT_CPLAYER,MSGL_INFO,MSGTR_BuiltinCodecsConf);
+      mp_msg(MSGT_CPLAYER,MSGL_V,MSGTR_BuiltinCodecsConf);
     }
   }
   free( mem_ptr ); // release the buffer created by get_path()
@@ -1105,7 +1297,7 @@ if (edl_check_mode() == EDL_ERROR && edl_filename)
     	    close (rtc_fd);
 	    rtc_fd = -1;
 	} else
-	    mp_msg(MSGT_CPLAYER, MSGL_INFO, MSGTR_UsingRTCTiming, irqp);
+	    mp_msg(MSGT_CPLAYER, MSGL_V, MSGTR_UsingRTCTiming, irqp);
     }
   }
 #ifdef HAVE_NEW_GUI
@@ -1115,7 +1307,7 @@ if (edl_check_mode() == EDL_ERROR && edl_filename)
 #endif
     if(rtc_fd<0)
 #endif
-      mp_msg(MSGT_CPLAYER, MSGL_INFO, "Using %s timing\n",
+      mp_msg(MSGT_CPLAYER, MSGL_V, "Using %s timing\n",
 	     softsleep?"software":timer_name);
 
 #ifdef USE_TERMCAP
@@ -1127,7 +1319,7 @@ if (edl_check_mode() == EDL_ERROR && edl_filename)
 // Init input system
 current_module = "init_input";
 mp_input_init();
-#ifndef HAVE_NO_POSIX_SELECT
+#if 0
 make_pipe(&keyb_fifo_get,&keyb_fifo_put);
 
 if(keyb_fifo_get > 0)
@@ -1176,6 +1368,9 @@ current_module = NULL;
   signal(SIGCHLD,child_sighandler);
 #endif
 
+#ifdef CRASH_DEBUG
+  prog_path = argv[0];
+#endif
   //========= Catch terminate signals: ================
   // terminate requests:
   signal(SIGTERM,exit_sighandler); // kill
@@ -1191,6 +1386,10 @@ current_module = NULL;
   signal(SIGILL,exit_sighandler);  // illegal instruction
   signal(SIGFPE,exit_sighandler);  // floating point exc.
   signal(SIGABRT,exit_sighandler); // abort()
+#ifdef CRASH_DEBUG
+  if (crash_debug)
+    signal(SIGTRAP,exit_sighandler);
+#endif
 #endif
 
 #ifdef HAVE_NEW_GUI
@@ -1262,7 +1461,6 @@ if(!noconsolecontrols && !slave_mode){
 #endif
 //---------------------------------------------------------------------------
 
-    mp_msg(MSGT_CPLAYER,MSGL_INFO,"\n");
     if(filename) mp_msg(MSGT_CPLAYER,MSGL_INFO,MSGTR_Playing, filename);
 
 //==================== Open VOB-Sub ============================
@@ -1603,7 +1801,9 @@ if(!sh_video && !sh_audio){
 demux_info_print(demuxer);
 
 //================== Read SUBTITLES (DVD & TEXT) ==========================
-if(vo_spudec==NULL && sh_video && (stream->type==STREAMTYPE_DVD || demuxer->type==DEMUXER_TYPE_MATROSKA)){
+if(vo_spudec==NULL && sh_video &&
+     (stream->type==STREAMTYPE_DVD || demuxer->type==DEMUXER_TYPE_MATROSKA ||
+      d_dvdsub->id >= 0)){
 
 if (spudec_ifo) {
   unsigned int palette[16], width, height;
@@ -1927,12 +2127,7 @@ if(sh_audio){
     // init audio filters:
 #if 1
     current_module="af_init";
-    if(!init_audio_filters(sh_audio, 
-        (int)(sh_audio->samplerate*playback_speed),
-	sh_audio->channels, sh_audio->sample_format, sh_audio->samplesize,
-	ao_data.samplerate, ao_data.channels, ao_data.format,
-	audio_out_format_bits(ao_data.format)/8, /* ao_data.bps, */
-	ao_data.outburst*4, ao_data.buffersize)){
+    if(!build_afilter_chain(sh_audio, &ao_data)) {
       mp_msg(MSGT_CPLAYER,MSGL_ERR,MSGTR_NoMatchingFilter);
 //      mp_msg(MSGT_CPLAYER,MSGL_ERR,"Couldn't find matching filter / ao format! -> NOSOUND\n");
 //      uninit_player(INITED_ACODEC|INITED_AO); // close codec & ao
@@ -1941,7 +2136,6 @@ if(sh_audio){
 #endif
   }
   mixer.audio_out = audio_out;
-  mixer.afilter = sh_audio ? sh_audio->afilter : NULL;
   mixer.volstep = volstep;
 }
 
@@ -2020,7 +2214,8 @@ while(sh_audio){
   playsize=audio_out->get_space();
   
   // handle audio-only case:
-  if(!playsize && !sh_video) {  // buffer is full, do not block here!!!
+  if(playsize < ao_data.outburst &&
+      !sh_video) {  // buffer is full, do not block here!!!
     usec_sleep(10000); // Wait a tick before retry
     continue;
   }
@@ -2057,39 +2252,8 @@ while(sh_audio){
 if(!sh_video) {
   // handle audio-only case:
   if(!quiet) {
-      //
-      // convert time to HH:MM:SS.F format
-      //
-      long tenths = 10 * (sh_audio->delay-audio_out->get_delay()*playback_speed);
-      int hh = (tenths / 36000) % 100;
-      int mm = (tenths / 600) % 60;
-      int ss = (tenths /  10) % 60;
-      int f1 = tenths % 10;
-      char hhmmssf[16]; // only really need 11, but just in case...
-      sprintf( hhmmssf, "%2d:%2d:%2d.%1d", hh, mm, ss, f1);
-      if (0 == hh) {
-        hhmmssf[1] = ' ';
-        hhmmssf[2] = ' ';
-      }
-      // uncomment the next three lines to show leading zero ten-hours
-      // else if (' ' == hhmmssf[0]) {
-      //   hhmmssf[0] = '0';
-      // }
-      if ((0 == hh) && (0 == mm)) {
-        hhmmssf[4] = ' ';
-        hhmmssf[5] = ' ';
-      }
-      else if ((' ' == hhmmssf[3]) && (' ' != hhmmssf[2])) {
-        hhmmssf[3] = '0';
-      }
-      if ((' ' == hhmmssf[6]) && (' ' != hhmmssf[5])) {
-        hhmmssf[6] = '0';
-      }
-             mp_msg(MSGT_AVSYNC,MSGL_STATUS,"A:  %s %4.1f%% %d%%   \r"
-		    ,hhmmssf
-		    ,(sh_audio->delay>0.5)?100.0*audio_time_usage/(double)sh_audio->delay:0
-		    ,cache_fill_status
-		    );
+    float a_pos = sh_audio->delay - audio_out->get_delay() * playback_speed;
+    print_status(a_pos, 0, 0);
   }
   if(d_audio->eof) eof = PT_NEXT_ENTRY;
 
@@ -2385,34 +2549,15 @@ if(time_frame>0.001 && !(vo_flags&256)){
         else
           max_pts_correction=sh_video->frametime*0.10; // +-10% of time
 	if(!frame_time_remaining){ sh_audio->delay+=x; c_total+=x;} // correction
-        if(!quiet) mp_msg(MSGT_AVSYNC,MSGL_STATUS,"A:%6.1f V:%6.1f A-V:%7.3f ct:%7.3f  %3d/%3d  %2d%% %2d%% %4.1f%% %d %d %d%%\r",
-	  a_pts-audio_delay-delay,v_pts,AV_delay,c_total,
-          (int)sh_video->num_frames,(int)sh_video->num_frames_decoded,
-          (sh_video->timer>0.5)?(int)(100.0*video_time_usage*playback_speed/(double)sh_video->timer):0,
-          (sh_video->timer>0.5)?(int)(100.0*vout_time_usage*playback_speed/(double)sh_video->timer):0,
-          (sh_video->timer>0.5)?(100.0*audio_time_usage*playback_speed/(double)sh_video->timer):0
-          ,drop_frame_cnt
-	  ,output_quality
-	  ,cache_fill_status
-        );
-        fflush(stdout);
+        if(!quiet)
+          print_status(a_pts - audio_delay - delay, AV_delay, c_total);
       }
     
   } else {
     // No audio:
     
     if(!quiet)
-      mp_msg(MSGT_AVSYNC,MSGL_STATUS,"V:%6.1f  %3d  %2d%% %2d%% %4.1f%% %d %d %d%%\r",sh_video->pts,
-        (int)sh_video->num_frames,
-        (sh_video->timer>0.5)?(int)(100.0*video_time_usage/(double)sh_video->timer):0,
-        (sh_video->timer>0.5)?(int)(100.0*vout_time_usage/(double)sh_video->timer):0,
-        (sh_video->timer>0.5)?(100.0*audio_time_usage/(double)sh_video->timer):0
-          ,drop_frame_cnt
-	  ,output_quality
-	  ,cache_fill_status
-        );
-
-      fflush(stdout);
+      print_status(0, 0, 0);
 
   }
 
@@ -2483,7 +2628,7 @@ if(auto_quality>0){
 #endif
              usec_sleep(20000);
          }
-      if (cmd->id == MP_CMD_PAUSE) {
+      if (cmd && cmd->id == MP_CMD_PAUSE) {
       cmd = mp_input_get_cmd(0,1,0);
       mp_cmd_free(cmd);
       }
@@ -2519,24 +2664,21 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
  if( next_edl_record ) { // Are we (still?) doing EDL?
   if ( !sh_video ) {
     mp_msg( MSGT_CPLAYER, MSGL_ERR, MSGTR_EdlNOsh_video );
-    next_edl_record->next = NULL;
+    free(edl_records);
+    next_edl_record = NULL; 
+    edl_records = NULL;
   } else {
    if( sh_video->pts >= next_edl_record->start_sec ) {
      if( next_edl_record->action == EDL_SKIP ) {
        osd_function = OSD_FFW;
        abs_seek_pos = 0;
        rel_seek_secs = next_edl_record->length_sec;
-#ifdef DEBUG_EDL
-       mp_msg(MSGT_FIXME, MSGL_FIXME, MSGTR_EDLSKIPStartStopLength, next_edl_record->start_sec, next_edl_record->stop_sec, next_edl_record->length_sec );
-#endif
+       mp_msg(MSGT_CPLAYER, MSGL_DBG4, "EDL_SKIP: start [%f], stop [%f], length [%f]\n", next_edl_record->start_sec, next_edl_record->stop_sec, next_edl_record->length_sec );
        edl_decision = 1;
      } else if( next_edl_record->action == EDL_MUTE ) {
-       mixer_mute(&mixer);
-       edl_mute_count++; // new EDL seek behavior needs this
-#ifdef DEBUG_EDL
-       mp_msg(MSGT_FIXME, MSGL_FIXME, "\nEDL_MUTE: [%f]\n", next_edl_record->start_sec );
-#endif
-       edl_decision = 1;
+       edl_muted = !edl_muted;
+       if ((user_muted | edl_muted) != mixer.muted) mixer_mute(&mixer);
+       mp_msg(MSGT_CPLAYER, MSGL_DBG4, "EDL_MUTE: [%f]\n", next_edl_record->start_sec );
      }
      next_edl_record=next_edl_record->next;
    }
@@ -2597,9 +2739,30 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
       osd_show_av_delay = 9;
       if(sh_audio) sh_audio->delay+= v;
     } break;
+    case MP_CMD_SPEED_INCR : {
+      float v = cmd->args[0].v.f;
+      playback_speed += v;
+      if (sh_video)
+      osd_show_speed = sh_video->fps;
+      build_afilter_chain(sh_audio, &ao_data);
+    } break;
+    case MP_CMD_SPEED_MULT : {
+      float v = cmd->args[0].v.f;
+      playback_speed *= v;
+      if (sh_video)
+      osd_show_speed = sh_video->fps;
+      build_afilter_chain(sh_audio, &ao_data);
+    } break;
+    case MP_CMD_SPEED_SET : {
+      float v = cmd->args[0].v.f;
+      playback_speed = v;
+      if (sh_video)
+      osd_show_speed = sh_video->fps;
+      build_afilter_chain(sh_audio, &ao_data);
+    } break;
     case MP_CMD_FRAME_STEP :
     case MP_CMD_PAUSE : {
-      osd_function=OSD_PAUSE;
+      cmd->pausing = 1;
       brk_cmd = 1;
     } break;
     case MP_CMD_QUIT : {
@@ -2707,6 +2870,10 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
 		// start change for absolute volume value
 		int abs = (cmd->nargs > 1) ? cmd->args[1].v.i : 0;
 		
+#ifdef USE_EDL
+      if (edl_muted) break;
+      user_muted = 0;
+#endif
 		if( abs )
 		{
 			mixer_setvolume(&mixer, (float)v, (float)v );
@@ -2729,6 +2896,10 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
 #endif
     } break;
     case MP_CMD_MUTE:
+#ifdef USE_EDL
+      user_muted = !user_muted;
+      if ((edl_muted | user_muted) != mixer.muted)
+#endif
       mixer_mute(&mixer);
       break;
     case MP_CMD_LOADFILE : {
@@ -3107,12 +3278,12 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
 	  vo_osd_progbar_type=OSD_PANSCAN;
 	  vo_osd_progbar_value=vo_panscan*256;
 	  vo_osd_changed(OSDTYPE_PROGBAR);
+        }
 #ifdef HAVE_FREETYPE
-	  if (subtitle_autoscale == 2 || subtitle_autoscale == 3)
+	if (sh_video && (subtitle_autoscale == 2 || subtitle_autoscale == 3))
 	    // force scaling font to movie width or diagonal
 	    force_load_font = 1;
 #endif
-        }
 #endif
        }
     } break;
@@ -3280,8 +3451,7 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
     case MP_CMD_GET_PERCENT_POS : {
 	mp_msg(MSGT_GLOBAL,MSGL_INFO,MSGTR_AnsPercentPos, demuxer_get_percent_pos(demuxer));
     } break;
-#ifdef HAVE_MENU
-    case MP_CMD_CRUN : {
+    case MP_CMD_RUN : {
 #ifndef __MINGW32__
         if(!fork()) {
           execl("/bin/sh","sh","-c",cmd->args[0].v.s,NULL);
@@ -3289,7 +3459,6 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
         }
 #endif
     } break;
-#endif
 
 #ifdef USE_DVDNAV
     case MP_CMD_DVDNAV_EVENT: {
@@ -3506,6 +3675,8 @@ if (stream->type==STREAMTYPE_DVDNAV && dvd_nav_still)
       mp_msg(MSGT_CPLAYER, MSGL_V, "Received unknown cmd %s\n",cmd->name);
     }
     }
+    if (cmd->pausing)
+      osd_function = OSD_PAUSE;
     mp_cmd_free(cmd);
   }
 }
@@ -3583,11 +3754,10 @@ if(rel_seek_secs || abs_seek_pos){
 #else
 	  if( 1 ) { // Let the compiler optimize this out
 #endif
-	  int len=((demuxer->movi_end-demuxer->movi_start)>>8);
-	  if (len>0 && sh_video){
+	  if (sh_video) {
 	    osd_visible=sh_video->fps; // 1 sec
 	    vo_osd_progbar_type=0;
-	    vo_osd_progbar_value=(demuxer->filepos-demuxer->movi_start)/len;
+	    vo_osd_progbar_value=demuxer_get_percent_pos(demuxer) * 256 / 100;
 	    vo_osd_changed(OSDTYPE_PROGBAR);
 	  }
 	}
@@ -3611,6 +3781,7 @@ if(rel_seek_secs || abs_seek_pos){
  * and find the next EDL action to take care of.
  */
 
+edl_muted = 0;
 next_edl_record = edl_records;
 
 while (next_edl_record)
@@ -3620,38 +3791,13 @@ while (next_edl_record)
      */
   
     if (next_edl_record->start_sec >= sh_video->pts)
-    {
-        if (edl_mute_count > 0)
-        {
-            if ((edl_mute_count % 2) == 0 &&
-                next_edl_record->mute_state == EDL_MUTE_END)
-            {
-                mixer_mute(&mixer);
-                edl_mute_count++;
-            }
-            if ((edl_mute_count % 2) != 0 &&
-                next_edl_record->mute_state == EDL_MUTE_START)
-            {
-                mixer_mute(&mixer);
-                edl_mute_count++;
-            }
-        } else if (next_edl_record->mute_state == EDL_MUTE_END)
-        {
-            mixer_mute(&mixer);
-            edl_mute_count++;
-        }
         break;
-    }
 
+    if (next_edl_record->action == EDL_MUTE) edl_muted = !edl_muted;
     next_edl_record = next_edl_record->next;
 
-    if (!next_edl_record && (edl_mute_count % 2) != 0
-        && edl_mute_count > 0)
-    {
-        mixer_mute(&mixer);
-        edl_mute_count++;
-    }
 }
+if ((user_muted | edl_muted) != mixer.muted) mixer_mute(&mixer);
 #endif
   rel_seek_secs=0;
   abs_seek_pos=0;
@@ -3791,6 +3937,9 @@ while (next_edl_record)
       if (osd_show_av_delay) {
 	  snprintf(osd_text_tmp, 63, "A-V delay: %d ms", ROUND(audio_delay*1000));
 	  osd_show_av_delay--;
+      } else if (osd_show_speed) {
+	  snprintf(osd_text_tmp, 63, "Speed: x %6.2f", playback_speed);
+	  osd_show_speed--;
       } else if (osd_show_ontop) {
 	  snprintf(osd_text_tmp, 63, "Stay on top: %sabled", vo_ontop?"en":"dis");
 	  osd_show_ontop--;
@@ -4002,12 +4151,6 @@ if(use_gui || playtree_iter != NULL){
   goto play_next_file;
 }
 
-#ifdef HAVE_FREETYPE
-current_module="uninit_font";
-if (vo_font) free_font_desc(vo_font);
-vo_font = NULL;
-done_freetype();
-#endif
 
 exit_player_with_rc(MSGTR_Exit_eof, 0);
 

@@ -16,8 +16,6 @@
  *   most likely a linux sound card driver problem)
  */
 
-#include "../config.h"
-
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -35,9 +33,9 @@
 #include "audio_out.h"
 #include "audio_out_internal.h"
 #include "afmt.h"
-#include "../config.h"
-#include "../mp_msg.h"
-#include "../help_mp.h"
+#include "config.h"
+#include "mp_msg.h"
+#include "help_mp.h"
 
 
 #undef	ESD_DEBUG

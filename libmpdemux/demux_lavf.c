@@ -244,6 +244,7 @@ int demux_open_lavf(demuxer_t *demuxer){
     }
     
     mp_msg(MSGT_HEADER,MSGL_V,"LAVF: %d audio and %d video streams found\n",priv->audio_streams,priv->video_streams);
+    mp_msg(MSGT_HEADER,MSGL_V,"LAVF: build %d\n", LIBAVFORMAT_BUILD);
     if(!priv->audio_streams) demuxer->audio->id=-2;  // nosound
 //    else if(best_audio > 0 && demuxer->audio->id == -1) demuxer->audio->id=best_audio;
     if(!priv->video_streams){
@@ -309,9 +310,10 @@ int demux_lavf_fill_buffer(demuxer_t *demux){
         av_free_packet(&pkt);
     }
 
-    priv->last_pts= pkt.pts;
-    
-    dp->pts=pkt.pts / (float)AV_TIME_BASE;
+    if(pkt.pts != AV_NOPTS_VALUE){
+        priv->last_pts= pkt.pts;
+        dp->pts=pkt.pts / (float)AV_TIME_BASE;
+    }
     dp->pos=demux->filepos;
     dp->flags= !!(pkt.flags&PKT_FLAG_KEY);
     // append packet to DS stream:

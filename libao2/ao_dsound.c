@@ -31,8 +31,8 @@
 #include "afmt.h"
 #include "audio_out.h"
 #include "audio_out_internal.h"
-#include "../mp_msg.h"
-#include "../libvo/fastmemcpy.h"
+#include "mp_msg.h"
+#include "libvo/fastmemcpy.h"
 #include "osdep/timer.h"
 
 
@@ -364,6 +364,17 @@ static int init(int rate, int channels, int format, int flags)
 	DSBUFFERDESC dsbpridesc;
 	DSBUFFERDESC dsbdesc;
 
+	//check if the format is supported in general
+	switch(format){
+		case AFMT_AC3:
+		case AFMT_S24_LE:
+		case AFMT_S16_LE:
+		case AFMT_S8:
+			break;
+		default:
+			mp_msg(MSGT_AO, MSGL_V,"ao_dsound: format %s not supported defaulting to Signed 16-bit Little-Endian\n",audio_out_format_name(format));
+			format=AFMT_S16_LE;
+	}   	
 	//fill global ao_data
 	ao_data.channels = channels;
 	ao_data.samplerate = rate;

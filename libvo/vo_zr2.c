@@ -4,7 +4,7 @@
  * Copyright (C) Rik Snel 2001-2003, License GNU GPL v2
  */
 
-/* $Id: vo_zr2.c,v 1.4 2003/12/19 22:04:13 rik Exp $ */
+/* $Id: vo_zr2.c,v 1.5 2004/10/28 01:15:52 diego Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,7 +25,7 @@
 
 #include "video_out.h"
 #include "video_out_internal.h"
-#include "../mp_msg.h"
+#include "mp_msg.h"
 #include "fastmemcpy.h"
 
 static vo_info_t info = {

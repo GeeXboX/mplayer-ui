@@ -1,4 +1,4 @@
-// $Revision: 1.149 $
+// $Revision: 1.155 $
 // MASTER FILE. Use this file as base for translations.
 // Translated files should be sent to the mplayer-DOCS mailing list or
 // to the help messages maintainer, see DOCS/tech/MAINTAINERS.
@@ -104,7 +104,7 @@ static char help_text[]=
 "  - Try -cache 8192.\n"\
 "- Are you using -cache to play a non-interleaved AVI file?\n"\
 "  - Try -nocache.\n"\
-"Read DOCS/HTML/en/devices.html for tuning/speedup tips.\n"\
+"Read DOCS/HTML/en/video.html for tuning/speedup tips.\n"\
 "If none of this helps you, read DOCS/HTML/en/bugreports.html.\n\n"
 
 #define MSGTR_NoGui "MPlayer was compiled WITHOUT GUI support.\n"
@@ -168,7 +168,6 @@ static char help_text[]=
 #define MSGTR_AudioFilterChainPreinitError "Error at audio filter chain pre-init!\n"
 #define MSGTR_LinuxRTCReadError "Linux RTC read error: %s\n"
 #define MSGTR_SoftsleepUnderflow "Warning! Softsleep underflow!\n"
-#define MSGTR_EDLSKIPStartStopLength "\nEDL_SKIP: start [%f], stop [%f], length [%f]\n"
 #define MSGTR_AnsSubVisibility "ANS_SUB_VISIBILITY=%ld\n"
 #define MSGTR_AnsLength "ANS_LENGTH=%ld\n"
 #define MSGTR_AnsVoFullscreen "ANS_VO_FULLSCREEN=%ld\n"
@@ -441,9 +440,9 @@ static char help_text[]=
 
 // m_config.c
 #define MSGTR_SaveSlotTooOld "Too old save slot found from lvl %d: %d !!!\n"
-#define MSGTR_InvalidCfgfileOption "The %s option can't be used in a config file\n"
-#define MSGTR_InvalidCmdlineOption "The %s option can't be used on the command line\n"
-#define MSGTR_InvalidSuboption "Error: option '%s' has no suboption '%s'\n"
+#define MSGTR_InvalidCfgfileOption "The %s option can't be used in a config file.\n"
+#define MSGTR_InvalidCmdlineOption "The %s option can't be used on the command line.\n"
+#define MSGTR_InvalidSuboption "Error: option '%s' has no suboption '%s'.\n"
 #define MSGTR_MissingSuboptionParameter "Error: suboption '%s' of '%s' must have a parameter!\n"
 #define MSGTR_MissingOptionParameter "Error: option '%s' must have a parameter!\n"
 #define MSGTR_OptionListHeader "\n Name                 Type            Min        Max      Global  CL    Cfg\n\n"
@@ -625,12 +624,14 @@ static char help_text[]=
 #define MSGTR_NEMFMR "Sorry, not enough memory for menu rendering."
 #define MSGTR_IDFGCVD "Sorry, I did not find a GUI compatible video output driver."
 #define MSGTR_NEEDLAVCFAME "Sorry, you cannot play non-MPEG files with your DXR3/H+ device without reencoding.\nPlease enable lavc or fame in the DXR3/H+ configbox."
+#define MSGTR_UNKNOWNWINDOWTYPE "Unknown window type found ..."
 
 // --- skin loader error messages
 #define MSGTR_SKIN_ERRORMESSAGE "[skin] error in skin config file on line %d: %s"
 #define MSGTR_SKIN_WARNING1 "[skin] warning in config file line %d:\nwidget (%s) found but no \"section\" found before"
 #define MSGTR_SKIN_WARNING2 "[skin] warning in config file line %d:\nwidget (%s) found but no \"subsection\" found before"
 #define MSGTR_SKIN_WARNING3 "[skin] warning in config file line %d:\nthis subsection is not supported by widget (%s)"
+#define MSGTR_SKIN_SkinFileNotFound "[skin] file ( %s ) not found.\n"
 #define MSGTR_SKIN_BITMAP_16bit  "16 bits or less depth bitmap not supported (%s).\n"
 #define MSGTR_SKIN_BITMAP_FileNotFound  "file not found (%s)\n"
 #define MSGTR_SKIN_BITMAP_BMPReadError "BMP read error (%s)\n"
@@ -647,6 +648,7 @@ static char help_text[]=
 #define MSGTR_SKIN_FONT_NonExistentFontID "non-existent font identifier (%s)\n"
 #define MSGTR_SKIN_UnknownParameter "unknown parameter (%s)\n"
 #define MSGTR_SKIN_SKINCFG_SkinNotFound "Skin not found (%s).\n"
+#define MSGTR_SKIN_SKINCFG_SelectedSkinNotFound "Selected skin ( %s ) not found, trying 'default'...\n"
 #define MSGTR_SKIN_SKINCFG_SkinCfgReadError "skin configfile read error (%s)\n"
 #define MSGTR_SKIN_LABEL "Skins:"
 
@@ -829,6 +831,45 @@ static char help_text[]=
 #define MSGTR_MSGBOX_LABEL_Error "Error!"
 #define MSGTR_MSGBOX_LABEL_Warning "Warning!"
 
+// bitmap.c
+
+#define MSGTR_NotEnoughMemoryC32To1 "[c32to1] not enough memory for image\n"
+#define MSGTR_NotEnoughMemoryC1To32 "[c1to32] not enough memory for image\n"
+
+// cfg.c
+
+#define MSGTR_ConfigFileReadError "[cfg] config file read error ...\n"
+#define MSGTR_UnableToSaveOption "Unable to save the '%s' option.\n"
+
+// interface.c
+
+#define MSGTR_DeletingSubtitles "[GUI] Deleting subtitles.\n"
+#define MSGTR_LoadingSubtitles "[GUI] Loading subtitles: %s\n"
+#define MSGTR_AddingVideoFilter "[GUI] Adding video filter: %s\n"
+#define MSGTR_RemovingVideoFilter "[GUI] Removing video filter: %s\n"
+
+// mw.c
+
+#define MSGTR_NotAFile "This does not seem to be a file: %s !\n"
+
+// ws.c
+
+#define MSGTR_WS_CouldNotOpenDisplay "[ws] Could not open the display.\n"
+#define MSGTR_WS_RemoteDisplay "[ws] Remote display, disabling XMITSHM.\n"
+#define MSGTR_WS_NoXshm "[ws] Sorry, your system does not support the X shared memory extension.\n"
+#define MSGTR_WS_NoXshape "[ws] Sorry, your system does not support the XShape extension.\n"
+#define MSGTR_WS_ColorDepthTooLow "[ws] Sorry, the color depth is too low.\n"
+#define MSGTR_WS_TooManyOpenWindows "[ws] There are too many open windows.\n"
+#define MSGTR_WS_ShmError "[ws] shared memory extension error\n"
+#define MSGTR_WS_NotEnoughMemoryDrawBuffer "[ws] Sorry, not enough memory for draw buffer.\n"
+#define MSGTR_WS_DpmsUnavailable "DPMS not available?\n"
+#define MSGTR_WS_DpmsNotEnabled "Could not enable DPMS.\n"
+
+// wsxdnd.c
+
+#define MSGTR_WS_NotAFile "This does not seem to be a file...\n"
+#define MSGTR_WS_DDNothing "D&D: Nothing returned!\n"
+
 #endif
 
 // ======================= VO Video Output drivers ========================
@@ -867,7 +908,7 @@ static char help_text[]=
 #define MSGTR_VO_YUV4MPEG_InterlacedInputNotRGB "Input not RGB, can't separate chrominance by fields!"
 #define MSGTR_VO_YUV4MPEG_WidthDivisibleBy2 "Image width must be divisible by 2."
 #define MSGTR_VO_YUV4MPEG_NoMemRGBFrameBuf "Not enough memory to allocate RGB framebuffer."
-#define MSGTR_VO_YUV4MPEG_OutFileOpenError "Can't get memory or file handle to write \"stream.yuv\"!"
+#define MSGTR_VO_YUV4MPEG_OutFileOpenError "Can't get memory or file handle to write \"%s\"!"
 #define MSGTR_VO_YUV4MPEG_OutFileWriteError "Error writing image to output!"
 #define MSGTR_VO_YUV4MPEG_UnknownSubDev "Unknown subdevice: %s"
 #define MSGTR_VO_YUV4MPEG_InterlacedTFFMode "Using interlaced output mode, top-field first."
@@ -983,3 +1024,25 @@ static char help_text[]=
 // ao_plugin.c
 
 #define MSGTR_AO_PLUGIN_InvalidPlugin "[AO PLUGIN] invalid plugin: %s\n"
+
+// ======================= AF Audio Filters ================================
+
+// libaf 
+
+// af_ladspa.c
+
+#define MSGTR_AF_LADSPA_AvailableLabels "available labels in"
+#define MSGTR_AF_LADSPA_WarnNoInputs "WARNING! This LADSPA plugin has no audio inputs.\n  The incoming audio signal will be lost."
+#define MSGTR_AF_LADSPA_ErrMultiChannel "Multi-channel (>2) plugins are not supported (yet).\n  Use only mono and stereo plugins."
+#define MSGTR_AF_LADSPA_ErrNoOutputs "This LADSPA plugin has no audio outputs."
+#define MSGTR_AF_LADSPA_ErrInOutDiff "The number of audio inputs and audio outputs of the LADSPA plugin differ."
+#define MSGTR_AF_LADSPA_ErrFailedToLoad "failed to load"
+#define MSGTR_AF_LADSPA_ErrNoDescriptor "Couldn't find ladspa_descriptor() function in the specified library file."
+#define MSGTR_AF_LADSPA_ErrLabelNotFound "Couldn't find label in plugin library."
+#define MSGTR_AF_LADSPA_ErrNoSuboptions "No suboptions specified"
+#define MSGTR_AF_LADSPA_ErrNoLibFile "No library file specified"
+#define MSGTR_AF_LADSPA_ErrNoLabel "No filter label specified"
+#define MSGTR_AF_LADSPA_ErrNotEnoughControls "Not enough controls specified on the command line"
+#define MSGTR_AF_LADSPA_ErrControlBelow "%s: Input control #%d is below lower boundary of %0.4f.\n"
+#define MSGTR_AF_LADSPA_ErrControlAbove "%s: Input control #%d is above upper boundary of %0.4f.\n"
+

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-2"?>
-<!-- synced with 1.46 -->
+<!-- synced with 1.50 -->
 <sect1 id="install">
 <title>Telepítés</title>
 
@@ -98,7 +98,7 @@ Nem árt, ha vmi újabb rendszered van. Linuxon a 2.4.x-es kernel javasolt.
   </para></listitem>
 <listitem><para>
   <emphasis role="bold">directfb</emphasis> - választható, elérhető itt:
-  <ulink url="http://www.directfb.org"/>
+  <ulink url="http://www.directfb.org"/>. Legalább 0.9.13-as szükséges.
   </para></listitem>
 <listitem><para>
   <emphasis role="bold">cdparanoia</emphasis> - választható, szükséges a CDDA támogatáshoz
@@ -145,7 +145,7 @@ Nem árt, ha vmi újabb rendszered van. Linuxon a 2.4.x-es kernel javasolt.
     </simpara></listitem>
   <listitem><simpara>
     ez a codec <emphasis role="bold">az elérhető leggyorsabb</emphasis> a
-    DivX/3/4/5 és egyébb MPEG4 típusú formátumoknál. Javasolt!
+    DivX/3/4/5 és egyébb MPEG-4 típusú formátumoknál. Javasolt!
     </simpara></listitem>
   </itemizedlist>
   </para></listitem>
@@ -235,10 +235,9 @@ Nem árt, ha vmi újabb rendszered van. Linuxon a 2.4.x-es kernel javasolt.
   </para></listitem>
 <listitem><para>
   Az <emphasis role="bold">Ogg Vorbis</emphasis> audió dekódoláshoz helyesen
-  telepített <systemitem class="library">libvorbis</systemitem> kell. Használd
-  a deb/rpm csomagokat, ha elérhetőek, vagy fordítsd le
-  <ulink url="http://ogg.org/ogg/vorbis/download/vorbis_nightly_cvs.tgz">forrásból</ulink>
-  (ez egy naponta frissített tarball a Vorbis CVS-ből).
+  telepített <systemitem class="library">libvorbis</systemitem> kell.
+  A bináris csomagokat és a forráskódot beszerezheted az
+  <ulink url="http://www.vorbis.com/download.psp">Ogg Vorbis oldaláról</ulink>
   </para></listitem>
 <listitem><para>
   <application>MPlayer</application> tudja használni a RealPlayer 8 vagy a
@@ -421,7 +420,7 @@ vezérlőkkel működik:
 <listitem><simpara>
   <emphasis role="bold">Más kártyák</emphasis> tulajdonságait nem támogatja az
   <application>MPlayer</application>. <emphasis role="bold">Nagyon ajánlott, hogy elolvasd
-  a <link linkend="audio-dev">hangkártyákról</link> szóló részt!</emphasis>
+  a <link linkend="audio">hangkártyákról</link> szóló részt!</emphasis>
   </simpara></listitem>
 </itemizedlist>
 </sect2>
@@ -731,7 +730,7 @@ az OSD/SUB jellemzőket. Sok helyről beszerezheted:
 <listitem><para>
   A <application>GIMP</application> betű generátor plugin-jét használod, amit
   <filename class="directory">TOOLS/subfont-GIMP</filename> néven találsz
-  (megjegyzés: HSI RAW plugin is kell, lásd <ulink url="http://realtime.ssu.ac.kr/~lethean/mplayer/" />).
+  (megjegyzés: HSI RAW plugin is kell, lásd <ulink url="http://realtime.ssu.ac.kr/~lethean/index.php?pagename=MplayerKoreanFonts" />).
  </para></listitem>
 <listitem><para>
   TrueType (TTF) betűket használsz, amik megfelelnek a <systemitem class="library">freetype</systemitem>
@@ -790,7 +789,7 @@ az OSD/SUB jellemzőket. Sok helyről beszerezheted:
     felhasználók által készített különböző betűtípusok
     </entry></row>
   <row><entry>
-    <ulink url="http://realtime.ssu.ac.kr/~lethean/mplayer/"></ulink>
+    <ulink url="http://realtime.ssu.ac.kr/~lethean/index.php?pagename=MplayerKoreanFonts"></ulink>
     </entry><entry>
     koreai betűk és RAW plugin
     </entry></row>

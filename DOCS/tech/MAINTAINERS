@@ -28,20 +28,30 @@ Homepage:
 English documentation:
     * user docs: Diego Biurrun
     * man page: Diego Biurrun
+    * Help Messages: Diego Biurrun
     * input layer, LIRC, slave mode docs: Alban Bedel
     * tech/* docs: Alex Beregszaszi
     * tech/* documentation docs: Diego Biurrun
 
-Documentation translations:
-    * Help Messages: Diego Biurrun
-    * Hungarian: outdated and unmaintained
-    * German: Sebastian Krämer
-    * French: Nicolas Le Gaillart, Guillaume Poirier
-    * Russian: Dmitry Baryshkov
-    * Polish: Waclaw Schiller
+man pages:
+    * Czech: Jiri Heryan
+    * French: Guillaume Poirier
+    * German: Sebastian Krämer (incomplete)
+    * Hungarian: Gabor Mizda
     * Italian: Daniele Forghieri
-    * Chinese (simplified): Lu Ran (outdated)
+    * Polish: Waclaw Schiller
     * Spanish: Juan Martin
+    * Swedish: Carl Fürstenberg (incomplete)
+
+Documentation translations:
+    * Chinese (simplified): Lu Ran (outdated)
+    * French: Nicolas Le Gaillart (outdated)
+    * German: outdated
+    * Hungarian: Gabor Mizda (incomplete)
+    * Italian: outdated
+    * Polish: Waclaw Schiller
+    * Russian: Dmitry Baryshkov (incomplete)
+    * Spanish: Juan Martin (outdated)
 
 Platforms/ports: (see also DOCS/tech/porting-status.txt)
     * Debian packaging: Dariusz Pietrzak
@@ -53,6 +63,7 @@ Platforms/ports: (see also DOCS/tech/porting-status.txt)
     * Solaris 8 support: Jürgen Keil, Pierre Lombard
     * MIPS support: Oliver Schoenbrunner
     * Win32/Cygwin/MinGW support: Sascha Sommer, Joey Parrish, Diego Biurrun
+    * Mac OS X: Nicolas Plourde
 
 MPlayer code:
     * A-V sync code, MPlayer/MEncoder core: Alex Beregszaszi
@@ -94,6 +105,7 @@ demuxers:
 codec support:
     * FFmpeg: Michael Niedermayer
     * XviD: Ivan Kalvachev
+    * x264: Loren Merritt
 
 video filters:
     * general: Richard Felker, Michael Niedermayer
@@ -113,7 +125,7 @@ libvo drivers:
     * vo_dxr3.c - None
     * vo_fbdev.c - Joey Parrish
     * vo_fbdev2.c - Joey Parrish
-    * vo_ggi.c - Alex Beregszaszi
+    * vo_ggi.c - Christoph Egger
     * vo_gif89a.c - Joey Parrish
     * vo_gl.c - Reimar Döffinger
     * vo_gl2.c - Reimar Döffinger
@@ -166,3 +178,6 @@ libao2 drivers:
     * ao_sgi.c - None
     * ao_sun.c - None
     * ao_win32.c - Sascha Sommer
+
+audio filters:
+    * af_ladspa.c - Ivo van Poorten

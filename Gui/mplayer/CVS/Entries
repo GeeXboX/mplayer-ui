@@ -1,14 +1,14 @@
-/.cvsignore/1.1/Sun Nov 25 17:38:59 2001//
-/common.c/1.9/Sat Aug 28 20:20:40 2004//
-/common.h/1.2/Sat Jun 26 13:54:20 2004//
-/menu.c/1.17/Mon May 26 08:45:42 2003//
-/mplayer.h/1.9/Fri Jan 17 22:39:39 2003//
-/mw.c/1.112/Mon Oct 18 18:26:44 2004//
-/pb.c/1.5/Thu Mar 20 12:42:09 2003//
-/play.c/1.89/Thu Mar 25 21:49:48 2004//
-/play.h/1.30/Mon May 26 08:34:15 2003//
-/sw.c/1.41/Thu Mar 20 12:42:09 2003//
-/widgets.c/1.43/Fri Jan 17 22:39:39 2003//
-/widgets.h/1.20/Sun Feb  9 20:18:16 2003//
 D/gtk////
 D/pixmaps////
+/.cvsignore/1.1/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/common.c/1.9/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/common.h/1.2/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/menu.c/1.17/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mplayer.h/1.9/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/mw.c/1.114/Tue Jan 18 00:20:45 2005//Tmplayer1_0pre6
+/pb.c/1.5/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/play.c/1.89/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/play.h/1.30/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/sw.c/1.41/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6
+/widgets.c/1.44/Tue Jan 18 00:20:45 2005//Tmplayer1_0pre6
+/widgets.h/1.20/Tue Jan 18 00:18:57 2005//Tmplayer1_0pre6

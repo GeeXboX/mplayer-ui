@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<!-- $Revision: 1.50 $ -->
+<!-- $Revision: 1.57 $ -->
 <sect1 id="codecs">
 <title>Supported codecs</title>
 
@@ -19,12 +19,12 @@ The most important ones above all:
 
 <itemizedlist>
 <listitem><simpara>
-  <emphasis role="bold">MPEG1</emphasis> (<emphasis role="bold">VCD</emphasis>) and
-  <emphasis role="bold">MPEG2</emphasis> (<emphasis role="bold">DVD</emphasis>) video
+  <emphasis role="bold">MPEG-1</emphasis> (<emphasis role="bold">VCD</emphasis>) and
+  <emphasis role="bold">MPEG-2</emphasis> (<emphasis role="bold">DVD</emphasis>) video
   </simpara></listitem>
 <listitem><simpara>
   native decoders for <emphasis role="bold">DivX ;-), OpenDivX (DivX4),
-  DivX 5 (Pro), 3ivX, M$ MPEG4</emphasis> v1, v2 and other MPEG4 variants
+  DivX 5 (Pro), 3ivX, M$ MPEG-4</emphasis> v1, v2 and other MPEG-4 variants
   </simpara></listitem>
 <listitem><simpara>
   native decoder for <emphasis role="bold">Windows Media Video 7/8</emphasis>
@@ -71,7 +71,7 @@ The most important ones above all:
 
 <para>
 If you have a Win32 codec not listed here which is not supported yet,
-please read the <link linkend="win32-codecs">codec importing HOWTO</link>
+please read the <link linkend="codec-importing">codec importing HOWTO</link>
 and help us add support for it.
 </para>
 
@@ -85,7 +85,7 @@ This section contains information about the DivX4 and DivX5 codecs of
 Their first available alpha version was OpenDivX 4.0 alpha 47 and 48.
 Support for this was included in <application>MPlayer</application> in the
 past, and built by default. We also used its postprocessing code to
-optionally enhance visual quality of MPEG1/2 movies. Now we use our own,
+optionally enhance visual quality of MPEG-1/2 movies. Now we use our own,
 for all file types.
 </para>
 
@@ -133,7 +133,7 @@ divx4</option> may be faster, or even the fastest solution.
 
 <para>
 The DivX4/5 binary codec library can be downloaded from
-<ulink url="http://avifile.sourceforge.net">avifile</ulink> or
+<ulink url="http://avifile.sf.net">avifile</ulink> or
 <ulink url="http://www.divx.com">divx.com</ulink>
 Unpack it, run <filename>./install.sh</filename> as root and do not forget adding
 <filename class="directory">/usr/local/lib</filename> to your
@@ -195,7 +195,7 @@ did not install or configure it correctly.
 <title>FFmpeg/libavcodec</title>
 
 <para>
-<ulink url="http://ffmpeg.sourceforge.net">FFmpeg</ulink> contains an
+<ulink url="http://ffmpeg.org">FFmpeg</ulink> contains an
 <emphasis role="bold">open source</emphasis> codec package, which is capable
 of decoding streams with various audio and video codecs. It also offers an
 impressing encoding facility and higher speed than the Win32 codecs or the
@@ -203,7 +203,7 @@ DivX.com DivX4/5 libraries!
 </para>
 
 <para>
-It contains a lot of nice codecs, especially important are the MPEG4 variants:
+It contains a lot of nice codecs, especially important are the MPEG-4 variants:
 DivX3, DivX4, DivX5, Windows Media Video 7/8 (WMV1/WMV2). Also a very interesting one
 is the WMA decoder.
 </para>
@@ -216,8 +216,8 @@ faster than the original. Be sure to prefer this instead of the binary codec!
 
 <para>
 For a complete list of supported codecs please visit the FFmpeg homepage.
-Supported <ulink url="http://www.ffmpeg.org/ffmpeg-doc.html#SEC19">video</ulink>
-and <ulink url="http://www.ffmpeg.org/ffmpeg-doc.html#SEC20">audio</ulink> codecs.
+Supported <ulink url="http://ffmpeg.org/ffmpeg-doc.html#SEC19">video</ulink>
+and <ulink url="http://ffmpeg.org/ffmpeg-doc.html#SEC20">audio</ulink> codecs.
 </para>
 
 <para>
@@ -353,11 +353,11 @@ automatically.
 
 
 <sect3 id="mpeg12">
-<title>MPEG 1/2 video</title>
+<title>MPEG-1/2 video</title>
 <para>
-MPEG1 and MPEG2 are decoded by the multiplatform native <systemitem
+MPEG-1 and MPEG-2 are decoded by the multiplatform native <systemitem
 class="library">libmpeg2</systemitem> library, whose source code is
-included in <application>MPlayer</application>.  We handle buggy MPEG 1/2
+included in <application>MPlayer</application>.  We handle buggy MPEG-1/2
 video files by catching <systemitem>Signal 11</systemitem>
 (<systemitem>segmentation fault</systemitem>), and quickly
 reinitializing the codec, continuing exactly from where the failure
@@ -404,16 +404,6 @@ and extract them to the
 <filename class="directory">/usr/local/lib/codecs</filename> directory.
 If you want to store them in a different location, pass the
 <option>--with-reallibdir</option> option to <command>configure</command>.
-</para>
-
-<para>
-On Mac OS X you must make sure <filename>pncrt.Shlb</filename> (including its
-resource fork!) is in the same directory as the Real codecs. Copy it using, for
-example
-<screen>ditto -rsrcFork "RealOne Player.app/Contents/MacOS/pncrt.Shlb" "RealOne Player.app/Contents/MacOS/Library/Codecs"</screen>
-Not doing so, or forgetting to copy the resource fork, will result in errors
-such as:
-<screen>GetDiskFragment() failed with error -2804: &lt;&lt;Unknown disk fragment&gt;&gt;&lt;&lt;Unknown disk fragment&gt;&gt;&lt;pncrt.Shlb&gt;&lt;&gt;</screen>
 </para>
 
 <note><para>
@@ -649,7 +639,7 @@ MPEG decoder cards.
 <title>libmad support</title>
 
 <para>
-<ulink url="http://mad.sourceforge.net">libmad</ulink> is a multiplatform,
+<ulink url="http://www.underbit.com/products/mad/">libmad</ulink> is a multiplatform,
 integer (internally 24bit PCM) only
 MPEG audio decoding library. It does not handle broken files well, and it
 sometimes has problems with seeking, but it may perform better on FPU-less
@@ -732,7 +722,7 @@ to get it separately.
 <para>
 If you use gcc 3.2 which fails to compile our internal FAAD or want to use
 the external library for some other reason, download the library from the
-<ulink url="http://www.audiocoding.com/download.php">download page</ulink>
+<ulink url="http://www.audiocoding.com/modules/mydownloads/">download page</ulink>
 and pass <option>--enable-external-faad</option> to <filename>configure</filename>.
 You do not need all of faad2 to decode AAC files, libfaad is enough. Build
 it like this:
@@ -746,7 +736,7 @@ make
 make install
 </screen>
 Binaries are not available from audiocoding.com, but you can (apt-)get Debian
-packages from <ulink url="http://marillat.free.fr">Christian Marillat's homepage</ulink>,
+packages from <ulink url="http://hpisi.nerim.net">Christian Marillat's homepage</ulink>,
 Mandrake RPMs from the <ulink url="http://plf.zarb.org">P.L.F</ulink> and RedHat RPMs
 from <ulink url="http://greysector.rangers.eu.org/">Grey Sector</ulink>.
 </para>
@@ -756,7 +746,7 @@ from <ulink url="http://greysector.rangers.eu.org/">Grey Sector</ulink>.
 
 <!-- ********** -->
 
-<sect2 id="win32-codecs">
+<sect2 id="codec-importing">
 <title>Win32 codecs importing HOWTO</title>
 
 <!-- TODO: a short paragraph of text would be nice here... -->
@@ -827,7 +817,7 @@ Using <application>Microsoft GraphEdit</application> (fast)
 </para>
 <step><para>
   Get <application>GraphEdit</application> from either DirectX SDK or
-  <ulink url="http://doom9.org">doom9</ulink>
+  <ulink url="http://doom9.net">doom9</ulink>
   </para></step>
 <step><para>
   Start <command>graphedit.exe</command>.
@@ -907,6 +897,12 @@ to the FTP site:
 role="url">ftp://ftp.mplayerhq.hu/MPlayer/incoming/[codecname]/
 </systemitem>
 </para>
+
+<para>
+If you want to add a codec yourself, read
+<ulink url="http://www.mplayerhq.hu/MPlayer/DOCS/tech/codecs.conf.txt">DOCS/tech/codecs.conf.txt</ulink>.
+</para>
+
 </sect3>
 </sect2>
 </sect1>

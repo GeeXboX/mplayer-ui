@@ -143,6 +143,7 @@ int out_file_format=MUXER_TYPE_AVI;	// default to AVI
 //void resync_audio_stream(sh_audio_t *sh_audio){}
 
 int verbose=0; // must be global!
+int identify=0;
 int quiet=0;
 double video_time_usage=0;
 double vout_time_usage=0;
@@ -390,7 +391,7 @@ unsigned int timer_start;
 
   mp_msg_init();
   mp_msg_set_level(MSGL_STATUS);
-  mp_msg(MSGT_CPLAYER,MSGL_INFO, "MEncoder " VERSION " (C) 2000-2004 MPlayer Team\n\n");
+  mp_msg(MSGT_CPLAYER,MSGL_INFO, "MEncoder " VERSION " (C) 2000-2004 MPlayer Team\n");
 
   /* Test for cpu capabilities (and corresponding OS support) for optimizing */
   GetCpuCaps(&gCpuCaps);
@@ -435,7 +436,7 @@ if(!codecs_file || !parse_codec_cfg(codecs_file)){
 	mp_msg(MSGT_MENCODER,MSGL_HINT,MSGTR_CopyCodecsConf);
 	mencoder_exit(1,NULL);
       }
-      mp_msg(MSGT_MENCODER,MSGL_INFO,MSGTR_BuiltinCodecsConf);
+      mp_msg(MSGT_MENCODER,MSGL_V,MSGTR_BuiltinCodecsConf);
     }
   }
 }
