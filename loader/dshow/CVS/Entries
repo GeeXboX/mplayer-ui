@@ -1,0 +1,24 @@
+/.cvsignore/1.1/Sat Nov 17 23:55:39 2001//
+/DS_AudioDecoder.c/1.14/Mon Apr 21 21:06:08 2003//
+/DS_AudioDecoder.h/1.6/Wed Jan  2 17:11:09 2002//
+/DS_Filter.c/1.18/Mon Apr 21 21:06:08 2003//
+/DS_Filter.h/1.7/Tue Dec 11 23:29:24 2001//
+/DS_VideoDecoder.c/1.28/Thu Apr 24 18:48:28 2003//
+/DS_VideoDecoder.h/1.6/Fri Jun  7 22:43:29 2002//
+/Makefile/1.14/Thu Aug 29 21:30:56 2002//
+/allocator.c/1.10/Mon Apr 21 21:06:08 2003//
+/allocator.h/1.7/Tue Nov 26 21:00:20 2002//
+/cmediasample.c/1.10/Mon Apr 21 20:12:43 2003//
+/cmediasample.h/1.6/Tue Dec 11 23:29:24 2001//
+/guids.c/1.7/Tue Nov 26 21:00:20 2002//
+/guids.h/1.8/Tue Nov 26 21:00:20 2002//
+/inputpin.c/1.8/Mon Apr 21 20:12:43 2003//
+/inputpin.h/1.7/Tue Nov 26 21:00:20 2002//
+/interfaces.h/1.8/Fri Sep 13 19:43:15 2002//
+/iunk.h/1.5/Tue Nov 26 21:00:20 2002//
+/libwin32.h/1.8/Sun Jun 23 16:03:08 2002//
+/outputpin.c/1.12/Mon Apr 21 20:12:43 2003//
+/outputpin.h/1.6/Fri Sep 13 19:43:15 2002//
+/test.c/1.3/Wed Mar 21 20:46:42 2001//
+/test.divx/1.1.1.1/Tue Mar 20 00:05:52 2001//
+D

@@ -1,0 +1,13 @@
+/.cvsignore/1.1/Sun Nov 25 17:35:41 2001//
+/Makefile/1.26/Sun Jun 27 19:17:24 2004//
+/app.c/1.23/Thu Mar 20 12:41:32 2003//
+/app.h/1.18/Thu Mar 20 12:41:32 2003//
+/bitmap.c/1.12/Fri May 23 17:23:35 2003//
+/bitmap.h/1.8/Fri May 23 17:04:24 2003//
+/cfg.c/1.41/Fri Jul 30 15:58:36 2004//
+/cfg.h/1.16/Fri Jul 30 15:58:36 2004//
+/interface.c/1.96/Fri Jul 30 15:58:36 2004//
+/interface.h/1.37/Fri Aug 15 11:55:21 2003//
+D/mplayer////
+D/skin////
+D/wm////

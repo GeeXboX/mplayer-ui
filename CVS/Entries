@@ -1,0 +1,92 @@
+/.cvsignore/1.16/Tue Apr 20 21:40:19 2004//
+/AUTHORS/1.122/Thu Oct  7 08:53:26 2004//
+/ChangeLog/1.125/Wed Aug 18 19:00:04 2004//
+/Copyright/1.14/Fri Sep 24 19:20:46 2004//
+/LICENSE/1.2/Wed Aug  6 21:55:59 2003//
+/Makefile/1.308/Wed Oct 20 14:23:33 2004//
+/README/1.20/Fri Sep 10 17:54:17 2004//
+/asxparser.c/1.13/Sat Apr 17 16:46:40 2004//
+/asxparser.h/1.4/Tue Nov 12 14:19:53 2002//
+/bswap.h/1.4/Sun Jul 27 21:24:33 2003//
+/cfg-common.h/1.137/Mon Oct 18 20:41:05 2004//
+/cfg-mencoder.h/1.89/Tue Sep 21 19:45:49 2004//
+/cfg-mplayer-def.h/1.2/Mon Mar 19 03:45:49 2001//
+/cfg-mplayer.h/1.229/Wed Sep 15 13:37:49 2004//
+/codec-cfg.c/1.111/Tue Oct 12 11:29:20 2004//
+/codec-cfg.h/1.70/Sat Oct  9 07:38:45 2004//
+/configure/1.922/Wed Oct 20 14:23:33 2004//
+/cpudetect.c/1.36/Wed Oct 13 09:37:32 2004//
+/cpudetect.h/1.10/Fri Sep 19 23:52:41 2003//
+/cputable.h/1.7/Tue Dec 16 13:35:01 2003//
+/divx4_vbr.c/1.9/Wed Oct 20 01:32:56 2004//
+/divx4_vbr.h/1.1/Fri Nov  2 23:58:26 2001//
+/edl.c/1.2/Fri Sep 17 02:28:44 2004//
+/edl.h/1.4/Fri Sep 17 02:28:44 2004//
+/fifo.c/1.5/Wed Oct 20 01:32:56 2004//
+/find_sub.c/1.13/Wed Oct 20 01:32:56 2004//
+/get_path.c/1.7/Fri Jul 23 16:35:20 2004//
+/m_config.c/1.10/Wed Oct 20 01:32:56 2004//
+/m_config.h/1.6/Sat Sep  4 15:34:20 2004//
+/m_option.c/1.33/Wed Aug 11 10:31:37 2004//
+/m_option.h/1.10/Tue Feb 10 14:32:06 2004//
+/m_struct.c/1.4/Fri Aug 29 21:41:03 2003//
+/m_struct.h/1.3/Wed Aug 13 16:29:00 2003//
+/mangle.h/1.6/Sun Mar 30 20:11:05 2003//
+/mencoder.c/1.256/Sat Oct  9 13:07:17 2004//
+/mixer.c/1.18/Wed Jul 28 12:17:48 2004//
+/mixer.h/1.6/Sat Jun 26 09:14:20 2004//
+/mmx.h/1.1/Sun Oct 28 11:47:21 2001//
+/mmx_defs.h/1.3/Fri Jun  7 22:43:23 2002//
+/mp_msg-mencoder.c/1.1/Fri May  3 22:05:46 2002//
+/mp_msg.c/1.24/Fri Sep 12 15:46:16 2003//
+/mp_msg.h/1.31/Fri Sep 17 12:16:42 2004//
+/mplayer.c/1.796/Mon Oct 18 21:16:45 2004//
+/mplayer.h/1.30/Mon Apr  7 16:03:37 2003//
+/mplayer_wine.spec/1.1/Thu Oct 31 23:37:38 2002//
+/mplayer_wine.spec.c/1.1/Thu Oct 31 23:37:38 2002//
+/parser-cfg.c/1.6/Wed Aug 13 16:44:39 2003//
+/parser-mecmd.c/1.7/Wed Aug 13 16:44:39 2003//
+/parser-mecmd.h/1.1/Tue Nov 12 01:56:21 2002//
+/parser-mpcmd.c/1.17/Wed Jul 14 09:25:47 2004//
+/playtree.c/1.22/Wed Oct 20 17:30:29 2004//
+/playtree.h/1.8/Wed Feb  5 23:02:05 2003//
+/playtreeparser.c/1.31/Fri Sep 10 20:53:22 2004//
+/playtreeparser.h/1.5/Fri May 30 17:53:03 2003//
+/spudec.c/1.44/Sat Sep 18 00:08:16 2004//
+/spudec.h/1.16/Sun Sep 21 14:21:11 2003//
+/sub_cc.c/1.4/Wed Nov  6 23:54:21 2002//
+/sub_cc.h/1.3/Thu Jul 25 16:39:21 2002//
+/subreader.c/1.140/Mon Oct 18 20:56:11 2004//
+/subreader.h/1.37/Mon Oct 18 20:41:05 2004//
+/unrarlib.c/1.6/Sun Oct  5 10:35:10 2003//
+/unrarlib.h/1.3/Sat Oct  4 17:28:30 2003//
+/version.sh/1.14/Sun Nov 23 16:53:03 2003//
+/vobsub.c/1.38/Thu Jan  1 11:01:09 2004//
+/vobsub.h/1.11/Mon Dec  8 18:35:39 2003//
+/xvid_vbr.c/1.5/Mon Nov  4 02:16:00 2002//
+/xvid_vbr.h/1.2/Wed Sep 18 01:32:32 2002//
+/xvmc_render.h/1.3/Mon Aug 25 21:40:35 2003//
+D/DOCS////
+D/Gui////
+D/TOOLS////
+D/debian////
+D/drivers////
+D/etc////
+D/help////
+D/input////
+D/liba52////
+D/libaf////
+D/libao2////
+D/libdha////
+D/libfaad2////
+D/libmenu////
+D/libmpcodecs////
+D/libmpdemux////
+D/libmpdvdkit2////
+D/libmpeg2////
+D/libvo////
+D/loader////
+D/mp3lib////
+D/osdep////
+D/postproc////
+D/vidix////

@@ -1,0 +1,19 @@
+/.cvsignore/1.1/Mon Jan  7 20:14:27 2002//
+/Makefile/1.20/Sun Oct 10 19:22:38 2004//
+/cyberblade_regs.h/1.4/Sun Jan 19 16:10:38 2003//
+/cyberblade_vid.c/1.8/Sun Oct 17 17:23:46 2004//
+/mach64.h/1.4/Fri May 31 23:17:43 2002/-kb/
+/mach64_vid.c/1.35/Wed Dec 24 22:00:50 2003/-kb/
+/mga_vid.c/1.26/Thu Sep  2 11:34:25 2004//
+/nvidia_vid.c/1.22/Sun Feb  1 11:35:28 2004//
+/pm3_regs.h/1.2/Wed Jan 15 11:16:33 2003//
+/pm3_vid.c/1.4/Wed Dec 24 22:00:50 2003//
+/radeon.h/1.8/Fri May 31 23:17:43 2002//
+/radeon_vid.c/1.89/Sat Oct  9 13:13:28 2004//
+/sis_bridge.c/1.2/Sat Aug 28 20:51:25 2004//
+/sis_defs.h/1.1/Tue Oct  7 23:12:16 2003//
+/sis_regs.h/1.1/Tue Oct  7 23:12:16 2003//
+/sis_vid.c/1.3/Wed Dec 24 22:00:51 2003//
+/unichrome_regs.h/1.1/Sun Oct 10 19:22:38 2004//
+/unichrome_vid.c/1.1/Sun Oct 10 19:22:38 2004//
+D
