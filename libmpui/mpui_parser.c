@@ -127,7 +127,7 @@ mpui_parse_size (char *size, int total, mpui_size_t deflt)
 static void
 mpui_recompute_one_coord (mpui_coord_t *coord,
                           mpui_size_t w, mpui_size_t h,
-                          mpui_size_t total, mpui_size_t center)
+                          mpui_size_t total, mpui_size_t center, int dynamic)
 {
   struct { char *id; mpui_size_t v; } *l, list[] = {
     { "left",   0 },
@@ -160,16 +160,29 @@ mpui_recompute_one_coord (mpui_coord_t *coord,
             coord->val = l->v + val * mul;
             break;
           }
-      free (coord->str);
-      coord->str = NULL;
+      if (!dynamic)
+        {
+          free (coord->str);
+          coord->str = NULL;
+        }
     }
 }
 
-static void
+void
 mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
-                      mpui_size_t w, mpui_size_t h)
+                      mpui_size_t w, mpui_size_t h, int dynamic,
+                      int focus, int really_focus)
 {
   mpui_element_t **elements = NULL;
+
+  if (element->flags & MPUI_FLAG_DYNAMIC && !dynamic)
+    return;
+  if (dynamic && element->when_focused != MPUI_DISPLAY_ALWAYS
+      && (!focus || element->when_focused != MPUI_DISPLAY_FOCUSED)
+      && (!really_focus || element->when_focused !=MPUI_DISPLAY_REALLY_FOCUSED)
+      && (really_focus || element->when_focused != MPUI_DISPLAY_NORMAL)
+      && (focus || element->when_focused != MPUI_DISPLAY_REALLY_NORMAL))
+    return;
 
   switch (element->type)
     {
@@ -183,16 +196,18 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
 
     case MPUI_STR:
     case MPUI_IMG:
-      mpui_recompute_one_coord (&element->w, w, h, mpui->width, 0);
-      mpui_recompute_one_coord (&element->h, w, h, mpui->height, 0);
+      mpui_recompute_one_coord (&element->w, w, h, mpui->width, 0, dynamic);
+      mpui_recompute_one_coord (&element->h, w, h, mpui->height, 0, dynamic);
       break;
 
     default:
       break;
     }
 
-  mpui_recompute_one_coord (&element->x,w,h,mpui->width,(w-element->w.val)/2);
-  mpui_recompute_one_coord (&element->y,w,h,mpui->height,(h-element->h.val)/2);
+  mpui_recompute_one_coord (&element->x, w, h, mpui->width,
+                            (w-element->w.val)/2, dynamic);
+  mpui_recompute_one_coord (&element->y, w, h, mpui->height, 
+                            (h-element->h.val)/2, dynamic);
 
   if (element->type == MPUI_IMG)
     mpui_img_load (mpui, (mpui_img_t *) element);
@@ -200,7 +215,8 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
   if (element->flags & MPUI_FLAG_CONTAINER)
     for (elements=((mpui_container_t *) element)->elements;
          *elements; elements++)
-      mpui_recompute_coord (mpui, *elements, element->w.val, element->h.val);
+      mpui_recompute_coord (mpui, *elements, element->w.val, element->h.val,
+                            dynamic, focus, really_focus);
 
   element->flags &= ~MPUI_FLAG_NOCOORD;
 }
@@ -212,9 +228,13 @@ mpui_set_nocoord (mpui_element_t *element)
     element->flags |= MPUI_FLAG_NOCOORD;
 }
 
-static void
-mpui_clip (mpui_t *mpui, mpui_element_t *element, mpui_size_t x, mpui_size_t y)
+void
+mpui_clip (mpui_t *mpui, mpui_element_t *element,
+           mpui_size_t x, mpui_size_t y, int dynamic)
 {
+  if (element->flags & MPUI_FLAG_DYNAMIC && !dynamic)
+    return;
+
   if (element->flags & MPUI_FLAG_ABSOLUTE)
     {
       x = element->x.val;
@@ -231,7 +251,7 @@ mpui_clip (mpui_t *mpui, mpui_element_t *element, mpui_size_t x, mpui_size_t y)
       mpui_element_t **elements = NULL;
       for (elements=((mpui_container_t *) element)->elements;
            *elements; elements++)
-        mpui_clip (mpui, *elements, x, y);
+        mpui_clip (mpui, *elements, x, y, dynamic);
     }
   else if (element->type == MPUI_IMG)
     {
@@ -761,14 +781,17 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
 }
 
 static mpui_allmenuitem_t *
-mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
+mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body,
+                                mpui_menu_t *menu)
 {
   mpui_allmenuitem_t *allmenuitem = NULL;
+  mpui_container_t *container;
   ASX_Parser_t* parser;
   char *element;
 
-  allmenuitem = mpui_allmenuitem_new ();
-          
+  allmenuitem = mpui_allmenuitem_new (menu);
+  container = &allmenuitem->container;
+
   while (1)
     {
       mpui_element_t *elt = NULL;
@@ -790,11 +813,11 @@ mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
           if (action)
-            mpui_actions_add (allmenuitem, action);
+            mpui_actions_add (container, action);
         }
 
       if (elt)
-        mpui_add_element (allmenuitem, elt);
+        mpui_add_element (container, elt);
       free (parser);
     }
 
@@ -802,12 +825,10 @@ mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
 }
 
 static mpui_menuitem_t *
-mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
-                           mpui_allmenuitem_t *allmenuitem)
+mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
 {
   mpui_menuitem_t *menuitem = NULL;
   mpui_container_t *container;
-  mpui_element_t **elements2 = NULL;
   ASX_Parser_t* parser;
   char *element;
 
@@ -844,9 +865,7 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
     }
   asx_free_attribs (attribs);
 
-  if (allmenuitem)
-    elements2 = allmenuitem->elements;
-  mpui_elements_get_size (&container->element, container->elements, elements2);
+  mpui_elements_get_size (&container->element, container->elements);
 
   return menuitem;
 }
@@ -923,7 +942,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "menu-item"))
         {
           elt = (mpui_element_t *) mpui_parse_node_menu_item (mpui, attribs,
-                                                    sbody, menu->allmenuitem);
+                                                              sbody);
           elt->x.val = item_x;
           elt->y.val = item_y;
           if (orientation == MPUI_ORIENTATION_V)
@@ -940,8 +959,8 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
             }
         }
       else if (!strcmp (element, "all-menu-items"))
-        menu->allmenuitem = mpui_parse_node_menu_all_items (mpui, attribs,
-                                                            sbody);
+        elt = (mpui_element_t *) mpui_parse_node_menu_all_items (mpui, attribs,
+                                                                 sbody, menu);
 
       if (elt)
         mpui_add_element (menu, elt);
@@ -1113,7 +1132,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
           free (parser);
         }
       asx_free_attribs (attribs);
-      mpui_elements_get_size (&container->element, container->elements, NULL);
+      mpui_elements_get_size (&container->element, container->elements);
     }
 
   free (id);
@@ -1349,8 +1368,9 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
       for (screen=mpui->screens->screens; *screen; screen++)
         for (elements=(*screen)->elements; *elements; elements++)
           {
-            mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
-            mpui_clip (mpui, *elements, 0, 0);
+            mpui_recompute_coord (mpui, *elements,
+                                  mpui->width, mpui->height, 0, 0, 0);
+            mpui_clip (mpui, *elements, 0, 0, 0);
           }
     }
   if (mpui->popups)
@@ -1359,8 +1379,8 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
       for (popup=mpui->popups->popups; *popup; popup++)
         {
           mpui_recompute_coord (mpui, (mpui_element_t *) *popup,
-                                mpui->width, mpui->height);
-          mpui_clip (mpui, (mpui_element_t *) *popup, 0, 0);
+                                mpui->width, mpui->height, 0, 0, 0);
+          mpui_clip (mpui, (mpui_element_t *) *popup, 0, 0, 0);
         }
     }
 

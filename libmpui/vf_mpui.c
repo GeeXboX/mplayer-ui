@@ -165,7 +165,7 @@ put_image (struct vf_instance_s* vf, mp_image_t *mpi)
       dmpi = vf_get_image (vf->next, mpi->imgfmt, MP_IMGTYPE_TEMP, 0,
                            mpi->w, mpi->h);
       copy_mpi(dmpi, mpi);
-      mpui_render_screen (vf->priv->mpui->current_screen, dmpi);
+      mpui_render_screen (vf->priv->mpui, dmpi);
     }
 
   return vf_next_put_image (vf, dmpi);

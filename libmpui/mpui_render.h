@@ -24,6 +24,6 @@
 #include "../libmpcodecs/mp_image.h"
 #include "mpui_struct.h"
 
-int mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi);
+int mpui_render_screen (mpui_t *mpui, mp_image_t *mpi);
 
 #endif /* MPUI_RENDER_H */

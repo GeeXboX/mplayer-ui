@@ -96,6 +96,7 @@ enum mpui_type {
   MPUI_OBJ,
   MPUI_MNU,
   MPUI_MENUITEM,
+  MPUI_ALLMENUITEM,
   MPUI_POPUP,
 };
 
@@ -182,6 +183,7 @@ struct mpui_img {
   mpui_image_t *image;
   mpui_size_t cx1, cy1;
   mpui_size_t cx2, cy2;
+  int dup;
 };
 
 struct mpui_fonts {
@@ -226,8 +228,8 @@ struct mpui_menuitem {
 };
 
 struct mpui_allmenuitem {
-  mpui_element_t **elements;
-  mpui_action_t **actions;
+  mpui_container_t container;
+  mpui_menu_t *menu;
 };
 
 struct mpui_menus {
@@ -238,7 +240,6 @@ struct mpui_menu {
   char *id;
   mpui_orientation_t orientation;
   mpui_size_t x, y, w, h;
-  mpui_allmenuitem_t *allmenuitem;
   mpui_element_t **elements;
 };
 
@@ -367,7 +368,7 @@ void mpui_menus_free (mpui_menus_t *menus);
 mpui_menuitem_t *mpui_menuitem_new (void);
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);
 
-mpui_allmenuitem_t *mpui_allmenuitem_new (void);
+mpui_allmenuitem_t *mpui_allmenuitem_new (mpui_menu_t *menu);
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd);
@@ -379,8 +380,7 @@ mpui_element_t *mpui_element_dup (mpui_element_t *element);
 void mpui_element_coord_dup (mpui_element_t *element);
 void mpui_element_free (mpui_element_t *element);
 void mpui_elements_get_size (mpui_element_t *element,
-                             mpui_element_t **elements,
-                             mpui_element_t **elements2);
+                             mpui_element_t **elements);
 void mpui_elements_free (mpui_element_t **elements);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);

@@ -18,6 +18,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
+#include "mpui_parser.h"
 #include "mpui_render.h"
 
 #include "../libmpcodecs/img_format.h"
@@ -30,6 +31,7 @@
 typedef struct mpui_render_context mpui_render_context_t;
 
 struct mpui_render_context {
+  mpui_t *mpui;
   mpui_screen_t *screen;
   int focus, really_focus;
   mpui_size_t x, y;
@@ -38,12 +40,17 @@ struct mpui_render_context {
 
 static void
 mpui_render_context_update (mpui_element_t *element,
-                            mpui_render_context_t *context)
+                            mpui_render_context_t *context, int remove)
 {
   if (element->flags & MPUI_FLAG_ABSOLUTE)
     {
       context->x = element->x.val;
       context->y = element->y.val;
+    }
+  else if (remove)
+    {
+      context->x -= element->x.val;
+      context->y -= element->y.val;
     }
   else
     {
@@ -391,6 +398,50 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
 
 static inline void
 mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
+                     mpui_render_context_t context);
+
+static inline void
+mpui_render_allmenuitem (mpui_allmenuitem_t *allmenuitem, mp_image_t *mpi,
+                         mpui_render_context_t context)
+{
+  mpui_element_t **melem, **elements, *element = (mpui_element_t *)allmenuitem;
+
+  for (melem=allmenuitem->menu->elements; *melem; melem++)
+    {
+      if ((*melem)->type == MPUI_MENUITEM)
+        {
+          context.focus = context.really_focus = 0;
+          if ((*melem)->flags & MPUI_FLAG_FOCUSABLE)
+            if (mpui_is_focused (context.screen, *melem))
+              {
+                context.focus = 1;
+                if (mpui_is_really_focused (context.screen, *melem))
+                  context.really_focus = 1;
+              }
+
+          element->x = (*melem)->x;
+          element->y = (*melem)->y;
+          element->w = (*melem)->w;
+          element->h = (*melem)->h;
+
+          mpui_recompute_coord (context.mpui, element,
+                                element->w.val, element->h.val,
+                                1, context.focus, context.really_focus);
+          mpui_clip (context.mpui, element, context.x, context.y, 1);
+
+          mpui_render_context_update (element, &context, 0);
+
+          for (elements = ((mpui_container_t *) allmenuitem)->elements;
+               *elements; elements++)
+            mpui_render_element (*elements, mpi, context);
+
+          mpui_render_context_update (element, &context, 1);
+        }
+    }
+}
+
+static inline void
+mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
                      mpui_render_context_t context)
 {
   if (!element)
@@ -413,7 +464,13 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
       || (context.really_focus
           && element->when_focused == MPUI_DISPLAY_REALLY_FOCUSED))
     {
-      mpui_render_context_update (element, &context);
+      if (element->type == MPUI_ALLMENUITEM)
+        {
+          mpui_render_allmenuitem ((mpui_allmenuitem_t *)element, mpi,context);
+          return;
+        }
+
+      mpui_render_context_update (element, &context, 0);
 
       if (element->flags & MPUI_FLAG_CONTAINER)
         {
@@ -437,21 +494,26 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
 }
 
 int
-mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi)
+mpui_render_screen (mpui_t *mpui, mp_image_t *mpi)
 {
   mpui_render_context_t context;
   mpui_element_t **elements;
 
-  context.screen = screen;
+  if (!mpui->current_screen)
+    return 1;
+
+  context.mpui = mpui;
+  context.screen = mpui->current_screen;
   context.focus = 0;
   context.really_focus = 0;
   context.x = 0;
   context.y = 0;
 
-  for (elements=screen->elements; *elements; elements++)
+  for (elements=context.screen->elements; *elements; elements++)
     mpui_render_element (*elements, mpi, context);
 
-  for (elements=(mpui_element_t **)screen->popup_stack; *elements; elements++)
+  for (elements=(mpui_element_t **)context.screen->popup_stack;
+       *elements; elements++)
     mpui_render_element (*elements, mpi, context);
 
   return 0;

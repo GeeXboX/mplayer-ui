@@ -27,4 +27,10 @@
 mpui_t *mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format);
 mpui_t *mpui_parse_config_file (char *filename, int width, int height, int format);
 
+void mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
+                           mpui_size_t w, mpui_size_t h, int dynamic,
+                           int focus, int really_focus);
+void mpui_clip (mpui_t *mpui, mpui_element_t *element,
+                mpui_size_t x, mpui_size_t y, int dynamic);
+
 #endif /* MPUI_PARSER_H */

@@ -410,6 +410,7 @@ mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
   img->element.h = h;
   img->element.when_focused = when_focused;
   img->image = image;
+  img->dup = 0;
   if (!image->raw.data)
     mpui_image_load (image);
 
@@ -458,16 +459,27 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
       image = mpui_image_new ("", image->file,
                               img->element.x.val, img->element.y.val,
                               img->element.w.val, img->element.h.val);
-      mpui_images_add (mpui->images, image);
+      memcpy (&image->raw, &img->image->raw, sizeof (image->raw));
       if (img->image->raw.data)
-        mpui_image_convert (image, &img->image->raw, mpui->format);
+        mpui_image_convert (image, &image->raw, mpui->format);
+      if (img->dup)
+        {
+          img->image->raw.data = NULL;
+          mpui_image_free (img->image);
+        }
       img->image = image;
+      img->dup = 1;
     }
 }
 
 void
 mpui_img_free (mpui_img_t *img)
 {
+  if (img->dup)
+    {
+      img->image->raw.data = NULL;
+      mpui_image_free (img->image);
+    }
   mpui_element_uninit ((mpui_element_t *) img);
   free (img);
 }
@@ -650,7 +662,7 @@ mpui_obj_new (mpui_object_t *object, mpui_coord_t x, mpui_coord_t y,
   obj->container.element.y = y;
   obj->container.element.when_focused = when_focused;
   obj->object = object;
-  mpui_elements_get_size ((mpui_element_t *) obj, object->elements, NULL);
+  mpui_elements_get_size ((mpui_element_t *) obj, object->elements);
 
   if (obj->container.element.flags & MPUI_FLAG_NOCOORD)
     object->need_dup = 1;
@@ -710,7 +722,6 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu->orientation = orientation;
   menu->x = x;
   menu->y = y;
-  menu->allmenuitem = NULL;
   menu->elements = mpui_list_new ();
   return menu;
 }
@@ -731,8 +742,6 @@ mpui_menu_free (mpui_menu_t *menu)
 {
   mpui_element_t **e = menu->elements;
 
-  if (menu->allmenuitem)
-    mpui_allmenuitem_free (menu->allmenuitem);
   while (*e)
     mpui_element_free (*e++);
   free (menu->elements);
@@ -804,28 +813,21 @@ mpui_menuitem_free (mpui_menuitem_t *menuitem)
 }
 
 mpui_allmenuitem_t *
-mpui_allmenuitem_new (void)
+mpui_allmenuitem_new (mpui_menu_t *menu)
 {
   mpui_allmenuitem_t *allmenuitem;
 
   allmenuitem = (mpui_allmenuitem_t *) malloc (sizeof (*allmenuitem));
-  allmenuitem->elements = mpui_list_new ();
-  allmenuitem->actions = mpui_list_new ();
+  mpui_container_init ((mpui_container_t *) allmenuitem, MPUI_ALLMENUITEM,
+                       MPUI_FLAG_DYNAMIC, NULL, NULL);
+  allmenuitem->menu = menu;
   return allmenuitem;
 }
 
 void
 mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem)
 {
-  mpui_element_t **e = allmenuitem->elements;
-  mpui_action_t **a = allmenuitem->actions;
-
-  while (*e)
-    mpui_element_free (*e++);
-  free (allmenuitem->elements);
-  while (*a)
-    mpui_action_free (*a++);
-  free (allmenuitem->actions);
+  mpui_container_uninit ((mpui_container_t *) allmenuitem);
   free (allmenuitem);
 }
 
@@ -902,6 +904,9 @@ mpui_element_free (mpui_element_t *element)
     case MPUI_MENUITEM:
       mpui_menuitem_free ((mpui_menuitem_t *) element);
       break;
+    case MPUI_ALLMENUITEM:
+      mpui_allmenuitem_free ((mpui_allmenuitem_t *) element);
+      break;
     case MPUI_POPUP:
       mpui_popup_free ((mpui_popup_t *) element);
       break;
@@ -909,27 +914,21 @@ mpui_element_free (mpui_element_t *element)
 }
 
 void
-mpui_elements_get_size (mpui_element_t *element,
-                        mpui_element_t **elements, mpui_element_t **elements2)
+mpui_elements_get_size (mpui_element_t *element, mpui_element_t **elements)
 {
   element->w.val = 0;
   element->h.val = 0;
 
-  while (elements)
+  while (*elements)
     {
-      while (*elements)
+      if (!((*elements)->flags & (MPUI_FLAG_ABSOLUTE|MPUI_FLAG_NOCOORD)))
         {
-          if (!((*elements)->flags & (MPUI_FLAG_ABSOLUTE|MPUI_FLAG_NOCOORD)))
-            {
-              if ((*elements)->x.val + (*elements)->w.val > element->w.val)
-                element->w.val = (*elements)->x.val + (*elements)->w.val;
-              if ((*elements)->y.val + (*elements)->h.val > element->h.val)
-                element->h.val = (*elements)->y.val + (*elements)->h.val;
-            }
-          elements++;
+          if ((*elements)->x.val + (*elements)->w.val > element->w.val)
+            element->w.val = (*elements)->x.val + (*elements)->w.val;
+          if ((*elements)->y.val + (*elements)->h.val > element->h.val)
+            element->h.val = (*elements)->y.val + (*elements)->h.val;
         }
-      elements = elements2;
-      elements2 = NULL;
+      elements++;
     }
 
   if (element->w.val == 0 || element->h.val == 0)
