@@ -21,7 +21,9 @@
 
 #include "../libmpcodecs/img_format.h"
 #include "../libvo/fastmemcpy.h"
-
+#include "../libvo/osd.h"
+#include "../libvo/font_load.h"
+#include "../mp_msg.h"
 
 static inline void
 mpui_render_alpha (unsigned char *dst, unsigned char src, unsigned char alpha)
@@ -127,6 +129,76 @@ mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
     }
 }
 
+typedef void (*draw_alpha_f)
+(int w, int h, unsigned char* src, unsigned char *srca,
+ int srcstride, unsigned char* dstbase,int dststride);
+
+inline static draw_alpha_f
+get_draw_alpha (int fmt)
+{
+  switch (fmt)
+    {
+    case IMGFMT_BGR15:
+    case IMGFMT_RGB15:
+      return vo_draw_alpha_rgb15;
+    case IMGFMT_BGR16:
+    case IMGFMT_RGB16:
+      return vo_draw_alpha_rgb16;
+    case IMGFMT_BGR24:
+    case IMGFMT_RGB24:
+      return vo_draw_alpha_rgb24;
+    case IMGFMT_BGR32:
+    case IMGFMT_RGB32:
+      return vo_draw_alpha_rgb32;
+    case IMGFMT_YV12:
+    case IMGFMT_I420:
+    case IMGFMT_IYUV:
+    case IMGFMT_YVU9:
+    case IMGFMT_IF09:
+    case IMGFMT_Y800:
+    case IMGFMT_Y8:
+      return vo_draw_alpha_yv12;
+    case IMGFMT_YUY2:
+      return vo_draw_alpha_yuy2;
+    }
+
+  return NULL;
+}
+   
+static inline void
+mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
+{
+  draw_alpha_f draw_alpha = get_draw_alpha (mpi->imgfmt);
+  char *p, *txt = str->string->text;
+  int x = str->x, y = str->y;
+  int font;  
+
+  if (!draw_alpha)
+    {
+      mp_msg (MSGT_OSD, MSGL_ERR, "Unsupported outformat !!!!\n");
+      return;
+    }
+  
+  p = txt;
+  while (*p)
+    render_one_glyph (vo_font, *p++);
+
+  while (*txt)
+    {
+      unsigned char c = *txt++;
+      if ((font = vo_font->font[c]) >= 0
+          && (x + vo_font->width[c] <= mpi->w)
+          && (y + vo_font->pic_a[font]->h <= mpi->h))
+        draw_alpha (vo_font->width[c], vo_font->pic_a[font]->h,
+                    vo_font->pic_b[font]->bmp+vo_font->start[c],
+                    vo_font->pic_a[font]->bmp+vo_font->start[c],
+                    vo_font->pic_a[font]->w,
+                    mpi->planes[0] + y * mpi->stride[0] + x * (mpi->bpp>>3),
+                    mpi->stride[0]);
+      x += vo_font->width[c]+vo_font->charspace;
+    }
+}
+
 static inline void
 mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
 {
@@ -141,7 +213,9 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
     case MPUI_OBJ:
       mpui_render_object (element->obj->object, mpi);
       break;
-
+    case MPUI_STR:
+      mpui_render_string (element->str, mpi);
+      break;
     default:
       break;
     }

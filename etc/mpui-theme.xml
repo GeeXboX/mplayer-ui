@@ -117,6 +117,7 @@
       <img id="logo_gx"/>
       <obj id="help_button"/>
       <obj id="quit_button"/>
+      <str id="version" x="5%" y="2%"/>
       <mnu id="main-menu"/>
     </screen>
   </screens>

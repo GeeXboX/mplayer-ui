@@ -124,17 +124,19 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   color = asx_get_attrib ("color", attribs);
   focused_color = asx_get_attrib ("focused_color", attribs);
   when_focused = asx_get_attrib ("when_focused", attribs);
+  asx_free_attribs (attribs);
 
   if (id)
     {
       mpui_string_t *string;
       mpui_size_t sx, sy;
-      mpui_font_t *font;
+      mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
       mpui_color_t col, fcol;
       int wf = MPUI_DISPLAY_ALWAYS;
       string = mpui_string_get (mpui, id);
-      font = mpui_font_get (mpui, font_id);
+      if (font_id)
+        font = mpui_font_get (mpui, font_id);
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -157,7 +159,6 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       if (string)
         str = mpui_str_new (string, sx, sy, font, s, col, fcol, wf);
     }
-  asx_free_attribs (attribs);
 
   return str;
 }
