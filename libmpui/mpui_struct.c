@@ -1498,7 +1498,7 @@ mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
   slideshow->mode = -1;
   mpui_slideshow_mode (slideshow, mode);
   slideshow->play = timer;
-  slideshow->timer = 1000*timer;
+  slideshow->timer = timer;
   slideshow->next_timer = 0;
   slideshow->name_x = name_x;
   slideshow->name_y = name_y;
