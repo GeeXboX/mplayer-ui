@@ -300,6 +300,19 @@ asx_get_element(ASX_Parser_t* parser,char** _buffer,
 	mp_msg(MSGT_PLAYTREE,MSGL_ERR,"At line %d : unfinished comment",parser->line);
 	return -1;
       }
+    } else if (strncmp(ptr1,"<?",2) == 0 || strncmp(ptr1,"<!",2) == 0) {
+      // to skip <?xml> and <!DOCTYPE>
+      for( ; *ptr1 != '>' ; ptr1++) {
+	if(ptr1[0] == '\0') {
+	  ptr1 = NULL;
+	  break;
+	}
+	if(ptr1[0] == '\n') parser->line++;
+      }
+      if(!ptr1) {
+	mp_msg(MSGT_PLAYTREE,MSGL_ERR,"At line %d : unfinished <? or <!",parser->line);
+	return -1;
+      }
     } else {
       break;
     }
