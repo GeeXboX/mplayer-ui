@@ -60,10 +60,14 @@ mpui_tv_add_channel (mpui_menu_t *menu, mpui_size_t *mx, mpui_size_t *my,
         *mh = elt->h.val;
     }
 
-  action = mpui_action_new (command, MPUI_WHEN_VALIDATE);
-
   mpui_container_elements_add (container, (mpui_element_t *) str);
-  mpui_container_actions_add (container, action);
+  if (command)
+    {
+      action = mpui_action_new (command, MPUI_WHEN_VALIDATE);
+      mpui_container_actions_add (container, action);
+    }
+  else
+    ((mpui_element_t *) menuitem)->flags &= ~MPUI_FLAG_FOCUSABLE;
   mpui_menu_elements_add (menu, (mpui_element_t *) menuitem);
 }
 
@@ -71,14 +75,18 @@ void
 mpui_tv_analog_channels_generate (mpui_menu_t *menu,
                                   mpui_size_t *mx, mpui_size_t *my,
                                   mpui_size_t *mw, mpui_size_t *mh,
-                                  mpui_coord_t *spacing)
+                                  mpui_coord_t *spacing,
+                                  mpui_string_t *empty)
 {
   extern char **tv_param_channels;
   char **channels;
   int idx = 1;
 
   if (!tv_param_channels)
-    return;
+    {
+      mpui_tv_add_channel (menu, mx, my, mw, mh, spacing, empty->text, NULL);
+      return;
+    }
 
   channels = tv_param_channels;
   while (*channels)
@@ -103,14 +111,18 @@ void
 mpui_tv_dvb_channels_generate (mpui_menu_t *menu,
                                mpui_size_t *mx, mpui_size_t *my,
                                mpui_size_t *mw, mpui_size_t *mh,
-                               mpui_coord_t *spacing)
+                               mpui_coord_t *spacing,
+                               mpui_string_t *empty)
 {
   dvb_config_t *dvb_config = NULL;
   int card;
 
   dvb_config = dvb_get_config();
-  if (!dvb_config)
-    return;
+  if (!dvb_config || !dvb_config->count)
+    {
+      mpui_tv_add_channel (menu, mx, my, mw, mh, spacing, empty->text, NULL);
+      return;
+    }
 
   for (card = 0; card < dvb_config->count; card++)
     {

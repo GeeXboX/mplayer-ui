@@ -23,6 +23,7 @@
     <string id="tv_analog_channel" text="Analog Channels"/>
     <string id="tv_digital_channel" text="Digital Channels"/>
     <string id="tv_video_in" text="Video In"/>
+    <string id="tv_channels_none" text="none"/>
 
     <string id="playlist_screen_title" text="Playlist Editor"/>
     <string id="settings_screen_title" text="Settings"/>

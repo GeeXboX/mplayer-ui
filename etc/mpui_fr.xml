@@ -23,6 +23,7 @@
     <string id="tv_analog_channel" text="Chaines hertziennes"/>
     <string id="tv_digital_channel" text="Chaines numériques"/>
     <string id="tv_video_in" text="Entrée Vidéo"/>
+    <string id="tv_channels_none" text="aucune"/>
 
     <string id="playlist_screen_title" text="Editeur de Playlist"/>
     <string id="settings_screen_title" text="Configuration"/>
