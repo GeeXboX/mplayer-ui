@@ -166,21 +166,12 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
 
   switch (element->type)
     {
-    case MPUI_MNU:
-      elements = ((mpui_mnu_t *) element)->menu->elements;
-      break;
-
-    case MPUI_MENUITEM:
-      elements = ((mpui_container_t *) element)->elements;
-      break;
-
     case MPUI_OBJ:
       if (element->flags & MPUI_FLAG_NOCOORD)
         {
           element->w = w;
           element->h = h;
         }
-      elements = ((mpui_obj_t *) element)->object->elements;
       break;
 
     case MPUI_STR:
@@ -196,10 +187,14 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
       if (element->type == MPUI_IMG)
         mpui_img_load (mpui, (mpui_img_t *) element);
       break;
+
+    default:
+      break;
     }
 
-  if (elements)
-    for (; *elements; elements++)
+  if (element->flags & MPUI_FLAG_CONTAINER)
+    for (elements=((mpui_container_t *) element)->elements;
+         *elements; elements++)
       mpui_recompute_coord (mpui, *elements, element->w, element->h);
 
   element->flags &= ~MPUI_FLAG_NOCOORD;
