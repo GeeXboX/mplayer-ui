@@ -13,12 +13,12 @@
 
   <images>
     <image id="back" file="background.png" x="0" y="0" h="100%" w="100%"/>
-    <image id="logo_gx" file="logo_gx.png" x="70%" y="0%" h="15%" w="25%"/>
+    <image id="logo_gx" file="logo_gx.png" x="70%" y="0%" h="13%" w="30%"/>
 
-    <image id="help" file="help.png" x="75%" y="90%" h="5%" w="5%"/>
-    <image id="help_focus" file="help_focus.png" x="75%" y="90%" h="5%" w="5%"/>
-    <image id="quit" file="quit.png" x="85%" y="90%" h="5%" w="5%"/>
-    <image id="quit" file="quit_focus.png" x="85%" y="90%" h="5%" w="5%"/>
+    <image id="help" file="help.png" x="80%" y="90%" h="10%" w="8%"/>
+    <image id="help_focus" file="help_focus.png" x="85%" y="90%" h="10%" w="8%"/>
+    <image id="quit" file="quit.png" x="89%" y="90%" h="10%" w="8%"/>
+    <image id="quit_focus" file="quit_focus.png" x="89%" y="90%" h="10%" w="8%"/>
 
     <image id="sep" file="separator.png"/>
 
