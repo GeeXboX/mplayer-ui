@@ -1427,159 +1427,6 @@ mpui_parse_node_slideshow (mpui_t *mpui, char **attribs)
   return slideshow;
 }
 
-static mpui_mnu_t *
-mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
-{
-  char *id, *x, *y, *absolute, *hidden;
-  mpui_mnu_t *mnu = NULL;
-
-  id = asx_get_attrib ("id", attribs);
-  x = asx_get_attrib ("x", attribs);
-  y = asx_get_attrib ("y", attribs);
-  absolute = asx_get_attrib ("absolute", attribs);
-  hidden = asx_get_attrib ("hidden", attribs);
-  asx_free_attribs (attribs);
-
-  if (id)
-    {
-      mpui_menu_t *menu = mpui_menu_get (mpui, id);
-      mpui_flags_t flags = 0;
-      mpui_coord_t sx, sy;
-      if (absolute && !strcmp (absolute, "yes"))
-        flags |= MPUI_FLAG_ABSOLUTE;
-      if (hidden && !strcmp (hidden, "yes"))
-        flags |= MPUI_FLAG_HIDDEN;
-      if (menu)
-        {
-          sx = mpui_parse_size (x, mpui->width, mpui->diag, menu->x);
-          sy = mpui_parse_size (y, mpui->height, mpui->diag, menu->y);
-          mnu = mpui_mnu_new (menu, sx, sy, flags);
-        }
-    }
-
-  free (id);
-  free (x);
-  free (y);
-  free (absolute);
-  free (hidden);
-  return mnu;
-}
-
-static void
-mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
-{
-  ASX_Parser_t* parser;
-  char *element;
-
-  while (1)
-    {
-      char *sbody;
-      int res;
-
-      parser = asx_parser_new ();
-      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
-      if (res <= 0)
-        break;
-      
-      if (!strcmp (element, "menu"))
-        {
-          mpui_menu_t *menu = mpui_parse_node_menu (mpui, attribs, sbody);
-          mpui_menus_add (mpui->menus, menu);
-        }
-      else if (!strcmp (element, "browser"))
-        {
-          mpui_browser_t *browser = mpui_parse_node_browser (mpui, attribs);
-          mpui_menus_add (mpui->menus, (mpui_menu_t *) browser);
-        }
-      free (parser);
-    }
-  asx_free_attribs (attribs);
-}
-
-static mpui_popup_t *
-mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
-{
-  char *id, *sx, *sy, *element;
-  ASX_Parser_t* parser;
-  mpui_popup_t *popup = NULL;
-  mpui_container_t *container;
-  mpui_coord_t x, y;
-  
-  id = asx_get_attrib ("id", attribs);
-  sx = asx_get_attrib ("x", attribs);
-  sy = asx_get_attrib ("y", attribs);
-  x = mpui_parse_size (sx, mpui->width, mpui->diag, 0);
-  y = mpui_parse_size (sy, mpui->height, mpui->diag, 0);
-  asx_free_attribs (attribs);
-  free (sx);
-  free (sy);
-
-  if (id)
-    {
-      popup = mpui_popup_new (id, x, y);
-      mpui_set_nocoord ((mpui_element_t *) popup);
-      container = (mpui_container_t *) popup;
-
-      while (1)
-        {
-          mpui_element_t *elt = NULL;
-          char *sbody;
-          int res;
-
-          parser = asx_parser_new ();
-          res = mpui_parse_get_element (parser,&body,&element,&sbody,&attribs);
-          if (res <= 0)
-            break;
-
-          if (!strcmp (element, "obj"))
-            elt = (mpui_element_t *) mpui_parse_node_obj (mpui, attribs);
-          else if (!strcmp (element, "img"))
-            elt = (mpui_element_t *) mpui_parse_node_img (mpui, attribs);
-          else if (!strcmp (element, "str"))
-            elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
-          else if (!strcmp (element, "mnu"))
-            elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
-          else if (!strcmp (element, "slideshow"))
-            elt = (mpui_element_t *) mpui_parse_node_slideshow (mpui, attribs);
-
-          if (elt)
-            mpui_container_elements_add (container, elt);
-          free (parser);
-        }
-      asx_free_attribs (attribs);
-      mpui_elements_get_size (&container->element, container->elements);
-    }
-
-  free (id);
-  return popup;
-}
-
-static void
-mpui_parse_node_popups (mpui_t *mpui, char **attribs, char *body)
-{
-  char *element, *sbody;
-  ASX_Parser_t* parser;
-  int res;
-
-  asx_free_attribs (attribs);
-
-  while (1)
-    {
-      parser = asx_parser_new ();
-      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
-      if (res <= 0)
-        break;
-
-      if (!strcmp (element, "popup"))
-        {
-          mpui_popup_t *popup = mpui_parse_node_popup (mpui, attribs, sbody);
-          mpui_popups_add (mpui->popups, popup);
-        }
-      free (parser);
-    }
-  asx_free_attribs (attribs);
-}
-
 static mpui_tag_t *
 mpui_parse_node_tag (mpui_t *mpui, char **attribs)
 {
@@ -1779,6 +1626,159 @@ mpui_parse_node_infos (mpui_t *mpui, char **attribs, char *body)
           
           if (info)
             mpui_infos_add (mpui->infos, info);
+        }
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+}
+
+static mpui_mnu_t *
+mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
+{
+  char *id, *x, *y, *absolute, *hidden;
+  mpui_mnu_t *mnu = NULL;
+
+  id = asx_get_attrib ("id", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
+  asx_free_attribs (attribs);
+
+  if (id)
+    {
+      mpui_menu_t *menu = mpui_menu_get (mpui, id);
+      mpui_flags_t flags = 0;
+      mpui_coord_t sx, sy;
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
+      if (menu)
+        {
+          sx = mpui_parse_size (x, mpui->width, mpui->diag, menu->x);
+          sy = mpui_parse_size (y, mpui->height, mpui->diag, menu->y);
+          mnu = mpui_mnu_new (menu, sx, sy, flags);
+        }
+    }
+
+  free (id);
+  free (x);
+  free (y);
+  free (absolute);
+  free (hidden);
+  return mnu;
+}
+
+static void
+mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
+{
+  ASX_Parser_t* parser;
+  char *element;
+
+  while (1)
+    {
+      char *sbody;
+      int res;
+
+      parser = asx_parser_new ();
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+      
+      if (!strcmp (element, "menu"))
+        {
+          mpui_menu_t *menu = mpui_parse_node_menu (mpui, attribs, sbody);
+          mpui_menus_add (mpui->menus, menu);
+        }
+      else if (!strcmp (element, "browser"))
+        {
+          mpui_browser_t *browser = mpui_parse_node_browser (mpui, attribs);
+          mpui_menus_add (mpui->menus, (mpui_menu_t *) browser);
+        }
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+}
+
+static mpui_popup_t *
+mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
+{
+  char *id, *sx, *sy, *element;
+  ASX_Parser_t* parser;
+  mpui_popup_t *popup = NULL;
+  mpui_container_t *container;
+  mpui_coord_t x, y;
+  
+  id = asx_get_attrib ("id", attribs);
+  sx = asx_get_attrib ("x", attribs);
+  sy = asx_get_attrib ("y", attribs);
+  x = mpui_parse_size (sx, mpui->width, mpui->diag, 0);
+  y = mpui_parse_size (sy, mpui->height, mpui->diag, 0);
+  asx_free_attribs (attribs);
+  free (sx);
+  free (sy);
+
+  if (id)
+    {
+      popup = mpui_popup_new (id, x, y);
+      mpui_set_nocoord ((mpui_element_t *) popup);
+      container = (mpui_container_t *) popup;
+
+      while (1)
+        {
+          mpui_element_t *elt = NULL;
+          char *sbody;
+          int res;
+
+          parser = asx_parser_new ();
+          res = mpui_parse_get_element (parser,&body,&element,&sbody,&attribs);
+          if (res <= 0)
+            break;
+
+          if (!strcmp (element, "obj"))
+            elt = (mpui_element_t *) mpui_parse_node_obj (mpui, attribs);
+          else if (!strcmp (element, "img"))
+            elt = (mpui_element_t *) mpui_parse_node_img (mpui, attribs);
+          else if (!strcmp (element, "str"))
+            elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
+          else if (!strcmp (element, "mnu"))
+            elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
+          else if (!strcmp (element, "slideshow"))
+            elt = (mpui_element_t *) mpui_parse_node_slideshow (mpui, attribs);
+
+          if (elt)
+            mpui_container_elements_add (container, elt);
+          free (parser);
+        }
+      asx_free_attribs (attribs);
+      mpui_elements_get_size (&container->element, container->elements);
+    }
+
+  free (id);
+  return popup;
+}
+
+static void
+mpui_parse_node_popups (mpui_t *mpui, char **attribs, char *body)
+{
+  char *element, *sbody;
+  ASX_Parser_t* parser;
+  int res;
+
+  asx_free_attribs (attribs);
+
+  while (1)
+    {
+      parser = asx_parser_new ();
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+
+      if (!strcmp (element, "popup"))
+        {
+          mpui_popup_t *popup = mpui_parse_node_popup (mpui, attribs, sbody);
+          mpui_popups_add (mpui->popups, popup);
         }
       free (parser);
     }
