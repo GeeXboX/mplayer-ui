@@ -34,6 +34,7 @@
 #include "mpui_browser.h"
 #include "mpui_focus.h"
 #include "mpui_image.h"
+#include "mpui_tv.h"
 #include "mpui_parser.h"
 
 extern char * get_path (char *filename);
@@ -984,6 +985,23 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
   asx_free_attribs (attribs);
 }
 
+static void
+mpui_parse_node_channels (mpui_t *mpui, char **attribs, mpui_menu_t *menu,
+                          mpui_size_t *mx, mpui_size_t *my,
+                          mpui_size_t *mw, mpui_size_t *mh, 
+                          mpui_coord_t *spacing)
+{
+  char *mode = asx_get_attrib ("mode", attribs);
+  if (!mode)
+    return;
+
+  if (!strcmp (mode, "tv"))
+    mpui_tv_analog_channels_generate (mpui, menu, mx, my, mw, mh, spacing);
+
+  asx_free_attribs (attribs);
+  free (mode);
+}
+
 static mpui_allmenuitem_t *
 mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body,
                                 mpui_menu_t *menu)
@@ -1165,6 +1183,9 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "all-menu-items"))
         elt = (mpui_element_t *) mpui_parse_node_menu_all_items (mpui, attribs,
                                                                  sbody, menu);
+      else if (!strcmp (element, "channels"))
+        mpui_parse_node_channels (mpui, attribs, menu,
+                                  &item_x, &item_y, &max_w, &max_h, &ms);
 
       if (elt)
         mpui_menu_elements_add (menu, elt);
