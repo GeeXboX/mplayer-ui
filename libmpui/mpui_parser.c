@@ -76,6 +76,29 @@ mpui_parse_when_focused (char **attribs)
   return wf;
 }
 
+static mpui_alignment_t
+mpui_parse_alignment (char **attribs)
+{
+  mpui_alignment_t align = MPUI_ALIGNMENT_LEFT;
+  char *al;
+
+  al = asx_get_attrib ("align", attribs);
+
+  if (al)
+    {
+      if (!strcmp (al, "top"))
+        align = MPUI_ALIGNMENT_TOP;
+      else if (!strcmp (al, "center"))
+        align = MPUI_ALIGNMENT_CENTER;
+      if (!strcmp (al, "right"))
+        align = MPUI_ALIGNMENT_RIGHT;
+      if (!strcmp (al, "bottom"))
+        align = MPUI_ALIGNMENT_BOTTOM;
+    }
+
+  return align;
+}
+
 static mpui_size_t
 mpui_parse_size (char *size, int total, mpui_size_t deflt)
 {
@@ -754,9 +777,12 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V;
+  mpui_alignment_t align;
   mpui_font_t *default_font = NULL, *font = NULL;
   mpui_size_t mx, my, ms;
-  mpui_size_t item_x, item_y, max_x = 0, max_y = 0, tmp;
+  mpui_size_t item_x, item_y, max_w = 0, max_h = 0, tmp;
+  mpui_element_t **elements;
+  mpui_size_t offset;
 
   id = asx_get_attrib ("id", attribs);
   orient = asx_get_attrib ("orientation", attribs);
@@ -769,6 +795,8 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   if (orient && !strcmp (orient, "horizontal"))
     orientation = MPUI_ORIENTATION_H;
+
+  align = mpui_parse_alignment (attribs);
 
   if (font_id && (font = mpui_font_get (mpui, font_id)))
     {
@@ -813,14 +841,14 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
           if (orientation == MPUI_ORIENTATION_V)
             {
               item_y += ms + elt->h;
-              if (elt->w > max_x)
-                max_x = elt->w;
+              if (elt->w > max_w)
+                max_w = elt->w;
             }
           else
             {
               item_x += ms + elt->w;
-              if (elt->h > max_y)
-                max_y = elt->h;
+              if (elt->h > max_h)
+                max_h = elt->h;
             }
         }
       else if (!strcmp (element, "all-menu-items"))
@@ -833,10 +861,43 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
     }
   asx_free_attribs (attribs);
 
+  for (elements=menu->elements; *elements; elements++)
+    if ((*elements)->type == MPUI_MENUITEM)
+      {
+        if (orientation == MPUI_ORIENTATION_V)
+          {
+            offset = max_w - (*elements)->w;
+            switch (align)
+              {
+              case MPUI_ALIGNMENT_CENTER:
+                offset >>= 1;
+              case MPUI_ALIGNMENT_RIGHT:
+                (*elements)->x += offset;
+              default:
+                break;
+              }
+            (*elements)->w = max_w;
+          }
+        else
+          {
+            offset = max_h - (*elements)->h;
+            switch (align)
+              {
+              case MPUI_ALIGNMENT_CENTER:
+                offset >>= 1;
+              case MPUI_ALIGNMENT_BOTTOM:
+                (*elements)->y += offset;
+              default:
+                break;
+              }
+            (*elements)->h = max_h;
+          }
+      }
+
   if (orientation == MPUI_ORIENTATION_V)
-    item_x += max_x;
+    item_x += max_w;
   else
-    item_y += max_y;
+    item_y += max_h;
 
   menu->w = mpui_parse_size (w, mpui->width, item_x + ms/2);
   menu->h = mpui_parse_size (h, mpui->height, item_y + ms/2);

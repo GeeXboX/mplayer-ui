@@ -48,6 +48,7 @@ typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
 typedef struct mpui_obj mpui_obj_t;
 typedef enum mpui_orientation mpui_orientation_t;
+typedef enum mpui_alignment mpui_alignment_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
 typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
@@ -75,6 +76,14 @@ enum mpui_when_focused {
 enum mpui_orientation {
   MPUI_ORIENTATION_H,
   MPUI_ORIENTATION_V,
+};
+
+enum mpui_alignment {
+  MPUI_ALIGNMENT_LEFT,
+  MPUI_ALIGNMENT_TOP,
+  MPUI_ALIGNMENT_CENTER,
+  MPUI_ALIGNMENT_RIGHT,
+  MPUI_ALIGNMENT_BOTTOM,
 };
 
 enum mpui_type {
