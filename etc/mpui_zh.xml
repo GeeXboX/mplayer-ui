@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="iso-8859-1" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
   <strings fonts="gb2312" lang="zh">
     <string id="version" text="Devel"/>
-    <string id="media_menu" text="´ò¿ªÎÄ¼þ"/>
-    <string id="play_menu" text="´ò¿ªÎÄ¼þ¼Ð"/>
-    <string id="tv_menu" text="²¥·ÅÒôÀÖCD"/>
-    <string id="playlist_menu" text="Ñ¡ÔñÕÂ½Ú/ÇúÄ¿"/>    
+    <string id="media_menu" text="æ‰“å¼€æ–‡ä»¶"/>
+    <string id="play_menu" text="æ‰“å¼€æ–‡ä»¶å¤¹"/>
+    <string id="tv_menu" text="æ’­æ”¾éŸ³ä¹CD"/>
+    <string id="playlist_menu" text="é€‰æ‹©ç« èŠ‚/æ›²ç›®"/>    
     <string id="settings_menu" text="Settings"/>
 
     <string id="media_screen_title" text="Media Browser"/>

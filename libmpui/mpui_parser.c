@@ -398,7 +398,7 @@ mpui_parse_node_string (mpui_t *mpui, char **attribs)
     }
 
   if (id && text)
-    string = mpui_string_new (id, text);
+    string = mpui_string_new (id, text, MPUI_ENCODING_UTF8);
 
   asx_free_attribs (attribs);
   free (id);

@@ -213,25 +213,33 @@ mpui_color_free (mpui_color_t *color)
 
 
 mpui_string_t *
-mpui_string_new (char *id, char *str)
+mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
 {
   mpui_string_t *string;
-  char *dst;
+  unsigned char *dst;
+  int c;
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
   string->text = dst = (char *) malloc (strlen (str) + 1);
-  while (*str)
-    {
-      if (*str == '\\' && str[1] == 'n')
-        {
-          *dst++ = '\n';
-          str += 2;
-        }
-      else
-        *dst++ = *str++;
-    }
-  *dst = '\0';
+  string->encoding = encoding;
+
+  do {
+    c = mpui_string_get_next_char (&str, encoding);
+    while (c == '\\')
+      {
+        c = mpui_string_get_next_char (&str, encoding);
+        if (c == 'n')
+          {
+            mpui_string_put_next_char (&dst, '\n', encoding);
+            c = mpui_string_get_next_char (&str, encoding);
+            break;
+          }
+        mpui_string_put_next_char (&dst, '\\', encoding);
+      }
+    mpui_string_put_next_char (&dst, c, encoding);
+  } while (c);
+
   return string;
 }
 
@@ -248,6 +256,60 @@ mpui_string_get (mpui_t *mpui, char *id)
   return NULL;
 }
 
+int
+mpui_string_get_next_char (unsigned char **txt, mpui_encoding_t encoding)
+{
+  int c = *(*txt)++;
+  switch (encoding)
+    {
+    case MPUI_ENCODING_ISO_8859_1:
+      break;
+    case MPUI_ENCODING_UTF8:
+      if ((c & 0xE0) == 0xC0)       /* 2 bytes U+00080..U+0007FF*/
+        c = (c & 0x1F)<<6 | (*(*txt)++ & 0x3F);
+      else if ((c & 0xF0) == 0xE0)  /* 3 bytes U+00800..U+00FFFF*/
+        {
+          c = (((c & 0x0F)<<6) | (*(*txt)++ & 0x3F))<<6;
+          c |= (*(*txt)++ & 0x3F);
+        }
+      break;
+    case MPUI_ENCODING_UTF16:
+      c = (c<<8) + *(*txt)++;
+      break;
+    }
+  return c;
+}
+
+void
+mpui_string_put_next_char (unsigned char **txt, int c,mpui_encoding_t encoding)
+{
+  switch (encoding)
+    {
+    case MPUI_ENCODING_ISO_8859_1:
+      *(*txt)++ = c;
+      break;
+    case MPUI_ENCODING_UTF8:
+      if (c > 0x7FF)
+        {
+          *(*txt)++ = (c >> 12) | 0xE0;
+          *(*txt)++ = (c >> 6) & 0x3F;
+          *(*txt)++ = c & 0x3F;
+        }
+      else if (c > 0x80)
+        {
+          *(*txt)++ = (c >> 6) | 0xC0;
+          *(*txt)++ = c & 0x3F;
+        }
+      else
+        *(*txt)++ = c;
+      break;
+    case MPUI_ENCODING_UTF16:
+      *(*txt)++ = c >> 8;
+      *(*txt)++ = c & 0xFF;
+      break;
+    }
+}
+
 void
 mpui_string_free (mpui_string_t *string)
 {
@@ -261,20 +323,20 @@ static void
 mpui_str_get_size (mpui_str_t *str)
 {
   font_desc_t *font = str->font->font_desc;
-  int w = 0, wmax = 0, htot = 0;
-  unsigned char *s;
+  int c, w = 0, wmax = 0, htot = 0;
+  unsigned char *txt = str->string->text;
 
-  for (s=str->string->text; *s; s++)
+  while ((c = mpui_string_get_next_char (&txt, str->string->encoding)))
     {
-      if (*s == '\n')
+      if (c == '\n')
         {
           htot += font->height;
           w = 0;
           continue;
         }
 
-      render_one_glyph (font, *s);
-      w += font->width[(unsigned int)*s] + font->charspace;
+      render_one_glyph (font, c);
+      w += font->width[c] + font->charspace;
       if (w > wmax)
         wmax = w;
     }

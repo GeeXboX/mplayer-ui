@@ -35,6 +35,7 @@ typedef struct mpui_coord mpui_coord_t;
 typedef struct mpui_color mpui_color_t;
 typedef struct mpui_ids mpui_ids_t;
 
+typedef enum mpui_encoding mpui_encoding_t;
 typedef struct mpui_strings mpui_strings_t;
 typedef struct mpui_string mpui_string_t;
 typedef struct mpui_str mpui_str_t;
@@ -95,6 +96,12 @@ enum mpui_alignment {
   MPUI_ALIGNMENT_CENTER,
   MPUI_ALIGNMENT_RIGHT,
   MPUI_ALIGNMENT_BOTTOM,
+};
+
+enum mpui_encoding {
+  MPUI_ENCODING_ISO_8859_1,
+  MPUI_ENCODING_UTF8,
+  MPUI_ENCODING_UTF16,
 };
 
 enum mpui_action_when {
@@ -160,6 +167,7 @@ struct mpui_strings {
 struct mpui_string {
   char *id;
   char *text;
+  mpui_encoding_t encoding;
 };
 
 struct mpui_str {
@@ -352,8 +360,12 @@ mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
 mpui_color_t *mpui_color_dup (mpui_color_t *color);
 void mpui_color_free (mpui_color_t *color);
 
-mpui_string_t *mpui_string_new (char *id, char *str);
+mpui_string_t *mpui_string_new (char *id, unsigned char *str,
+                                mpui_encoding_t encoding);
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
+int mpui_string_get_next_char (unsigned char **txt, mpui_encoding_t encoding);
+void mpui_string_put_next_char (unsigned char **txt, int c,
+                                mpui_encoding_t encoding);
 void mpui_string_free (mpui_string_t *string);
 
 mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_coord_t x,mpui_coord_t y,
