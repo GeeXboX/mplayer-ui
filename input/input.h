@@ -229,6 +229,14 @@ mp_input_parse_cmd(char* str);
 void
 mp_input_add_cmd_filter(mp_input_cmd_filter, void* ctx);
 
+// These filters allows you to add some key=>cmd bindings
+void
+mp_input_add_binds_filter(mp_cmd_bind_t *binds);
+
+// You can also remove bindings that you previously added
+void
+mp_input_remove_binds_filter(mp_cmd_bind_t *binds);
+
 // After getting a command from mp_input_get_cmd you need to free it using this
 // function
 void
@@ -237,6 +245,9 @@ mp_cmd_free(mp_cmd_t* cmd);
 // This creates a copy of a command (used by the auto repeat stuff).
 mp_cmd_t*
 mp_cmd_clone(mp_cmd_t* cmd);
+
+// This convert a key name into the corresponding keycode.
+int mp_input_get_key_from_name(char* name);
 
 // When you create a new driver you should add it in these 2 functions.
 void

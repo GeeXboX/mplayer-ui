@@ -406,6 +406,13 @@ typedef struct mp_input_fd {
   int pos,size;
 } mp_input_fd_t;
 
+typedef struct mp_binds_filter_st mp_binds_filter_t;
+
+struct mp_binds_filter_st {
+  mp_cmd_bind_t* binds;
+  mp_binds_filter_t* next;
+};
+
 typedef struct mp_cmd_filter_st mp_cmd_filter_t;
 
 struct mp_cmd_filter_st {
@@ -415,7 +422,8 @@ struct mp_cmd_filter_st {
 };
 
 // These are the user defined binds
-static mp_cmd_bind_t* cmd_binds = NULL;
+static mp_binds_filter_t cmd_binds = { NULL, NULL };
+static mp_binds_filter_t* binds_filters = NULL;
 static mp_cmd_filter_t* cmd_filters = NULL;
 
 // Callback to allow the menu filter to grab the incoming keys
@@ -815,6 +823,28 @@ mp_input_add_cmd_filter(mp_input_cmd_filter func, void* ctx) {
 }
   
 
+void
+mp_input_add_binds_filter(mp_cmd_bind_t *binds) {
+  mp_binds_filter_t* filter = malloc(sizeof(mp_binds_filter_t));
+
+  filter->binds = binds;
+  filter->next = binds_filters;
+  binds_filters = filter;
+}
+
+void
+mp_input_remove_binds_filter(mp_cmd_bind_t *binds) {
+  mp_binds_filter_t* filter, **prev=&binds_filters;
+
+  for (filter=binds_filters; filter; prev=&filter->next, filter=filter->next)
+    if (filter->binds == binds)
+      {
+        *prev = filter->next;
+        break;
+      }
+}
+  
+
 static char*
 mp_input_find_bind_for_key(mp_cmd_bind_t* binds, int n,int* keys) {
   int j;
@@ -842,11 +872,13 @@ mp_input_find_bind_for_key(mp_cmd_bind_t* binds, int n,int* keys) {
 
 static mp_cmd_t*
 mp_input_get_cmd_from_keys(int n,int* keys, int paused) {
+  mp_binds_filter_t* binds;
   char* cmd = NULL;
   mp_cmd_t* ret;
 
-  if(cmd_binds)
-    cmd = mp_input_find_bind_for_key(cmd_binds,n,keys);
+  for(binds=binds_filters; binds && !cmd; binds=binds->next)
+    if(binds->binds)
+      cmd = mp_input_find_bind_for_key(binds->binds,n,keys);
   if(cmd == NULL)
     cmd = mp_input_find_bind_for_key(def_cmd_binds,n,keys);
 
@@ -1270,7 +1302,7 @@ mp_input_get_key_name(int key) {
 
 }
 
-static int
+int
 mp_input_get_key_from_name(char* name) {
   int i,ret = 0,len = strlen(name);
   if(len == 1) { // Direct key code
@@ -1317,28 +1349,31 @@ mp_input_get_input_from_name(char* name,int* keys) {
 void
 mp_input_bind_keys(int keys[MP_MAX_KEY_DOWN+1], char* cmd) {
   int i = 0,j;
-  mp_cmd_bind_t* bind = NULL;
+  mp_cmd_bind_t *binds, *bind = NULL;
 
 #ifdef MP_DEBUG
   assert(keys != NULL);
   assert(cmd != NULL);
 #endif
 
-  if(cmd_binds) {
-    for(i = 0; cmd_binds[i].cmd != NULL ; i++) {
-      for(j = 0 ; cmd_binds[i].input[j] == keys[j]  && keys[j] != 0 ; j++)
+  if((binds = cmd_binds.binds)) {
+    for(i = 0; binds[i].cmd != NULL ; i++) {
+      for(j = 0 ; binds[i].input[j] == keys[j]  && keys[j] != 0 ; j++)
 	/* NOTHING */;
-      if(keys[j] == 0 && cmd_binds[i].input[j] == 0 ) {
-	bind = &cmd_binds[i];
+      if(keys[j] == 0 && binds[i].input[j] == 0 ) {
+	bind = &binds[i];
 	break;
       }
     }
   }
   
   if(!bind) {
-    cmd_binds = (mp_cmd_bind_t*)realloc(cmd_binds,(i+2)*sizeof(mp_cmd_bind_t));
-    memset(&cmd_binds[i],0,2*sizeof(mp_cmd_bind_t));
-    bind = &cmd_binds[i];
+    binds = (mp_cmd_bind_t*)realloc(binds,(i+2)*sizeof(mp_cmd_bind_t));
+    memset(&binds[i],0,2*sizeof(mp_cmd_bind_t));
+    if(!cmd_binds.binds && !binds_filters)
+      binds_filters = &cmd_binds;
+    cmd_binds.binds = binds;
+    bind = &binds[i];
   }
   if(bind->cmd)
     free(bind->cmd);
@@ -1405,7 +1440,7 @@ mp_input_parse_config(char *file) {
     if(bs <= 1) {
       mp_msg(MSGT_INPUT,MSGL_V,"Input config file %s parsed: %d binds\n",file,n_binds);
       if(binds)
-	cmd_binds = binds;
+	cmd_binds.binds = binds;
       close(fd);
       return 1;
     }
@@ -1607,8 +1642,8 @@ mp_input_uninit(void) {
     if(cmd_fds[i].close_func)
       cmd_fds[i].close_func(cmd_fds[i].fd);
   }
-  mp_input_free_binds(cmd_binds);
-  cmd_binds=NULL;
+  mp_input_free_binds(cmd_binds.binds);
+  cmd_binds.binds=NULL;
   
 }
 
