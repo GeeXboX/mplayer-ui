@@ -665,16 +665,27 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 static mpui_action_t *
 mpui_parse_node_action (char **attribs)
 {
-  char *cmd;
+  char *cmd, *when;
   mpui_action_t *action = NULL;
+  mpui_action_when_t w = MPUI_WHEN_VALIDATE;
                   
   cmd = asx_get_attrib ("cmd", attribs);
+  when = asx_get_attrib ("when", attribs);
   asx_free_attribs (attribs);
 
+  if (when)
+    {
+      if (!strcmp (when, "focus"))
+        w = MPUI_WHEN_FOCUS;
+      else if (!strcmp (when, "unfocus"))
+        w = MPUI_WHEN_UNFOCUS;
+    }
+
   if (cmd)
-    action = mpui_action_new (cmd);
+    action = mpui_action_new (cmd, w);
          
   free (cmd);
+  free (when);
   return action;
 }
 

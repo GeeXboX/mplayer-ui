@@ -180,7 +180,7 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
     for (actions=filetype->actions; *actions; actions++)
       {
         snprintf (cmd, sizeof (cmd), (*actions)->cmd, name);
-        action = mpui_action_new (cmd);
+        action = mpui_action_new (cmd, (*actions)->when);
         mpui_actions_add ((mpui_container_t *) menuitem, action);
       }
 

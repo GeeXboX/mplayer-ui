@@ -952,12 +952,13 @@ mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem)
 }
 
 mpui_action_t *
-mpui_action_new (char *cmd)
+mpui_action_new (char *cmd, mpui_action_when_t when)
 {
   mpui_action_t *action;
 
   action = (mpui_action_t *) malloc (sizeof (*action));
   action->cmd = mpui_strdup (cmd);
+  action->when = when;
   return action;
 }
 

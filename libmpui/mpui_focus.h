@@ -34,7 +34,8 @@ void mpui_focus_next_line (mpui_focus_box_t *focus_box);
 void mpui_focus_previous_line (mpui_focus_box_t *focus_box);
 void mpui_focus_element (mpui_focus_box_t *focus_box, mpui_element_t *element);
 
-void mpui_focus_action_exec (mpui_focus_box_t *focus_box);
+void mpui_focus_action_exec (mpui_focus_box_t *focus_box,
+                             mpui_action_when_t when);
 
 int mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element);
 int mpui_is_really_focused (mpui_screen_t *screen, mpui_element_t *element);

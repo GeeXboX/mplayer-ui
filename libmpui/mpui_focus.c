@@ -73,6 +73,15 @@ mpui_focus_box_previous (mpui_screen_t *screen)
 }
 
 
+static void
+mpui_focus_change (mpui_focus_box_t *focus_box, mpui_element_t **element)
+{
+  if (focus_box->focus >= focus_box->container.elements)
+    mpui_focus_action_exec (focus_box, MPUI_WHEN_UNFOCUS);
+  focus_box->focus = element;
+  mpui_focus_action_exec (focus_box, MPUI_WHEN_FOCUS);
+}
+
 int
 mpui_focus_first (mpui_focus_box_t *focus_box)
 {
@@ -114,7 +123,7 @@ mpui_focus_next (mpui_focus_box_t *focus_box)
                   focus_box->xoffset += offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
   for (elements=focus_box->container.elements; *elements; elements++)
@@ -122,7 +131,7 @@ mpui_focus_next (mpui_focus_box_t *focus_box)
       {
         focus_box->xoffset = 0;
         focus_box->yoffset = 0;
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
 }
@@ -152,7 +161,7 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
                   focus_box->xoffset -= offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
   for (elements=focus_box->focus+1; *elements; elements++);
@@ -179,7 +188,7 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
                   focus_box->xoffset += offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
 }
@@ -218,7 +227,7 @@ mpui_focus_next_line (mpui_focus_box_t *focus_box)
                   focus_box->xoffset += offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
   for (elements=focus_box->container.elements; *elements; elements++)
@@ -230,7 +239,7 @@ mpui_focus_next_line (mpui_focus_box_t *focus_box)
       {
         focus_box->xoffset = 0;
         focus_box->yoffset = 0;
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
 }
@@ -266,7 +275,7 @@ mpui_focus_previous_line (mpui_focus_box_t *focus_box)
                   focus_box->xoffset -= offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
   for (elements=focus_box->focus+1; *elements; elements++);
@@ -299,7 +308,7 @@ mpui_focus_previous_line (mpui_focus_box_t *focus_box)
                   focus_box->xoffset += offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
         return;
       }
 }
@@ -330,19 +339,21 @@ mpui_focus_element (mpui_focus_box_t *focus_box, mpui_element_t *element)
                   focus_box->xoffset += offset;
               }
           }
-        focus_box->focus = elements;
+        mpui_focus_change (focus_box, elements);
+        return;
       }
 }
 
 
 void
-mpui_focus_action_exec (mpui_focus_box_t *focus_box)
+mpui_focus_action_exec (mpui_focus_box_t *focus_box, mpui_action_when_t when)
 {
   mpui_action_t **actions = ((mpui_container_t *) *focus_box->focus)->actions;
 
   if (actions)
     for (; *actions; actions++)
-      mp_input_queue_cmd (mp_input_parse_cmd ((*actions)->cmd));
+      if ((*actions)->when & when)
+        mp_input_queue_cmd (mp_input_parse_cmd ((*actions)->cmd));
 
   return;
 }

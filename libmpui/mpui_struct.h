@@ -44,6 +44,7 @@ typedef struct mpui_image mpui_image_t;
 typedef struct mpui_img mpui_img_t;
 typedef struct mpui_fonts mpui_fonts_t;
 typedef struct mpui_font mpui_font_t;
+typedef enum mpui_action_when mpui_action_when_t;
 typedef struct mpui_action mpui_action_t;
 typedef struct mpui_filetype mpui_filetype_t;
 typedef struct mpui_filetypes mpui_filetypes_t;
@@ -94,6 +95,12 @@ enum mpui_alignment {
   MPUI_ALIGNMENT_CENTER,
   MPUI_ALIGNMENT_RIGHT,
   MPUI_ALIGNMENT_BOTTOM,
+};
+
+enum mpui_action_when {
+  MPUI_WHEN_VALIDATE = 0x01,
+  MPUI_WHEN_FOCUS    = 0x02,
+  MPUI_WHEN_UNFOCUS  = 0x04,
 };
 
 enum mpui_match {
@@ -219,6 +226,7 @@ struct mpui_font {
 
 struct mpui_action {
   char *cmd;
+  mpui_action_when_t when;
 };
 
 struct mpui_filetype {
@@ -431,7 +439,7 @@ void mpui_menuitem_free (mpui_menuitem_t *menuitem);
 mpui_allmenuitem_t *mpui_allmenuitem_new (mpui_menu_t *menu);
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
-mpui_action_t *mpui_action_new (char *cmd);
+mpui_action_t *mpui_action_new (char *cmd, mpui_action_when_t when);
 #define mpui_actions_add(a,b) (a)->actions = mpui_list_add((a)->actions, (b))
 void mpui_action_free (mpui_action_t *action);
 void mpui_actions_free (mpui_action_t **actions);

@@ -160,7 +160,7 @@ read_keycode (int code)
         mpui_focus_box_next (st_priv->mpui->current_screen);
         break;
       case KEY_ENTER:
-        mpui_focus_action_exec (fb);
+        mpui_focus_action_exec (fb, MPUI_WHEN_VALIDATE);
         break;
       case KEY_ESC:
         if (st_priv->mpui->previous_screen)
