@@ -173,7 +173,6 @@ struct mpui_strings {
 struct mpui_string {
   char *id;
   unsigned char *text;
-  size_t len;
   mpui_encoding_t encoding;
 };
 
@@ -396,8 +395,6 @@ mpui_string_t *mpui_string_new (char *id, unsigned char *str,
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
 unsigned int mpui_string_get_next_char (unsigned char **txt,
                                         mpui_encoding_t encoding);
-void mpui_string_put_next_char (unsigned char **txt, size_t *len, 
-                                unsigned int c, mpui_encoding_t encoding);
 void mpui_string_free (mpui_string_t *string);
 
 mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_coord_t x,mpui_coord_t y,

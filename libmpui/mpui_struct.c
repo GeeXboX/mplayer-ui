@@ -307,7 +307,7 @@ mpui_string_get_next_char_sanity (unsigned char **txt, size_t *len,
   return mpui_string_get_next_char_real(1, txt, len, encoding);
 }
 
-void
+static void
 mpui_string_put_next_char (unsigned char **txt, size_t *len,
                            unsigned int c, mpui_encoding_t encoding)
 {
@@ -406,7 +406,7 @@ mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
-  string->len = dlen = len;
+  dlen = len;
   string->text = dst = (char *) malloc (dlen);
   string->encoding = encoding;
 
