@@ -353,13 +353,6 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
     }
 }
 
-static void mpui_render_object (mpui_obj_t *object, mp_image_t *mpi,
-                                mpui_render_context_t *context);
-static void mpui_render_menu (mpui_mnu_t *menu, mp_image_t *mpi,
-                              mpui_render_context_t *context);
-static void mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi,
-                                  mpui_render_context_t *context);
-
 static inline void
 mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
                      mpui_render_context_t context)
@@ -386,55 +379,25 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
     {
       mpui_render_context_update (element, &context);
 
-      switch (element->type)
+      if (element->flags & MPUI_FLAG_CONTAINER)
         {
-        case MPUI_IMG:
-          mpui_render_image ((mpui_img_t *) element, mpi, &context);
-          break;
-        case MPUI_OBJ:
-          mpui_render_object ((mpui_obj_t *) element, mpi, &context);
-          break;
-        case MPUI_STR:
-          mpui_render_string ((mpui_str_t *) element, mpi, &context);
-          break;
-        case MPUI_MNU:
-          mpui_render_menu ((mpui_mnu_t *) element, mpi, &context);
-          break;
-        case MPUI_MENUITEM:
-          mpui_render_menuitem ((mpui_menuitem_t *) element, mpi, &context);
-          break;
+          mpui_element_t **elements = ((mpui_container_t *) element)->elements;
+          for (; *elements; elements++)
+            mpui_render_element (*elements, mpi, context);
         }
+      else
+        switch (element->type)
+          {
+          case MPUI_IMG:
+            mpui_render_image ((mpui_img_t *) element, mpi, &context);
+            break;
+          case MPUI_STR:
+            mpui_render_string ((mpui_str_t *) element, mpi, &context);
+            break;
+          default:
+            break;
+          }
     }
-}
-
-static void
-mpui_render_object (mpui_obj_t *obj, mp_image_t *mpi,
-                    mpui_render_context_t *context)
-{
-  mpui_element_t **elements;
-
-  for (elements=obj->object->elements; *elements; elements++)
-    mpui_render_element (*elements, mpi, *context);
-}
-
-static void
-mpui_render_menu (mpui_mnu_t *mnu, mp_image_t *mpi,
-                  mpui_render_context_t *context)
-{
-  mpui_element_t **elements;
-
-  for (elements=mnu->menu->elements; *elements; elements++)
-    mpui_render_element (*elements, mpi, *context);
-}
-
-static void
-mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi,
-                      mpui_render_context_t *context)
-{
-  mpui_element_t **elements;
-
-  for (elements=menuitem->elements; *elements; elements++)
-    mpui_render_element (*elements, mpi, *context);
 }
 
 int

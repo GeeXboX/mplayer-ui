@@ -148,7 +148,7 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
       break;
 
     case MPUI_MENUITEM:
-      elements = ((mpui_menuitem_t *) element)->elements;
+      elements = ((mpui_container_t *) element)->elements;
       break;
 
     case MPUI_OBJ:
@@ -702,12 +702,14 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
                            mpui_allmenuitem_t *allmenuitem)
 {
   mpui_menuitem_t *menuitem = NULL;
+  mpui_container_t *container;
   mpui_element_t **elements2 = NULL;
   ASX_Parser_t* parser;
   char *element;
 
   menuitem = mpui_menuitem_new ();
-          
+  container = &menuitem->container;
+
   while (1)
     {
       mpui_element_t *elt = NULL;
@@ -729,18 +731,18 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
           if (action)
-            mpui_actions_add (menuitem, action);
+            mpui_actions_add (container, action);
         }
       
       if (elt)
-        mpui_add_element (menuitem, elt);
+        mpui_add_element (container, elt);
       free (parser);
     }
   asx_free_attribs (attribs);
 
   if (allmenuitem)
     elements2 = allmenuitem->elements;
-  mpui_elements_get_size (&menuitem->element, menuitem->elements, elements2);
+  mpui_elements_get_size (&container->element, container->elements, elements2);
 
   return menuitem;
 }

@@ -27,6 +27,7 @@
 typedef enum mpui_when_focused mpui_when_focused_t;
 typedef enum mpui_type mpui_type_t;
 typedef struct mpui_element mpui_element_t;
+typedef struct mpui_container mpui_container_t;
 typedef struct mpui_focus_box mpui_focus_box_t;
 typedef int mpui_size_t;
 typedef struct mpui_color mpui_color_t;
@@ -59,8 +60,9 @@ typedef struct mpui mpui_t;
 #define MPUI_FLAG_ABSOLUTE  ((mpui_flags_t) 0x01)
 #define MPUI_FLAG_DYNAMIC   ((mpui_flags_t) 0x02)
 #define MPUI_FLAG_NOCOORD   ((mpui_flags_t) 0x04)
-#define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x08)
-#define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x10)
+#define MPUI_FLAG_CONTAINER ((mpui_flags_t) 0x08)
+#define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x10)
+#define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x20)
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
@@ -93,9 +95,14 @@ struct mpui_element {
   char *sw, *sh;
 };
 
-struct mpui_focus_box {
+struct mpui_container {
   mpui_element_t element;
   mpui_element_t **elements;
+  mpui_action_t **actions;
+};
+
+struct mpui_focus_box {
+  mpui_container_t container;
   mpui_element_t **focus;
   mpui_orientation_t orientation;
 };
@@ -188,14 +195,12 @@ struct mpui_object {
 };
 
 struct mpui_obj {
-  mpui_element_t element;
+  mpui_container_t container;
   mpui_object_t *object;
 };
 
 struct mpui_menuitem {
-  mpui_element_t element;
-  mpui_element_t **elements;
-  mpui_action_t **actions;
+  mpui_container_t container;
 };
 
 struct mpui_allmenuitem {

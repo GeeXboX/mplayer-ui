@@ -18,6 +18,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
+#include "../input/input.h"
 
 
 int
@@ -74,9 +75,9 @@ mpui_focus_box_previous (mpui_screen_t *screen)
 int
 mpui_focus_first (mpui_focus_box_t *focus_box)
 {
-  focus_box->focus = focus_box->elements - 1;
+  focus_box->focus = focus_box->container.elements - 1;
   mpui_focus_next (focus_box);
-  if (focus_box->focus >= focus_box->elements)
+  if (focus_box->focus >= focus_box->container.elements)
     return 1;
   focus_box->focus = NULL;
   return 0;
@@ -93,7 +94,7 @@ mpui_focus_next (mpui_focus_box_t *focus_box)
         focus_box->focus = elements;
         return;
       }
-  for (elements=focus_box->elements; *elements; elements++)
+  for (elements=focus_box->container.elements; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
         focus_box->focus = elements;
@@ -106,7 +107,8 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
 {
   mpui_element_t **elements;
 
-  for (elements=focus_box->focus-1; elements>=focus_box->elements; elements--)
+  for (elements=focus_box->focus-1; elements>=focus_box->container.elements;
+       elements--)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
         focus_box->focus = elements;
@@ -125,16 +127,7 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
 void
 mpui_focus_action_exec (mpui_focus_box_t *focus_box)
 {
-  mpui_action_t **actions;
-
-  switch ((*focus_box->focus)->type)
-    {
-    case MPUI_MENUITEM:
-      actions = ((mpui_menuitem_t *) *focus_box->focus)->actions;
-      break;
-    default:
-      break;
-    }
+  mpui_action_t **actions = ((mpui_container_t *) *focus_box->focus)->actions;
 
   if (actions)
     for (; *actions; actions++)
