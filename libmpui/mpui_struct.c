@@ -146,8 +146,9 @@ mpui_str_get_size (mpui_str_t *str)
 
 mpui_str_t *
 mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
-              mpui_font_t *font, int size, mpui_color_t *color,
-              mpui_color_t *focused_color, mpui_when_focused_t when_focused)
+              mpui_flags_t flags, mpui_font_t *font, int size,
+              mpui_color_t *color, mpui_color_t *focused_color,
+              mpui_when_focused_t when_focused)
 {
   mpui_str_t *str;
 
@@ -155,6 +156,7 @@ mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
   str->string = string;
   str->x = x;
   str->y = y;
+  str->flags = flags;
   str->font = font;
   str->size = size;
   str->color = color;
@@ -241,7 +243,8 @@ mpui_image_free (mpui_image_t *image)
 
 mpui_img_t *
 mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-              mpui_size_t w, mpui_size_t h, mpui_when_focused_t when_focused)
+              mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
+              mpui_when_focused_t when_focused)
 {
   mpui_img_t *img;
 
@@ -251,6 +254,7 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
   img->y = y;
   img->w = w;
   img->h = h;
+  img->flags = flags;
   img->when_focused = when_focused;
 
   return img;
@@ -359,7 +363,7 @@ mpui_fonts_free (mpui_fonts_t *fonts)
 
 
 mpui_object_t *
-mpui_object_new (char *id, mpui_object_flags_t flags)
+mpui_object_new (char *id, mpui_flags_t flags)
 {
   mpui_object_t *object;
 

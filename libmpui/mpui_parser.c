@@ -108,13 +108,14 @@ mpui_parse_node_string (char **attribs)
 mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y;
+  char *id, *x, *y, *relative;
   char *font_id, *size, *color, *focused_color, *when_focused;
   mpui_str_t *str = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
+  relative = asx_get_attrib ("relative", attribs);
   font_id = asx_get_attrib ("font", attribs);
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
@@ -126,12 +127,20 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
     {
       mpui_string_t *string;
       mpui_size_t sx, sy;
+      mpui_flags_t flags = 0;
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
       mpui_color_t *col, *fcol;
       int wf = MPUI_DISPLAY_ALWAYS;
       string = mpui_string_get (mpui, id);
       font = mpui_font_get (mpui, font_id);
+      if (relative)
+        {
+          if (!strcmp (relative, "yes"))
+            flags |= MPUI_FLAG_RELATIVE;
+          else if (!strcmp (relative, "no"))
+            flags &= ~MPUI_FLAG_RELATIVE;
+        }
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -152,7 +161,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       fcol = mpui_parse_color (focused_color);
 
       if (string)
-        str = mpui_str_new (string, sx, sy, font, s, col, fcol, wf);
+        str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
     }
 
   return str;
@@ -228,7 +237,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *w, *h, *when_focused;
+  char *id, *x, *y, *w, *h, *relative, *when_focused;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -236,15 +245,24 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   y = asx_get_attrib ("y", attribs);
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
+  relative = asx_get_attrib ("relative", attribs);
   when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_image_t *image;
       mpui_size_t sx, sy, sw, sh;
+      mpui_flags_t flags = 0;
       int wf = MPUI_DISPLAY_ALWAYS;
 
       image = mpui_image_get (mpui, id);
+      if (relative)
+        {
+          if (!strcmp (relative, "yes"))
+            flags |= MPUI_FLAG_RELATIVE;
+          else if (!strcmp (relative, "no"))
+            flags &= ~MPUI_FLAG_RELATIVE;
+        }
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -257,7 +275,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
       sw = mpui_parse_size (w, mpui->width);
       sh = mpui_parse_size (h, mpui->height);
       if (image)
-        img = mpui_img_new (image, sx, sy, sw, sh, wf);
+        img = mpui_img_new (image, sx, sy, sw, sh, flags, wf);
     }
   asx_free_attribs (attribs);
 
@@ -423,7 +441,7 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
 {
   char *id, *relative, *dynamic, *element;
   mpui_object_t *object = NULL;
-  mpui_object_flags_t flags = 0;
+  mpui_flags_t flags = 0;
   ASX_Parser_t* parser;
 
   id = asx_get_attrib ("id", attribs);
