@@ -171,7 +171,7 @@ struct mpui_strings {
 
 struct mpui_string {
   char *id;
-  char *text;
+  unsigned char *text;
   size_t len;
   mpui_encoding_t encoding;
 };

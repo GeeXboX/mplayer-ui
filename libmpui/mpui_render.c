@@ -356,7 +356,7 @@ static inline void
 mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
                     mpui_render_context_t *context)
 {
-  char *txt = str->string->text;
+  unsigned char *txt = str->string->text;
   size_t len = str->string->len;
   font_desc_t *font;
   mpui_color_t *color;
