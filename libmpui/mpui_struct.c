@@ -479,13 +479,27 @@ mpui_element_free (mpui_element_t *element)
 
 
 mpui_screen_t *
-mpui_screen_new (void)
+mpui_screen_new (char *id)
 {
   mpui_screen_t *screen;
 
   screen = (mpui_screen_t *) malloc (sizeof (*screen));
+  screen->id = mpui_strdup (id);
   screen->elements = mpui_list_new ();
   return screen;
+}
+
+mpui_screen_t *
+mpui_screen_get (mpui_t *mpui, char *id)
+{
+  mpui_screens_t **screens;
+  mpui_screen_t **screen;
+
+  for (screens=mpui->screens; *screens; screens++)
+    for (screen=(*screens)->screens; *screen; screen++)
+      if (!strcmp ((*screen)->id, id))
+        return *screen;
+  return NULL;
 }
 
 void
@@ -521,7 +535,6 @@ mpui_screens_free (mpui_screens_t *screens)
   free (screens);
 }
 
-
 mpui_t *
 mpui_new (void)
 {
@@ -533,7 +546,7 @@ mpui_new (void)
   mpui->fonts = mpui_list_new ();
   mpui->objects = mpui_list_new ();
   mpui->menus = mpui_list_new ();
-  mpui->screens = NULL;
+  mpui->screens = mpui_list_new ();
   return mpui;
 }
 
@@ -545,6 +558,7 @@ mpui_free (mpui_t *mpui)
   mpui_fonts_t **fonts = mpui->fonts;
   mpui_objects_t **objects = mpui->objects;
   mpui_menus_t **menus = mpui->menus;
+  mpui_screens_t **screens = mpui->screens;
 
   while (*strings)
     mpui_strings_free (*strings++);
@@ -566,6 +580,7 @@ mpui_free (mpui_t *mpui)
     mpui_menus_free (*menus++);
   free (mpui->menus);
 
-  if (mpui->screens)
-    mpui_screens_free (mpui->screens);
+  while (*screens)
+    mpui_screens_free (*screens++);
+  free (mpui->screens);
 }

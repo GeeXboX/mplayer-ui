@@ -419,15 +419,21 @@ mpui_parse_node_fonts (char **attribs, char *body)
 }
 
 
-void
+mpui_action_t *
 mpui_parse_node_action (char **attribs)
 {
   char *cmd;
+  mpui_action_t *action = NULL;
                   
   cmd = asx_get_attrib ("cmd", attribs);
   asx_free_attribs (attribs);
+
+  if (cmd)
+    action = mpui_action_new (cmd);
                   
   printf ("Action attrib cmd =  %s\n", cmd);
+
+  return action;
 }
 
 
@@ -672,27 +678,35 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
   asx_free_attribs (attribs);
 }
 
-void
+mpui_screen_t *
 mpui_parse_node_screen (char **attribs)
 {
   char *id;
-                  
+  mpui_screen_t *screen = NULL;
+  
   id = asx_get_attrib ("id", attribs);
   asx_free_attribs (attribs);
-                  
+
+  if (id)
+    screen = mpui_screen_new (id);
+
   printf ("Screen attrib id =  %s\n", id);
+  
+  return screen;
 }
 
-void
+mpui_screens_t *
 mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
 {
   char *menu, *control, *element;
   ASX_Parser_t* parser;
+  mpui_screens_t *screens;
 
   menu = asx_get_attrib ("menu", attribs);
   control = asx_get_attrib ("control", attribs);
   asx_free_attribs (attribs);
 
+  screens = mpui_screens_new ();
   printf ("Screens attrib menu =  %s\n", menu);
   printf ("Screens attrib control =  %s\n", control);
 
@@ -710,8 +724,9 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
         {
           ASX_Parser_t* sparser;
 
-          mpui_parse_node_screen (attribs);
-              
+          mpui_screen_t *screen = mpui_parse_node_screen (attribs);
+          mpui_screens_add (screens, screen);
+
           while (1)
             {
               char *ssbody;
@@ -738,6 +753,11 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
       free (parser);
     }
   asx_free_attribs (attribs);
+
+  screens->menu = mpui_screen_get (mpui, menu);
+  screens->ctrl = mpui_screen_get (mpui, control);
+
+  return screens;
 }
 
 
@@ -801,9 +821,9 @@ mpui_parse_config (char *buffer)
         }
       else if (!strcmp (element, "screens"))
         {
-/*           mpui_screens_t *screens = mpui_parse_node_screens (mpui, */
-/*                                                              attribs, sbody); */
-/*           mpui_screens_add (mpui, screens); */
+          mpui_screens_t *screens = mpui_parse_node_screens (mpui,
+                                                             attribs, sbody);
+          mpui_screens_add (mpui, screens);
         }
 
       free (element);

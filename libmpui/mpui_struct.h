@@ -195,6 +195,7 @@ struct mpui_screens {
 };
 
 struct mpui_screen {
+  char *id;
   mpui_element_t **elements;
 };
 
@@ -204,7 +205,7 @@ struct mpui {
   mpui_fonts_t **fonts;
   mpui_objects_t **objects;
   mpui_menus_t **menus;
-  mpui_screens_t *screens;
+  mpui_screens_t **screens;
 };
 
 
@@ -270,8 +271,6 @@ mpui_menus_t *mpui_menus_new (void);
 #define mpui_menus_add(a,b) a->menus = mpui_list_add(a->menus, b)
 void mpui_menus_free (mpui_menus_t *menus);
 
-#define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
-
 mpui_menuitem_t *mpui_menuitem_new (void);
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);
 
@@ -281,10 +280,12 @@ void mpui_action_free (mpui_action_t *action);
 mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
 void mpui_element_free (mpui_element_t *element);
 
-mpui_screen_t *mpui_screen_new (void);
+mpui_screen_t *mpui_screen_new (char *id);
+mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id);
 void mpui_screen_free (mpui_screen_t *screen);
 
 mpui_screens_t *mpui_screens_new (void);
+#define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
 void mpui_screens_free (mpui_screens_t *screens);
 
 mpui_t *mpui_new (void);
