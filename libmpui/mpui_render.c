@@ -42,13 +42,13 @@ mpui_render_context_update (mpui_element_t *element,
 {
   if (element->flags & MPUI_FLAG_ABSOLUTE)
     {
-      context->x = element->x;
-      context->y = element->y;
+      context->x = element->x.val;
+      context->y = element->y.val;
     }
   else
     {
-      context->x += element->x;
-      context->y += element->y;
+      context->x += element->x.val;
+      context->y += element->y.val;
     }
 }
 

@@ -185,12 +185,14 @@ mpui_str_get_size (mpui_str_t *str)
     }
   htot += font->height;
 
-  str->element.w = wmax;
-  str->element.h = htot;
+  str->element.w.val = wmax;
+  str->element.w.str = NULL;
+  str->element.h.val = htot;
+  str->element.h.str = NULL;
 }
 
 mpui_str_t *
-mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
+mpui_str_new (mpui_string_t *string, mpui_coord_t x, mpui_coord_t y,
               mpui_flags_t flags, mpui_font_t *font, int size,
               mpui_color_t *color, mpui_color_t *focused_color,
               mpui_when_focused_t when_focused)
@@ -223,10 +225,7 @@ mpui_str_dup (mpui_str_t *str)
   dup = mpui_str_new (str->string, elem->x, elem->y, elem->flags,
                       str->font, str->size, mpui_color_dup (str->color),
                       mpui_color_dup (str->focused_color), elem->when_focused);
-  dup->element.sx = mpui_strdup (elem->sx);
-  dup->element.sy = mpui_strdup (elem->sy);
-  dup->element.sw = mpui_strdup (elem->sw);
-  dup->element.sh = mpui_strdup (elem->sh);
+  mpui_element_coord_dup ((mpui_element_t *) dup);
 
   return dup;
 }
@@ -308,8 +307,8 @@ mpui_image_free (mpui_image_t *image)
 }
 
 mpui_img_t *
-mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-              mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
+mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
+              mpui_coord_t w, mpui_coord_t h, mpui_flags_t flags,
               mpui_when_focused_t when_focused)
 {
   mpui_img_t *img;
@@ -330,17 +329,17 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
   if (!image->raw.data)
     mpui_image_load (image);
 
-  if (img->element.w == 0 && img->element.h == 0)
+  if (img->element.w.val == 0 && img->element.h.val == 0)
     {
-      img->element.w = image->w;
-      img->element.h = image->h;
+      img->element.w.val = image->w;
+      img->element.h.val = image->h;
     }
   else if (image->raw.data)
     {
-      if (img->element.w == 0)
-        img->element.w = img->element.h*image->raw.w/image->raw.h;
-      if (img->element.h == 0)
-        img->element.h = img->element.w*image->raw.h/image->raw.w;
+      if (img->element.w.val == 0)
+        img->element.w.val = img->element.h.val*image->raw.w/image->raw.h;
+      if (img->element.h.val == 0)
+        img->element.h.val = img->element.w.val*image->raw.h/image->raw.w;
     }
 
   return img;
@@ -355,10 +354,7 @@ mpui_img_dup (mpui_img_t *img)
   dup = mpui_img_new (img->image, elem->x, elem->y,
                       elem->w, elem->h, elem->flags,
                       elem->when_focused);
-  dup->element.sx = mpui_strdup (elem->sx);
-  dup->element.sy = mpui_strdup (elem->sy);
-  dup->element.sw = mpui_strdup (elem->sw);
-  dup->element.sh = mpui_strdup (elem->sh);
+  mpui_element_coord_dup ((mpui_element_t *) dup);
 
   return dup;
 }
@@ -368,7 +364,7 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
 {
   mpui_image_t *image = img->image;
 
-  if (img->element.w == image->w && img->element.h == image->h)
+  if (img->element.w.val == image->w && img->element.h.val == image->h)
     {
       if (image->raw.data && image->num_planes <= 0)
         mpui_image_convert (image, &image->raw, mpui->format);
@@ -376,8 +372,8 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
   else
     {
       image = mpui_image_new ("", image->file,
-                              img->element.x, img->element.y,
-                              img->element.w, img->element.h);
+                              img->element.x.val, img->element.y.val,
+                              img->element.w.val, img->element.h.val);
       mpui_images_add (mpui->images, image);
       if (img->image->raw.data)
         mpui_image_convert (image, &img->image->raw, mpui->format);
@@ -543,7 +539,7 @@ mpui_object_free (mpui_object_t *object)
 }
 
 mpui_obj_t *
-mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
+mpui_obj_new (mpui_object_t *object, mpui_coord_t x, mpui_coord_t y,
               mpui_flags_t flags, mpui_when_focused_t when_focused)
 {
   mpui_element_t **e;
@@ -657,7 +653,7 @@ mpui_menu_free (mpui_menu_t *menu)
 }
 
 mpui_mnu_t *
-mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
+mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
               mpui_flags_t flags)
 {
   mpui_mnu_t *mnu;
@@ -667,8 +663,10 @@ mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
   mnu->fb.container.element.flags = flags | MPUI_FLAG_CONTAINER;
   mnu->fb.container.element.x = x;
   mnu->fb.container.element.y = y;
-  mnu->fb.container.element.w = menu->w;
-  mnu->fb.container.element.h = menu->h;
+  mnu->fb.container.element.w.val = menu->w;
+  mnu->fb.container.element.w.str = NULL;
+  mnu->fb.container.element.h.val = menu->h;
+  mnu->fb.container.element.h.str = NULL;
   mnu->fb.container.element.when_focused = MPUI_DISPLAY_ALWAYS;
   mnu->fb.container.elements = menu->elements;
   mnu->fb.container.actions = NULL;
@@ -715,6 +713,10 @@ mpui_menuitem_new (void)
   menuitem = (mpui_menuitem_t *) malloc (sizeof (*menuitem));
   menuitem->container.element.type = MPUI_MENUITEM;
   menuitem->container.element.flags = MPUI_FLAG_CONTAINER|MPUI_FLAG_FOCUSABLE;
+  menuitem->container.element.x.str = NULL;
+  menuitem->container.element.y.str = NULL;
+  menuitem->container.element.w.str = NULL;
+  menuitem->container.element.h.str = NULL;
   menuitem->container.element.when_focused = MPUI_DISPLAY_ALWAYS;
   menuitem->container.elements = mpui_list_new ();
   menuitem->container.actions = mpui_list_new ();
@@ -797,6 +799,15 @@ mpui_element_dup (mpui_element_t *element)
 }
 
 void
+mpui_element_coord_dup (mpui_element_t *element)
+{
+  element->x.str = mpui_strdup (element->x.str);
+  element->y.str = mpui_strdup (element->y.str);
+  element->w.str = mpui_strdup (element->w.str);
+  element->h.str = mpui_strdup (element->h.str);
+}
+
+void
 mpui_element_free (mpui_element_t *element)
 {
   switch (element->type)
@@ -826,8 +837,10 @@ void
 mpui_elements_get_size (mpui_element_t *element,
                         mpui_element_t **elements, mpui_element_t **elements2)
 {
-  element->w = -1;
-  element->h = -1;
+  element->w.val = 0;
+  element->w.str = NULL;
+  element->h.val = 0;
+  element->h.str = NULL;
 
   while (elements)
     {
@@ -835,10 +848,10 @@ mpui_elements_get_size (mpui_element_t *element,
         {
           if (!((*elements)->flags & (MPUI_FLAG_ABSOLUTE|MPUI_FLAG_NOCOORD)))
             {
-              if ((*elements)->x + (*elements)->w > element->w)
-                element->w = (*elements)->x + (*elements)->w;
-              if ((*elements)->y + (*elements)->h > element->h)
-                element->h = (*elements)->y + (*elements)->h;
+              if ((*elements)->x.val + (*elements)->w.val > element->w.val)
+                element->w.val = (*elements)->x.val + (*elements)->w.val;
+              if ((*elements)->y.val + (*elements)->h.val > element->h.val)
+                element->h.val = (*elements)->y.val + (*elements)->h.val;
             }
           elements++;
         }
@@ -846,13 +859,13 @@ mpui_elements_get_size (mpui_element_t *element,
       elements2 = NULL;
     }
 
-  if (element->w == -1 || element->h == -1)
+  if (element->w.val == 0 || element->h.val == 0)
     element->flags |= MPUI_FLAG_NOCOORD;
 }
 
 
 mpui_popup_t *
-mpui_popup_new (char *id, mpui_size_t x, mpui_size_t y)
+mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y)
 {
   mpui_popup_t *popup;
 
@@ -862,6 +875,10 @@ mpui_popup_new (char *id, mpui_size_t x, mpui_size_t y)
   popup->container.element.flags = MPUI_FLAG_CONTAINER;
   popup->container.element.x = x;
   popup->container.element.y = y;
+  popup->container.element.w.val = 0;
+  popup->container.element.w.str = NULL;
+  popup->container.element.h.val = 0;
+  popup->container.element.h.str = NULL;
   popup->container.element.when_focused = MPUI_DISPLAY_ALWAYS;
   popup->container.elements = mpui_list_new ();
   popup->container.actions = NULL;

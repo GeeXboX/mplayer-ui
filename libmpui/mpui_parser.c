@@ -99,28 +99,31 @@ mpui_parse_alignment (char **attribs)
   return align;
 }
 
-static mpui_size_t
+static mpui_coord_t
 mpui_parse_size (char *size, int total, mpui_size_t deflt)
 {
-  mpui_size_t val = deflt;
+  mpui_coord_t coord;
+
+  coord.val = deflt;
+  coord.str = NULL;
 
   if (size && *size)
     {
       if (isdigit (size[0]))
         {
           char *end;
-          val = strtol (size, &end, 10);
-          val = (*end == '%') ? val * total / 100 : val;
+          coord.val = strtol (size, &end, 10);
+          coord.val = (*end == '%') ? coord.val * total / 100 : coord.val;
         }
       else
-        val = -1;
+        coord.str = strdup (size);
     }
   
-  return val;
+  return coord;
 }
 
-static mpui_size_t
-mpui_recompute_one_coord (mpui_size_t c, char *sc,
+static void
+mpui_recompute_one_coord (mpui_coord_t *coord,
                           mpui_size_t w, mpui_size_t h,
                           mpui_size_t total, mpui_size_t center)
 {
@@ -135,29 +138,29 @@ mpui_recompute_one_coord (mpui_size_t c, char *sc,
     { NULL, 0 }
   };
 
-  if (c == -1)
+  if (coord->str)
     {
       for (l=list; l->id; l++)
-        if (!strncmp (sc, l->id, strlen (l->id)))
+        if (!strncmp (coord->str, l->id, strlen (l->id)))
           {
-            char *end, *s = sc + strlen (l->id);
+            char *end, *s = coord->str + strlen (l->id);
             int val, mul = 1;
             if (*s && *s++ == '-')
               mul = -1;
             if (!isdigit (*s))
               {
                 if (*s == '\0')
-                  c = l->v;
+                  coord->val = l->v;
                 break;
               }
             val = strtol (s, &end, 10);
             val = (*end == '%') ? val * total / 100 : val;
-            c = l->v + val * mul;
+            coord->val = l->v + val * mul;
             break;
           }
-      free (sc);
+      free (coord->str);
+      coord->str = NULL;
     }
-  return c;
 }
 
 static void
@@ -171,27 +174,23 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
     case MPUI_OBJ:
       if (element->flags & MPUI_FLAG_NOCOORD)
         {
-          element->w = w;
-          element->h = h;
+          element->w.val = w;
+          element->h.val = h;
         }
       break;
 
     case MPUI_STR:
     case MPUI_IMG:
-      element->w = mpui_recompute_one_coord (element->w, element->sw,
-                                             w, h, mpui->width, 0);
-      element->h = mpui_recompute_one_coord (element->h, element->sh,
-                                             w, h, mpui->height, 0);
+      mpui_recompute_one_coord (&element->w, w, h, mpui->width, 0);
+      mpui_recompute_one_coord (&element->h, w, h, mpui->height, 0);
       break;
 
     default:
       break;
     }
 
-  element->x = mpui_recompute_one_coord (element->x, element->sx, w, h,
-                                         mpui->width, (w-element->w)/2);
-  element->y = mpui_recompute_one_coord (element->y, element->sy, w, h,
-                                         mpui->height, (h-element->h)/2);
+  mpui_recompute_one_coord (&element->x,w,h,mpui->width,(w-element->w.val)/2);
+  mpui_recompute_one_coord (&element->y,w,h,mpui->height,(h-element->h.val)/2);
 
   if (element->type == MPUI_IMG)
     mpui_img_load (mpui, (mpui_img_t *) element);
@@ -199,25 +198,16 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
   if (element->flags & MPUI_FLAG_CONTAINER)
     for (elements=((mpui_container_t *) element)->elements;
          *elements; elements++)
-      mpui_recompute_coord (mpui, *elements, element->w, element->h);
+      mpui_recompute_coord (mpui, *elements, element->w.val, element->h.val);
 
   element->flags &= ~MPUI_FLAG_NOCOORD;
 }
 
 static void
-mpui_set_nocoord (mpui_element_t *element, char *x, char *y, char *w, char *h)
+mpui_set_nocoord (mpui_element_t *element)
 {
-  if (element->x == -1 || element->y == -1
-      || element->h == -1 || element->w == -1)
+  if (element->x.str || element->y.str || element->h.str || element->w.str)
     element->flags |= MPUI_FLAG_NOCOORD;
-  if (element->x == -1)
-    element->sx = strdup (x);
-  if (element->y == -1)
-    element->sy = strdup (y);
-  if (element->w == -1)
-    element->sw = strdup (w);
-  if (element->h == -1)
-    element->sh = strdup (h);
 }
 
 static void
@@ -225,13 +215,13 @@ mpui_clip (mpui_t *mpui, mpui_element_t *element, mpui_size_t x, mpui_size_t y)
 {
   if (element->flags & MPUI_FLAG_ABSOLUTE)
     {
-      x = element->x;
-      y = element->y;
+      x = element->x.val;
+      y = element->y.val;
     }
   else
     {
-      x += element->x;
-      y += element->y;
+      x += element->x.val;
+      y += element->y.val;
     }
 
   if (element->flags & MPUI_FLAG_CONTAINER)
@@ -246,10 +236,10 @@ mpui_clip (mpui_t *mpui, mpui_element_t *element, mpui_size_t x, mpui_size_t y)
       mpui_img_t *img = (mpui_img_t *) element;
       img->cx1 = x < 0 ? -x : 0;
       img->cy1 = y < 0 ? -y : 0;
-      img->cx2 = x + img->element.w > mpui->width ?
-                (x + img->element.w) - mpui->width : 0;
-      img->cy2 = y + img->element.h > mpui->height ?
-                (y + img->element.h) - mpui->height : 0;
+      img->cx2 = x + img->element.w.val > mpui->width ?
+                (x + img->element.w.val) - mpui->width : 0;
+      img->cy2 = y + img->element.h.val > mpui->height ?
+                (y + img->element.h.val) - mpui->height : 0;
     }
 }
 
@@ -334,7 +324,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   if (id)
     {
       mpui_string_t *string;
-      mpui_size_t sx, sy;
+      mpui_coord_t sx, sy;
       mpui_flags_t flags = 0;
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
@@ -360,7 +350,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       if (string && font)
         {
           str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
-          mpui_set_nocoord ((mpui_element_t *) str, x, y, NULL, NULL);
+          mpui_set_nocoord ((mpui_element_t *) str);
         }
     }
 
@@ -405,7 +395,7 @@ static mpui_image_t *
 mpui_parse_node_image (mpui_t *mpui, char **attribs)
 {
   char *id, *file, *f, *x, *y, *w, *h;
-  mpui_size_t sx, sy, sh, sw;
+  mpui_coord_t sx, sy, sh, sw;
   mpui_image_t *image = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -425,7 +415,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
             "%s%s", MPUI_DATADIR, file);
 
   if (id && f)
-    image = mpui_image_new (id, f, sx, sy, sw, sh);
+    image = mpui_image_new (id, f, sx.val, sy.val, sw.val, sh.val);
   asx_free_attribs (attribs);
 
   return image;
@@ -456,13 +446,13 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
       wf = mpui_parse_when_focused (attribs);
       if (image)
         {
-          mpui_size_t sx, sy, sw, sh;
+          mpui_coord_t sx, sy, sw, sh;
           sx = mpui_parse_size (x, mpui->width, image->x);
           sy = mpui_parse_size (y, mpui->height, image->y);
           sw = mpui_parse_size (w, mpui->width, image->w);
           sh = mpui_parse_size (h, mpui->height, image->h);
           img = mpui_img_new (image, sx, sy, sw, sh, flags, wf);
-          mpui_set_nocoord ((mpui_element_t *) img, x, y, w, h);
+          mpui_set_nocoord ((mpui_element_t *) img);
         }
     }
   asx_free_attribs (attribs);
@@ -604,7 +594,7 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
     {
       mpui_object_t *object;
       mpui_flags_t flags = 0;
-      mpui_size_t sx, sy;
+      mpui_coord_t sx, sy;
       mpui_when_focused_t wf = MPUI_DISPLAY_ALWAYS;
 
       object = mpui_object_get (mpui, id);
@@ -634,7 +624,7 @@ static mpui_object_t *
 mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
 {
   char *id, *x, *y, *element;
-  mpui_size_t sx, sy;
+  mpui_coord_t sx, sy;
   mpui_object_t *object = NULL;
   ASX_Parser_t* parser;
 
@@ -645,7 +635,7 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
   y = asx_get_attrib ("y", attribs);
   sx = mpui_parse_size (x, mpui->width, 0);
   sy = mpui_parse_size (y, mpui->height, 0);
-  object = mpui_object_new (id, sx, sy);
+  object = mpui_object_new (id, sx.val, sy.val);
   asx_free_attribs (attribs);
 
   while (1)
@@ -807,7 +797,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   mpui_orientation_t orientation = MPUI_ORIENTATION_V;
   mpui_alignment_t align;
   mpui_font_t *default_font = NULL, *font = NULL;
-  mpui_size_t mx, my, ms;
+  mpui_coord_t mx, my, ms;
   mpui_size_t item_x, item_y, max_w = 0, max_h = 0, tmp;
   mpui_element_t **elements;
   mpui_size_t offset;
@@ -836,11 +826,11 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   my = mpui_parse_size (y, mpui->height, 0);
   tmp = orientation == MPUI_ORIENTATION_V ? mpui->height : mpui->width;
   ms = mpui_parse_size (spacing, tmp, 0);
-  item_x = ms/2;
-  item_y = ms/2;
+  item_x = ms.val/2;
+  item_y = ms.val/2;
 
   if (id)
-    menu = mpui_menu_new (id, orientation, mx, my);
+    menu = mpui_menu_new (id, orientation, mx.val, my.val);
   asx_free_attribs (attribs);
 
   while (1)
@@ -864,19 +854,19 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
         {
           elt = (mpui_element_t *) mpui_parse_node_menu_item (mpui, attribs,
                                                     sbody, menu->allmenuitem);
-          elt->x = item_x;
-          elt->y = item_y;
+          elt->x.val = item_x;
+          elt->y.val = item_y;
           if (orientation == MPUI_ORIENTATION_V)
             {
-              item_y += ms + elt->h;
-              if (elt->w > max_w)
-                max_w = elt->w;
+              item_y += ms.val + elt->h.val;
+              if (elt->w.val > max_w)
+                max_w = elt->w.val;
             }
           else
             {
-              item_x += ms + elt->w;
-              if (elt->h > max_h)
-                max_h = elt->h;
+              item_x += ms.val + elt->w.val;
+              if (elt->h.val > max_h)
+                max_h = elt->h.val;
             }
         }
       else if (!strcmp (element, "all-menu-items"))
@@ -894,31 +884,31 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
       {
         if (orientation == MPUI_ORIENTATION_V)
           {
-            offset = max_w - (*elements)->w;
+            offset = max_w - (*elements)->w.val;
             switch (align)
               {
               case MPUI_ALIGNMENT_CENTER:
                 offset >>= 1;
               case MPUI_ALIGNMENT_RIGHT:
-                (*elements)->x += offset;
+                (*elements)->x.val += offset;
               default:
                 break;
               }
-            (*elements)->w = max_w;
+            (*elements)->w.val = max_w;
           }
         else
           {
-            offset = max_h - (*elements)->h;
+            offset = max_h - (*elements)->h.val;
             switch (align)
               {
               case MPUI_ALIGNMENT_CENTER:
                 offset >>= 1;
               case MPUI_ALIGNMENT_BOTTOM:
-                (*elements)->y += offset;
+                (*elements)->y.val += offset;
               default:
                 break;
               }
-            (*elements)->h = max_h;
+            (*elements)->h.val = max_h;
           }
       }
 
@@ -927,8 +917,10 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   else
     item_y += max_h;
 
-  menu->w = mpui_parse_size (w, mpui->width, item_x + ms/2);
-  menu->h = mpui_parse_size (h, mpui->height, item_y + ms/2);
+  mx = mpui_parse_size (w, mpui->width, item_x + ms.val/2);
+  my = mpui_parse_size (h, mpui->height, item_y + ms.val/2);
+  menu->w = mx.val;
+  menu->h = my.val;
   
   if (font)
     mpui->fonts[0]->deflt = default_font;
@@ -952,7 +944,7 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
     {
       mpui_menu_t *menu = mpui_menu_get (mpui, id);
       mpui_flags_t flags = 0;
-      mpui_size_t sx, sy;
+      mpui_coord_t sx, sy;
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
       if (menu)
@@ -999,7 +991,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
   ASX_Parser_t* parser;
   mpui_popup_t *popup = NULL;
   mpui_container_t *container;
-  mpui_size_t x, y;
+  mpui_coord_t x, y;
   
   id = asx_get_attrib ("id", attribs);
   sx = asx_get_attrib ("x", attribs);
@@ -1011,7 +1003,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
   if (id)
     {
       popup = mpui_popup_new (id, x, y);
-      mpui_set_nocoord ((mpui_element_t *) popup, sx, sy, NULL, NULL);
+      mpui_set_nocoord ((mpui_element_t *) popup);
       container = (mpui_container_t *) popup;
 
       while (1)

@@ -30,6 +30,7 @@ typedef struct mpui_element mpui_element_t;
 typedef struct mpui_container mpui_container_t;
 typedef struct mpui_focus_box mpui_focus_box_t;
 typedef int mpui_size_t;
+typedef struct mpui_coord mpui_coord_t;
 typedef struct mpui_color mpui_color_t;
 typedef struct mpui_ids mpui_ids_t;
 
@@ -97,14 +98,17 @@ enum mpui_type {
   MPUI_POPUP,
 };
 
+struct mpui_coord {
+  mpui_size_t val;
+  char *str;
+};
+
 struct mpui_element {
   mpui_type_t type;
   mpui_flags_t flags;
-  mpui_size_t x, y;
-  mpui_size_t w, h;
+  mpui_coord_t x, y;
+  mpui_coord_t w, h;
   mpui_when_focused_t when_focused;
-  char *sx, *sy;
-  char *sw, *sh;
 };
 
 struct mpui_container {
@@ -291,7 +295,7 @@ mpui_string_t *mpui_string_new (char *id, char *str);
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
 void mpui_string_free (mpui_string_t *string);
 
-mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_size_t x, mpui_size_t y,
+mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_coord_t x,mpui_coord_t y,
                           mpui_flags_t flags, mpui_font_t *font, int size,
                           mpui_color_t *color, mpui_color_t *focused_color,
                           mpui_when_focused_t when_focused);
@@ -308,8 +312,8 @@ mpui_image_t *mpui_image_new (char *id, char *file,
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
-mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-                          mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
+mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
+                          mpui_coord_t w, mpui_coord_t h, mpui_flags_t flags,
                           mpui_when_focused_t when_focused);
 mpui_img_t *mpui_img_dup (mpui_img_t *img);
 void mpui_img_load (mpui_t *mpui, mpui_img_t *img);
@@ -333,7 +337,7 @@ mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
 mpui_object_t *mpui_object_dup (mpui_object_t *object);
 void mpui_object_free (mpui_object_t *object);
 
-mpui_obj_t *mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
+mpui_obj_t *mpui_obj_new (mpui_object_t *object, mpui_coord_t x,mpui_coord_t y,
                           mpui_flags_t flags,mpui_when_focused_t when_focused);
 mpui_obj_t *mpui_obj_dup (mpui_obj_t *obj);
 void mpui_obj_free (mpui_obj_t *obj);
@@ -347,7 +351,7 @@ mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 
-mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
+mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
                           mpui_flags_t flags);
 void mpui_mnu_free (mpui_mnu_t *mnu);
 
@@ -366,12 +370,13 @@ mpui_action_t *mpui_action_new (char *cmd);
 void mpui_action_free (mpui_action_t *action);
 
 mpui_element_t *mpui_element_dup (mpui_element_t *element);
+void mpui_element_coord_dup (mpui_element_t *element);
 void mpui_element_free (mpui_element_t *element);
 void mpui_elements_get_size (mpui_element_t *element,
                              mpui_element_t **elements,
                              mpui_element_t **elements2);
 
-mpui_popup_t *mpui_popup_new (char *id, mpui_size_t x, mpui_size_t y);
+mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
 void mpui_popup_free (mpui_popup_t *popup);
 
