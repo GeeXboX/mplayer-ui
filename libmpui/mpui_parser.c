@@ -489,6 +489,17 @@ mpui_parse_node_strings (mpui_t *mpui, char **attribs, char *body)
   lang = asx_get_attrib ("lang", attribs);
   asx_free_attribs (attribs);
 
+  if (!code || !lang)
+    return NULL;
+
+  /* do not care of <strings> from another language */
+  if (strcmp (lang, mpui->lang) && strcmp ("", mpui->lang))
+    {
+      free (code);
+      free (lang);
+      return NULL;
+    }
+
   strings = mpui_strings_new (code, lang);
   free (code);
   free (lang);
@@ -1601,10 +1612,9 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
           mpui_parse_config (mpui, buffer, width, height, format);
           free (buffer);
         }
-      else if (!strcmp (element, "strings"))
+      else if (!mpui->strings && !strcmp (element, "strings"))
         {
-          mpui_strings_t *strings = mpui_parse_node_strings (mpui, attribs, sbody);
-          mpui_strings_add (mpui, strings);
+          mpui->strings = mpui_parse_node_strings (mpui, attribs, sbody);
         }
       else if (!strcmp (element, "images"))
         {
@@ -1669,14 +1679,15 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
 }
 
 mpui_t *
-mpui_parse_config_file (char *theme, int width, int height, int format)
+mpui_parse_config_file (char *theme, char *lang,
+                        int width, int height, int format)
 {
   int fd, r;
   struct stat st;
   char *buffer, *filename;
   mpui_t *mpui;
 
-  mpui = mpui_new (width, height, format, theme);  
+  mpui = mpui_new (width, height, format, theme, lang);  
   filename = mpui_get_full_name (mpui, "mpui.conf");
   if (!filename)
     return NULL;

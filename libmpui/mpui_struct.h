@@ -325,7 +325,8 @@ struct mpui {
   int format;
   char *theme;
   char *datadir;
-  mpui_strings_t **strings;
+  char *lang;
+  mpui_strings_t *strings;
   mpui_fonts_t **fonts;
   mpui_images_t *images;
   mpui_filetypes_t **filetypes;
@@ -486,7 +487,7 @@ mpui_screens_t *mpui_screens_new (void);
 #define mpui_screens_add(a,b) (a)->screens = mpui_list_add((a)->screens, (b))
 void mpui_screens_free (mpui_screens_t *screens);
 
-mpui_t *mpui_new (int width, int height, int format, char *theme);
+mpui_t *mpui_new (int width, int height, int format, char *theme, char *lang);
 void mpui_free (mpui_t *mpui);
 
 #endif  /* MPUI_STRUCT_H */

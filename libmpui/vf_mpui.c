@@ -49,10 +49,12 @@
 static struct vf_priv_s {
   mpui_t *mpui;
   char *theme;
+  char *lang;
   int show;
 } vf_priv_dflt = {
   NULL,
   "default",
+  "",
   1
 };
 
@@ -229,8 +231,10 @@ config (struct vf_instance_s* vf, int width, int height,
 {
   mp_msg (MSGT_VFILTER, MSGL_INFO,
           "mpui: Using theme '%s'\n", vf->priv->theme);
+  mp_msg (MSGT_VFILTER, MSGL_INFO,
+          "mpui: Using language '%s'\n", vf->priv->lang);
 
-  vf->priv->mpui = mpui_parse_config_file (vf->priv->theme,
+  vf->priv->mpui = mpui_parse_config_file (vf->priv->theme, vf->priv->lang,
                                            width, height, outfmt);
 
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
@@ -250,6 +254,7 @@ vf_open (vf_instance_t *vf, char* args)
       vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
       vf->priv->mpui = NULL;
       vf->priv->theme = strdup ("default");
+      vf->priv->lang = strdup ("");
       vf->priv->show = 1;
     }
 
@@ -263,6 +268,7 @@ vf_open (vf_instance_t *vf, char* args)
 #define ST_OFF(f)  M_ST_OFF (struct vf_priv_s, f)
 static m_option_t vf_opts_fields[] = {
   {"theme", ST_OFF (theme), CONF_TYPE_STRING, 0, 0, 0, NULL},
+  {"lang", ST_OFF (lang), CONF_TYPE_STRING, 0, 0, 0, NULL},
   { NULL, NULL, 0, 0, 0, 0,  NULL }
 };
 
