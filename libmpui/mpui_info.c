@@ -120,48 +120,39 @@ mpui_info_update_tag (mpui_inf_t *inf, mpui_tag_t *tag,
 }
 
 static char *
-mpui_info_get_picture_file (mpui_t *mpui, mpui_pic_t *pic, char *filename)
+mpui_info_get_picture_file (mpui_pic_t *pic, char *filename)
 {
   mpui_filetype_t **filetypes;
   struct dirent **namelist;
-  char **exts, *res = NULL;
-  int n;
+  char *dir = filename, *cur, **exts, *res = NULL;
+  int n, i, l, len;
 
-  n = scandir (mpui->cwd, &namelist, 0, alphasort);
+  if ((filename = strrchr (filename, '/')))
+    *filename++ = '\0';
+  if ((cur = strrchr (filename, '.')))
+    *cur = '\0';
+
+  n = scandir (dir, &namelist, 0, alphasort);
   if (n < 0)
     return NULL;
 
-  for (filetypes = pic->filter->filetypes; *filetypes; filetypes++)
-    switch ((*filetypes)->match)
+  len = strlen (filename);
+
+  for (i=0; i<n && !res; i++)
+    if (!strncasecmp (filename, namelist[i]->d_name, len))
       {
-      case MPUI_MATCH_EXT:
-        for (exts = (*filetypes)->exts; *exts; exts++)
-          {
-            int i, l, len;
-            
-            l = strlen (mpui->cwd) + 1;
-            len = strlen (filename) - l;
+        l = strlen (namelist[i]->d_name);
+        cur = namelist[i]->d_name + l;
 
-            for (i = 0; i < n; i++)
-              {
-                int pos = strlen (namelist[i]->d_name) - strlen (*exts);
-
-                if (strncasecmp (&filename[l], namelist[i]->d_name, len) == 0
-                    && strcasecmp (namelist[i]->d_name + pos, *exts) == 0)
-                  {
-                    res = (char *) malloc (strlen (mpui->cwd)
-                                           + strlen (namelist[i]->d_name) + 2);
-                    sprintf (res, "%s/%s", mpui->cwd, namelist[i]->d_name);
-                    break;
-                  }
-              }
-
-            if (res)
-              break;
-          }
-        break;
-      default:
-        break;
+        for (filetypes=pic->filter->filetypes; *filetypes && !res; filetypes++)
+          if ((*filetypes)->match == MPUI_MATCH_EXT)
+            for (exts=(*filetypes)->exts; *exts; exts++)
+              if (!strcasecmp (cur - strlen (*exts), *exts))
+                {
+                  res = (char *) malloc (strlen (dir) + l + 2);
+                  sprintf (res, "%s/%s", dir, namelist[i]->d_name);
+                  break;
+                }
       }
 
   while (n--)
@@ -177,14 +168,9 @@ mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf,
 {
   mpui_image_t *image = NULL;
   mpui_img_t *img = NULL;
-  char *file, *tmp;
+  char *file;
 
-  tmp = strrchr (filename, '.');
-  if (!tmp)
-    return;
-
-  *tmp = '\0';
-  file = mpui_info_get_picture_file (mpui, pic, filename);
+  file = mpui_info_get_picture_file (pic, filename);
  
   image = mpui_image_new (pic->id, file,
                           pic->x.val, pic->y.val, pic->w.val, pic->h.val);
