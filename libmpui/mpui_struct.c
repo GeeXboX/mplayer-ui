@@ -989,6 +989,8 @@ mpui_new (int width, int height, int format)
   mpui->menus = mpui_list_new ();
   mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
+  mpui->current_screen = NULL;
+  mpui->previous_screen = NULL;
   return mpui;
 }
 
