@@ -209,9 +209,9 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
 void
 mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
 {
-  struct dirent *dirent;
-  DIR *dir;
+  struct dirent **dirent;
   mpui_size_t x, y, val, max = 0;
+  int i, n;
 
   if (browser->border)
     mpui_add_element ((mpui_menu_t *) browser, browser->border);
@@ -220,13 +220,17 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
 
   x = y = browser->spacing/2;
 
-  dir = opendir (mpui->cwd);
-  while ((dirent = readdir (dir)))
+  n = scandir (mpui->cwd, &dirent, NULL, alphasort);
+  for (i=0; i<n; i++)
     {
-      if (!strcmp (dirent->d_name, ".")
-          || (!strcmp (dirent->d_name, "..") && !strcmp (mpui->cwd, "/")))
-        continue;
-      val = mpui_browser_add_item (mpui, browser, dirent->d_name, &x, &y);
+      if (!strcmp (dirent[i]->d_name, ".")
+          || (!strcmp (dirent[i]->d_name, "..") && !strcmp (mpui->cwd, "/")))
+        {
+          free (dirent[i]);
+          continue;
+        }
+      val = mpui_browser_add_item (mpui, browser, dirent[i]->d_name, &x, &y);
+      free (dirent[i]);
       if (val < 0)
         continue;
       if (val > max)
@@ -260,7 +264,7 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
       else
         x += browser->spacing;
     }
-  closedir (dir);
+  free (dirent);
 
   browser->cwd_id = mpui->cwd_id;
 }
