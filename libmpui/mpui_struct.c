@@ -652,7 +652,7 @@ mpui_obj_new (mpui_object_t *object, mpui_coord_t x, mpui_coord_t y,
   obj->object = object;
   mpui_elements_get_size ((mpui_element_t *) obj, object->elements, NULL);
 
-  if (flags & MPUI_FLAG_NOCOORD)
+  if (obj->container.element.flags & MPUI_FLAG_NOCOORD)
     object->need_dup = 1;
 
   return obj;
