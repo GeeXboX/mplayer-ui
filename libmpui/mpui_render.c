@@ -116,6 +116,9 @@ mpui_render_packed_image (mpui_img_t *img, mp_image_t *mpi,
   mpui_image_t *image = img->image;
   int i, incr;
 
+  context->x &= ~1;
+  context->y &= ~1;
+
   yi  = image->planes[0];
   y = mpi->planes[0] + context->y*mpi->stride[0] + context->x*image->bpp;
 
@@ -124,13 +127,20 @@ mpui_render_packed_image (mpui_img_t *img, mp_image_t *mpi,
       aiy = image->planes[3];
       incr = mpi->stride[0] - image->stride[0];
       for (end=yi+image->bpp*image->w*image->h; yi<end; y+=incr)
-        for (i=0; i<(image->w>>1); i++, aiy+=2)
-          {
-            mpui_render_alpha (y++, *yi++, *aiy);
-            mpui_render_alpha (y++, *yi++, *aiy);
-            mpui_render_alpha (y++, *yi++, *(aiy+1));
-            mpui_render_alpha (y++, *yi++, *aiy);
-          }
+        {
+          for (i=0; i<(image->w>>1); i++, aiy+=2)
+            {
+              mpui_render_alpha (y++, *yi++, *aiy);
+              mpui_render_alpha (y++, *yi++, *aiy);
+              mpui_render_alpha (y++, *yi++, *(aiy+1));
+              mpui_render_alpha (y++, *yi++, *aiy);
+            }
+          if (image->w & 1)
+            {
+              mpui_render_alpha (y++, *yi++, *aiy);
+              mpui_render_alpha (y++, *yi++, *aiy++);
+            }
+        }
     }
   else
     {
