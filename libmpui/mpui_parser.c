@@ -1631,7 +1631,7 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
         {
           mpui_parse_node_popups (mpui, attribs, sbody);
         }
-      else if (!strcmp (element, "screens"))
+      else if (mpui->screens == NULL && !strcmp (element, "screens"))
         {
           mpui_screens_t *screens;
           screens = mpui_parse_node_screens (mpui, attribs, sbody);
