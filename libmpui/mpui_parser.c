@@ -854,7 +854,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   mpui_font_t *default_font = NULL, *font = NULL;
   mpui_coord_t mx, my, ms;
   mpui_size_t item_x, item_y, max_w = 0, max_h = 0, tmp;
-  mpui_element_t **elements;
+  mpui_element_t **elements, **e;
   mpui_size_t offset;
 
   id = asx_get_attrib ("id", attribs);
@@ -952,7 +952,9 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
               case MPUI_ALIGNMENT_CENTER:
                 offset >>= 1;
               case MPUI_ALIGNMENT_RIGHT:
-                (*elements)->x.val += offset;
+                for (e=((mpui_container_t *) *elements)->elements; *e; e++)
+                  if (!((*e)->flags & MPUI_FLAG_ABSOLUTE))
+                    (*e)->x.val += offset;
               default:
                 break;
               }
@@ -966,7 +968,9 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
               case MPUI_ALIGNMENT_CENTER:
                 offset >>= 1;
               case MPUI_ALIGNMENT_BOTTOM:
-                (*elements)->y.val += offset;
+                for (e=((mpui_container_t *) *elements)->elements; *e; e++)
+                  if (!((*e)->flags & MPUI_FLAG_ABSOLUTE))
+                    (*e)->y.val += offset;
               default:
                 break;
               }
