@@ -220,6 +220,7 @@ struct mpui_screen {
 };
 
 struct mpui {
+  int width, height;
   mpui_strings_t **strings;
   mpui_images_t **images;
   mpui_fonts_t **fonts;

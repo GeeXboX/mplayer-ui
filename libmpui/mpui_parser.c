@@ -822,7 +822,7 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
 }
 
 mpui_t *
-mpui_parse_config (char *buffer)
+mpui_parse_config (char *buffer, int width, int height)
 {
   char *element, *body, **attribs;
   mpui_t* mpui;
@@ -839,6 +839,8 @@ mpui_parse_config (char *buffer)
     }
 
   mpui = mpui_new ();
+  mpui->width = width;
+  mpui->height = height;
 
   while(1)
     {
@@ -891,7 +893,7 @@ mpui_parse_config (char *buffer)
 }
 
 mpui_t *
-mpui_parse_config_file (char *filename)
+mpui_parse_config_file (char *filename, int width, int height)
 {
   int fd, r;
   struct stat st;
@@ -914,7 +916,7 @@ mpui_parse_config_file (char *filename)
       free (buffer);
       return NULL;
     }
-  mpui = mpui_parse_config (buffer);
+  mpui = mpui_parse_config (buffer, width, height);
   free (buffer);
 
   return mpui;

@@ -44,8 +44,11 @@ put_image (struct vf_instance_s* vf, mp_image_t *mpi)
 static void
 uninit (vf_instance_t *vf)
 {
-  mpui_free (vf->priv->mpui);
-  free (vf->priv);
+  if (vf->priv)
+    {
+      mpui_free (vf->priv->mpui);
+      free (vf->priv);
+    }
   vf->priv = NULL;
 }
 
@@ -53,22 +56,19 @@ static int
 config (struct vf_instance_s* vf, int width, int height,
         int d_width, int d_height, unsigned int flags, unsigned int outfmt)
 {
+  vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
+  vf->priv->mpui = mpui_parse_config_file ("mpui-theme.xml", width, height);
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
 }
 
 static int
 open (vf_instance_t *vf, char* args)
 {
-  struct vf_priv_s* st_priv;
-
   vf->config = config;
   vf->put_image = put_image;
   //  vf->get_image = get_image;
   vf->uninit = uninit;
-
-  st_priv = (struct vf_priv_s *) malloc (sizeof (*st_priv));
-  st_priv->mpui = mpui_parse_config_file ("mpui-theme.xml");
-  vf->priv = st_priv;
+  vf->priv = NULL;
 
   return 1;
 }

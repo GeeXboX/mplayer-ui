@@ -21,7 +21,7 @@
 
 #include "mpui_struct.h"
 
-mpui_t *mpui_parse_config (char *buffer);
-mpui_t *mpui_parse_config_file (char *filename);
+mpui_t *mpui_parse_config (char *buffer, int width, int height);
+mpui_t *mpui_parse_config_file (char *filename, int width, int height);
 
 #endif /* MPUI_PARSER_H */
