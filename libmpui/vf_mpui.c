@@ -36,6 +36,8 @@
 #include "osdep/keycodes.h"
 #include "mp_msg.h"
 #include "mplayer.h"
+#include "m_option.h"
+#include "m_struct.h"
 
 #include "mpui_focus.h"
 #include "mpui_browser.h"
@@ -44,10 +46,14 @@
 #include "mpui_cmd.h"
 
 
-struct vf_priv_s {
+static struct vf_priv_s {
   mpui_t *mpui;
   char *theme;
   int show;
+} vf_priv_dflt = {
+  NULL,
+  "default",
+  1
 };
 
 static struct vf_priv_s *st_priv = NULL;
@@ -239,16 +245,14 @@ vf_open (vf_instance_t *vf, char* args)
   //  vf->get_image = get_image;
   vf->uninit = uninit;
 
-  vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
-  vf->priv->mpui = NULL;
+  if (!vf->priv)
+    {
+      vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
+      vf->priv->mpui = NULL;
+      vf->priv->theme = strdup ("default");
+      vf->priv->show = 1;
+    }
 
-  vf->priv->theme = (char *) malloc (128 * sizeof (char));
-  if (args)
-    sscanf (args, "%s", vf->priv->theme);
-  else
-    strcpy (vf->priv->theme, "default");
-
-  vf->priv->show = 1;
   st_priv = vf->priv;
 
   mp_input_add_cmd_filter ((mp_input_cmd_filter) cmd_filter, vf->priv);
@@ -256,6 +260,18 @@ vf_open (vf_instance_t *vf, char* args)
   return 1;
 }
 
+#define ST_OFF(f)  M_ST_OFF (struct vf_priv_s, f)
+static m_option_t vf_opts_fields[] = {
+  {"theme", ST_OFF (theme), CONF_TYPE_STRING, 0, 0, 0, NULL},
+  { NULL, NULL, 0, 0, 0, 0,  NULL }
+};
+
+static m_struct_t vf_opts = {
+  "mpui",
+  sizeof (struct vf_priv_s),
+  &vf_priv_dflt,
+  vf_opts_fields
+};
 
 vf_info_t vf_info_mpui = {
   "Internal filter for libmpui",
@@ -263,5 +279,5 @@ vf_info_t vf_info_mpui = {
   "Aurelien Jacobs\nBenjamin Zores",
   "",
   vf_open,
-  NULL
+  &vf_opts
 };
