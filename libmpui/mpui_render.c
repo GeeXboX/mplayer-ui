@@ -313,7 +313,13 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   if (str->color)
     color = str->color;
   else
-    color = str->font->color;
+    {
+      if ((context->focus || context->really_focus)
+          && str->font->focused_color)
+        color = str->font->focused_color;
+      else
+        color = str->font->color;
+    }
 
   p = txt;
   while (*p)
