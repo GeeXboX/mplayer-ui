@@ -83,16 +83,19 @@ mpui_tv_analog_channels_generate (mpui_menu_t *menu,
   channels = tv_param_channels;
   while (*channels)
     {
-      char *tmp, *sep, cmd[32];
+      char *tmp, *sep, cmd[32], channel[32], *chan=channel;
 
-      tmp = *(channels++);
+      tmp = *channels++;
       sep = strchr (tmp, '-');
 
       if (!sep)
         continue;
+      while (*++sep && chan < (channel + sizeof (channel) - 1))
+        *chan++ = *sep == '_' ? ' ' : *sep;
+      *chan = '\0';
 
       snprintf (cmd, 32, "loadfile tv://%d", idx++);
-      mpui_tv_add_channel (menu, mx, my, mw, mh, spacing, sep + 1, cmd);
+      mpui_tv_add_channel (menu, mx, my, mw, mh, spacing, channel, cmd);
     }
 }
 
