@@ -684,12 +684,24 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
 static mpui_fonts_t *
 mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 {
-  char *dflt, *element;
+  char *dflt, *encoding, *element;
   mpui_fonts_t *fonts;
   mpui_font_t **fnts;
 
   dflt = asx_get_attrib ("default", attribs);
+  encoding = asx_get_attrib ("encoding", attribs);
   asx_free_attribs (attribs);
+
+  if (!dflt || !encoding)
+    return NULL;
+
+  /* font encoding does not match the language encoding */
+  if (!mpui->strings->encoding || strcmp (encoding, mpui->strings->encoding))
+    {
+      free (dflt);
+      free (encoding);
+      return NULL;
+    }
 
   fonts = mpui_fonts_new ();
 
@@ -718,6 +730,9 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
         fonts->deflt = *fnts;
         break;
       }
+
+  free (dflt);
+  free (encoding);
 
   return fonts;
 }
@@ -1081,8 +1096,8 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   if (font_id && (font = mpui_font_get (mpui, font_id)))
     {
-      default_font = mpui->fonts[0]->deflt;
-      mpui->fonts[0]->deflt = font;
+      default_font = mpui->fonts->deflt;
+      mpui->fonts->deflt = font;
     }
 
   mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
@@ -1199,7 +1214,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   free (h);
 
   if (font)
-    mpui->fonts[0]->deflt = default_font;
+    mpui->fonts->deflt = default_font;
 
   return menu;
 }
@@ -1252,7 +1267,7 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   align = mpui_parse_alignment (attribs);
 
   if (!font_id || !(font = mpui_font_get (mpui, font_id)))
-    font = mpui->fonts[0]->deflt;
+    font = mpui->fonts->deflt;
 
   mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
   my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
@@ -1620,10 +1635,9 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
         {
           mpui_parse_node_images (mpui, attribs,sbody);
         }
-      else if (!strcmp (element, "fonts"))
+      else if (!mpui->fonts && !strcmp (element, "fonts"))
         {
-          mpui_fonts_t *fonts = mpui_parse_node_fonts (mpui, attribs, sbody);
-          mpui_fonts_add (mpui, fonts);
+          mpui->fonts = mpui_parse_node_fonts (mpui, attribs, sbody);
         }
       else if (!strcmp (element, "file-types"))
         {

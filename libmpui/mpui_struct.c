@@ -543,21 +543,18 @@ mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
 mpui_font_t *
 mpui_font_get (mpui_t *mpui, char *id)
 {
-  mpui_fonts_t **fonts;
   mpui_font_t **font;
 
   if (id)
     {
-      for (fonts=mpui->fonts; *fonts; fonts++)
-        for (font=(*fonts)->fonts; *font; font++)
-          if (!strcmp ((*font)->id, id))
-            return *font;
+      for (font=mpui->fonts->fonts; *font; font++)
+        if (!strcmp ((*font)->id, id))
+          return *font;
     }
   else
     {
-      for (fonts=mpui->fonts; *fonts; fonts++)
-        if ((*fonts)->deflt)
-          return (*fonts)->deflt;
+      if (mpui->fonts->deflt)
+        return mpui->fonts->deflt;
     }
   return NULL;
 }
@@ -1258,7 +1255,7 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
   mpui->diag = sqrt (width*width + height*height);
   mpui->format = format;
   mpui->strings = NULL;
-  mpui->fonts = mpui_list_new ();
+  mpui->fonts = NULL;
   mpui->images = mpui_images_new ();
   mpui->filetypes = mpui_list_new ();
   mpui->objects = mpui_objects_new ();
@@ -1277,7 +1274,6 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
 void
 mpui_free (mpui_t *mpui)
 {
-  mpui_fonts_t **fonts = mpui->fonts;
   mpui_filetypes_t **filetypes = mpui->filetypes;
 
   free (mpui->theme);
@@ -1285,10 +1281,7 @@ mpui_free (mpui_t *mpui)
   free (mpui->lang);
 
   mpui_strings_free (mpui->strings);
-
-  while (*fonts)
-    mpui_fonts_free (*fonts++);
-  free (mpui->fonts);
+  mpui_fonts_free (mpui->fonts);
 
   if (mpui->images)
     mpui_images_free (mpui->images);

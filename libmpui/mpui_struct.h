@@ -327,7 +327,7 @@ struct mpui {
   char *datadir;
   char *lang;
   mpui_strings_t *strings;
-  mpui_fonts_t **fonts;
+  mpui_fonts_t *fonts;
   mpui_images_t *images;
   mpui_filetypes_t **filetypes;
   mpui_objects_t *objects;
