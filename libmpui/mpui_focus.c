@@ -83,7 +83,8 @@ mpui_focus_change (mpui_focus_box_t *focus_box, mpui_element_t **element)
   if (focus_box->focus >= focus_box->container.elements)
     mpui_focus_action_exec (focus_box, MPUI_WHEN_UNFOCUS);
   focus_box->focus = element;
-  mpui_focus_action_exec (focus_box, MPUI_WHEN_FOCUS);
+  if (focus_box->focus)
+    mpui_focus_action_exec (focus_box, MPUI_WHEN_FOCUS);
 }
 
 int
@@ -346,6 +347,12 @@ mpui_focus_element (mpui_focus_box_t *focus_box, mpui_element_t *element)
         mpui_focus_change (focus_box, elements);
         return;
       }
+}
+
+void
+mpui_focus_unfocus (mpui_focus_box_t *focus_box)
+{
+  mpui_focus_change (focus_box, NULL);
 }
 
 

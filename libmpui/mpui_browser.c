@@ -296,6 +296,7 @@ mpui_browser_update (mpui_t *mpui, mpui_mnu_t *mnu)
 
   if (browser->cwd_id != mpui->cwd_id)
     {
+      mpui_focus_unfocus ((mpui_focus_box_t *) mnu);
       mpui_browser_clean (browser);
       element = mpui_browser_generate (mpui, browser);
       ((mpui_container_t *) mnu)->elements = mnu->menu->elements;
