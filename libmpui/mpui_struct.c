@@ -43,6 +43,14 @@ mpui_list_new (void)
 }
 
 int
+mpui_list_empty (void *list)
+{
+  if (* (void **) list)
+    return 0;
+  return 1;
+}
+
+int
 mpui_list_length (void *list)
 {
   void **l = list;
@@ -61,6 +69,15 @@ mpui_list_add (void *list, void *element)
   l[n] = NULL;
   l[n-1] = element;
   return l;
+}
+
+void
+mpui_list_remove_last (void *list)
+{
+  int n = mpui_list_length (list) - 1;
+  void **l = list;
+  if (n >= 0)
+    l[n] = NULL;
 }
 
 
@@ -799,6 +816,9 @@ mpui_element_free (mpui_element_t *element)
     case MPUI_MENUITEM:
       mpui_menuitem_free ((mpui_menuitem_t *) element);
       break;
+    case MPUI_POPUP:
+      mpui_popup_free ((mpui_popup_t *) element);
+      break;
     }
 }
 
@@ -831,6 +851,68 @@ mpui_elements_get_size (mpui_element_t *element,
 }
 
 
+mpui_popup_t *
+mpui_popup_new (char *id, mpui_size_t x, mpui_size_t y)
+{
+  mpui_popup_t *popup;
+
+  popup = (mpui_popup_t *) malloc (sizeof (*popup));
+  popup->id = mpui_strdup (id);
+  popup->container.element.type = MPUI_POPUP;
+  popup->container.element.flags = MPUI_FLAG_CONTAINER;
+  popup->container.element.x = x;
+  popup->container.element.y = y;
+  popup->container.element.when_focused = MPUI_DISPLAY_ALWAYS;
+  popup->container.elements = mpui_list_new ();
+  popup->container.actions = NULL;
+  return popup;
+}
+
+mpui_popup_t *
+mpui_popup_get (mpui_popups_t *popups, char *id)
+{
+  mpui_popup_t **popup;
+
+  for (popup=popups->popups; *popup; popup++)
+    if (!strcmp ((*popup)->id, id))
+      return *popup;
+  return NULL;
+}
+
+void
+mpui_popup_free (mpui_popup_t *popup)
+{
+  mpui_element_t **e = popup->container.elements;
+
+  while (*e)
+    mpui_element_free (*e++);
+  free (popup->container.elements);
+  free (popup);
+}
+
+
+mpui_popups_t *
+mpui_popups_new (void)
+{
+  mpui_popups_t *popups;
+
+  popups = (mpui_popups_t *) malloc (sizeof (*popups));
+  popups->popups = mpui_list_new ();
+  return popups;
+}
+
+void
+mpui_popups_free (mpui_popups_t *popups)
+{
+  mpui_popup_t **p = popups->popups;
+
+  while (*p)
+    mpui_popup_free (*p++);
+  free (popups->popups);
+  free (popups);
+}
+
+
 mpui_screen_t *
 mpui_screen_new (char *id)
 {
@@ -839,6 +921,7 @@ mpui_screen_new (char *id)
   screen = (mpui_screen_t *) malloc (sizeof (*screen));
   screen->id = mpui_strdup (id);
   screen->elements = mpui_list_new ();
+  screen->popup_stack = mpui_list_new ();
   return screen;
 }
 
@@ -861,6 +944,7 @@ mpui_screen_free (mpui_screen_t *screen)
   while (*e)
     mpui_element_free (*e++);
   free (screen->elements);
+  free (screen->popup_stack);
   free (screen);
 }
 
@@ -903,6 +987,7 @@ mpui_new (int width, int height, int format)
   mpui->fonts = mpui_list_new ();
   mpui->objects = mpui_list_new ();
   mpui->menus = mpui_list_new ();
+  mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
   return mpui;
 }
@@ -935,6 +1020,9 @@ mpui_free (mpui_t *mpui)
   while (*menus)
     mpui_menus_free (*menus++);
   free (mpui->menus);
+
+  if (mpui->popups)
+    mpui_popups_free (mpui->popups);
 
   if (mpui->screens)
     mpui_screens_free (mpui->screens);

@@ -970,6 +970,84 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
   return menus;
 }
 
+static mpui_popup_t *
+mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
+{
+  char *id, *sx, *sy, *element;
+  ASX_Parser_t* parser;
+  mpui_popup_t *popup = NULL;
+  mpui_container_t *container;
+  mpui_size_t x, y;
+  
+  id = asx_get_attrib ("id", attribs);
+  sx = asx_get_attrib ("x", attribs);
+  sy = asx_get_attrib ("y", attribs);
+  x = mpui_parse_size (sx, mpui->width, 0);
+  y = mpui_parse_size (sy, mpui->height, 0);
+  asx_free_attribs (attribs);
+
+  if (id)
+    {
+      popup = mpui_popup_new (id, x, y);
+      container = (mpui_container_t *) popup;
+
+      while (1)
+        {
+          mpui_element_t *elt = NULL;
+          char *sbody;
+          int res;
+
+          parser = asx_parser_new ();
+          res = mpui_parse_get_element (parser,&body,&element,&sbody,&attribs);
+          if (res <= 0)
+            break;
+
+          if (!strcmp (element, "obj"))
+            elt = (mpui_element_t *) mpui_parse_node_obj (mpui, attribs);
+          else if (!strcmp (element, "img"))
+            elt = (mpui_element_t *) mpui_parse_node_img (mpui, attribs);
+          else if (!strcmp (element, "str"))
+            elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
+          else if (!strcmp (element, "mnu"))
+            elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
+
+          if (elt)
+            mpui_add_element (container, elt);
+          free (parser);
+        }
+      asx_free_attribs (attribs);
+      mpui_elements_get_size (&container->element, container->elements, NULL);
+    }
+
+  return popup;
+}
+
+static void
+mpui_parse_node_popups (mpui_t *mpui, char **attribs, char *body)
+{
+  char *element, *sbody;
+  ASX_Parser_t* parser;
+  int res;
+
+  asx_free_attribs (attribs);
+
+  while (1)
+    {
+      parser = asx_parser_new ();
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+
+      if (!strcmp (element, "popup"))
+        {
+          mpui_popup_t *popup = mpui_parse_node_popup (mpui, attribs, sbody);
+          mpui_popups_add (mpui->popups, popup);
+        }
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+}
+
 static mpui_screen_t *
 mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
 {
@@ -1059,7 +1137,6 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
 {
   char *element, *body, **attribs;
   mpui_element_t **elements;
-  mpui_screen_t **screen;
   mpui_t* mpui;
   ASX_Parser_t* parser = asx_parser_new();
 
@@ -1151,6 +1228,10 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
           mpui_menus_t *menus = mpui_parse_node_menus (mpui, attribs, sbody);
           mpui_menus_add (mpui, menus);
         }
+      else if (!strcmp (element, "popups"))
+        {
+          mpui_parse_node_popups (mpui, attribs, sbody);
+        }
       else if (!strcmp (element, "screens"))
         {
           mpui_screens_t *screens;
@@ -1162,9 +1243,21 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
     }
 
   if (mpui->screens)
-    for (screen=mpui->screens->screens; *screen; screen++)
-      for (elements=(*screen)->elements; *elements; elements++)
-        mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
+    {
+      mpui_screen_t **screen;
+      mpui->current_screen = mpui->screens->menu;
+      for (screen=mpui->screens->screens; *screen; screen++)
+        for (elements=(*screen)->elements; *elements; elements++)
+          mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
+    }
+  if (mpui->popups)
+    {
+      mpui_popup_t **popup;
+      for (popup=mpui->popups->popups; *popup; popup++)
+        for (elements=(*popup)->container.elements; *elements; elements++)
+          mpui_recompute_coord (mpui, *elements, (*popup)->container.element.w,
+                                (*popup)->container.element.h);
+    }
 
   return mpui;
 }

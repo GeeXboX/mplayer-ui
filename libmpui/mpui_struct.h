@@ -54,6 +54,8 @@ typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
 typedef struct mpui_mnu mpui_mnu_t;
+typedef struct mpui_popup mpui_popup_t;
+typedef struct mpui_popups mpui_popups_t;
 typedef struct mpui_screens mpui_screens_t;
 typedef struct mpui_screen mpui_screen_t;
 typedef struct mpui mpui_t;
@@ -92,6 +94,7 @@ enum mpui_type {
   MPUI_OBJ,
   MPUI_MNU,
   MPUI_MENUITEM,
+  MPUI_POPUP,
 };
 
 struct mpui_element {
@@ -235,6 +238,15 @@ struct mpui_mnu {
   mpui_menu_t *menu;
 };
 
+struct mpui_popups {
+  mpui_popup_t **popups;
+};
+
+struct mpui_popup {
+  mpui_container_t container;
+  char *id;
+};
+
 struct mpui_screens {
   mpui_screen_t *menu;
   mpui_screen_t *ctrl;
@@ -245,6 +257,7 @@ struct mpui_screen {
   char *id;
   mpui_element_t **elements;
   mpui_element_t **focus_box;
+  mpui_popup_t **popup_stack;
 };
 
 struct mpui {
@@ -255,13 +268,17 @@ struct mpui {
   mpui_fonts_t **fonts;
   mpui_objects_t **objects;
   mpui_menus_t **menus;
+  mpui_popups_t *popups;
   mpui_screens_t *screens;
+  mpui_screen_t *current_screen;
 };
 
 
 void *mpui_list_new (void);
+int mpui_list_empty (void *list);
 int mpui_list_length (void *list);
 void *mpui_list_add (void *list, void *element);
+void mpui_list_remove_last (void *list);
 
 mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
 mpui_color_t *mpui_color_dup (mpui_color_t *color);
@@ -351,9 +368,18 @@ void mpui_elements_get_size (mpui_element_t *element,
                              mpui_element_t **elements,
                              mpui_element_t **elements2);
 
+mpui_popup_t *mpui_popup_new (char *id, mpui_size_t x, mpui_size_t y);
+mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
+void mpui_popup_free (mpui_popup_t *popup);
+
+mpui_popups_t *mpui_popups_new (void);
+#define mpui_popups_add(a,b) a->popups = mpui_list_add(a->popups, b)
+void mpui_popups_free (mpui_popups_t *popups);
+
 mpui_screen_t *mpui_screen_new (char *id);
 mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
-/* mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id); */
+#define mpui_popup_add(a,b) a->popup_stack = mpui_list_add(a->popup_stack, b)
+#define mpui_popup_remove(a) mpui_list_remove_last(a->popup_stack)
 void mpui_screen_free (mpui_screen_t *screen);
 
 #define mpui_add_element(a,b) a->elements = mpui_list_add(a->elements, b)

@@ -404,5 +404,8 @@ mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi)
   for (elements=screen->elements; *elements; elements++)
     mpui_render_element (*elements, mpi, context);
 
+  for (elements=(mpui_element_t **)screen->popup_stack; *elements; elements++)
+    mpui_render_element (*elements, mpi, context);
+
   return 0;
 }

@@ -58,10 +58,6 @@
 #define MP_CMD_SWITCH_VSYNC 54
 #define MP_CMD_SWITCH_RATIO 55
 #define MP_CMD_FRAME_STEP 56
-#define MP_CMD_SPEED_INCR 57
-#define MP_CMD_SPEED_MULT 58
-#define MP_CMD_SPEED_SET 59
-#define MP_CMD_RUN 60
 
 #define MP_CMD_GUI_EVENTS       5000
 #define MP_CMD_GUI_LOADFILE     5001
@@ -91,6 +87,11 @@
 #define MP_CMD_CHELP 7000
 #define MP_CMD_CEXIT 7001
 #define MP_CMD_CHIDE 7002
+#define MP_CMD_CRUN 7003
+
+// mpui commands
+#define MP_CMD_MPUI          8000
+#define MP_CMD_MPUI_POPUP    8001
 
 // The arg types
 #define MP_CMD_ARG_INT 0
@@ -139,7 +140,6 @@ typedef struct mp_cmd {
   char* name;
   int nargs;
   mp_cmd_arg_t args[MP_CMD_MAX_ARGS];
-  int pausing;
 } mp_cmd_t;
 
 

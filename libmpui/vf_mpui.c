@@ -83,40 +83,59 @@ copy_mpi(mp_image_t *dmpi, mp_image_t *mpi)
     }
 }
 
+static int
+cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
+{
+  switch (cmd->id)
+    {
+    case MP_CMD_MPUI_POPUP:
+      mpui_focus_popup (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    }
+  return 0;
+}
+
 static void
 read_keycode (int code)
 {
   mpui_focus_box_t *fb;
-  fb = (mpui_focus_box_t *) st_priv->mpui->screens->menu->focus_box[0];
+  fb = (mpui_focus_box_t *) st_priv->mpui->current_screen->focus_box[0];
 
-  switch (code)
-    {
-    case KEY_UP:
-      if (fb->orientation == MPUI_ORIENTATION_V)
-        mpui_focus_previous (fb);
-      break;
-    case KEY_DOWN:
-      if (fb->orientation == MPUI_ORIENTATION_V)
-        mpui_focus_next (fb);
-      break;
-    case KEY_LEFT:
-      if (fb->orientation == MPUI_ORIENTATION_H)
-        mpui_focus_previous (fb);
-      break;
-    case KEY_RIGHT:
-      if (fb->orientation == MPUI_ORIENTATION_H)
-        mpui_focus_next (fb);
-      break;
-    case KEY_TAB:
-    case KEY_SPACE:
-      mpui_focus_box_next (st_priv->mpui->screens->menu);
-      break;
-    case KEY_ENTER:
-      mpui_focus_action_exec (fb);
-      break;
-    case KEY_ESC:
-      exit_player ("mpui");
-    }
+  if (mpui_list_empty (st_priv->mpui->current_screen->popup_stack))
+    switch (code)
+      {
+      case KEY_UP:
+        if (fb->orientation == MPUI_ORIENTATION_V)
+          mpui_focus_previous (fb);
+        break;
+      case KEY_DOWN:
+        if (fb->orientation == MPUI_ORIENTATION_V)
+          mpui_focus_next (fb);
+        break;
+      case KEY_LEFT:
+        if (fb->orientation == MPUI_ORIENTATION_H)
+          mpui_focus_previous (fb);
+        break;
+      case KEY_RIGHT:
+        if (fb->orientation == MPUI_ORIENTATION_H)
+          mpui_focus_next (fb);
+        break;
+      case KEY_TAB:
+      case KEY_SPACE:
+        mpui_focus_box_next (st_priv->mpui->current_screen);
+        break;
+      case KEY_ENTER:
+        mpui_focus_action_exec (fb);
+        break;
+      case KEY_ESC:
+        exit_player ("mpui");
+      }
+  else
+    switch (code)
+      {
+      case KEY_ESC:
+        mpui_focus_popup_close (st_priv->mpui);
+      }
 }
 
 static int
@@ -130,12 +149,12 @@ put_image (struct vf_instance_s* vf, mp_image_t *mpi)
   if (mp_input_key_cb && !vf->priv->show)
     mp_input_key_cb = NULL;
 
-  if (vf->priv->mpui && vf->priv->mpui->screens && vf->priv->mpui->screens->menu)
+  if (vf->priv->mpui && vf->priv->mpui->screens && vf->priv->mpui->current_screen)
     {
       dmpi = vf_get_image (vf->next, mpi->imgfmt, MP_IMGTYPE_TEMP, 0,
                            mpi->w, mpi->h);
       copy_mpi(dmpi, mpi);
-      mpui_render_screen (vf->priv->mpui->screens->menu, dmpi);
+      mpui_render_screen (vf->priv->mpui->current_screen, dmpi);
     }
 
   return vf_next_put_image (vf, dmpi);
@@ -181,6 +200,8 @@ vf_open (vf_instance_t *vf, char* args)
   vf->priv->mpui = NULL;
   vf->priv->show = 1;
   st_priv = vf->priv;
+
+  mp_input_add_cmd_filter ((mp_input_cmd_filter) cmd_filter, vf->priv);
 
   return 1;
 }

@@ -136,6 +136,21 @@ mpui_focus_action_exec (mpui_focus_box_t *focus_box)
   return;
 }
 
+void
+mpui_focus_popup (mpui_t *mpui, char *id)
+{
+  mpui_popup_t *popup;
+
+  popup = mpui_popup_get (mpui->popups, id);
+  mpui_popup_add (mpui->current_screen, popup);
+}
+
+void
+mpui_focus_popup_close (mpui_t *mpui)
+{
+  mpui_popup_remove (mpui->current_screen);
+}
+
 
 int
 mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element)
