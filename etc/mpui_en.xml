@@ -2,7 +2,7 @@
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
-  <strings encoding="iso-8859-1" lang="en">
+  <strings fonts="iso-8859-1" lang="en">
     <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2005"/>
     <string id="media_menu" text="Media Browser"/>
     <string id="play_menu" text="Play CD/DVD"/>

@@ -152,7 +152,7 @@ struct mpui_color {
 };
 
 struct mpui_strings {
-  char *encoding;
+  char *fonts;
   char *lang;
   mpui_string_t **strings;
 };
@@ -364,7 +364,7 @@ mpui_str_t *mpui_str_new (mpui_string_t *string, mpui_coord_t x,mpui_coord_t y,
 mpui_str_t *mpui_str_dup (mpui_str_t *str);
 void mpui_str_free (mpui_str_t *str);
 
-mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
+mpui_strings_t *mpui_strings_new (char *fonts, char *lang);
 #define mpui_strings_add(a,b) (a)->strings = mpui_list_add((a)->strings, (b))
 void mpui_strings_free (mpui_strings_t *strings);
 

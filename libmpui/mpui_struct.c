@@ -336,12 +336,12 @@ mpui_str_free (mpui_str_t *str)
 
 
 mpui_strings_t *
-mpui_strings_new (char *encoding, char *lang)
+mpui_strings_new (char *fonts, char *lang)
 {
   mpui_strings_t *strings;
 
   strings = (mpui_strings_t *) malloc (sizeof (*strings));
-  strings->encoding = mpui_strdup (encoding);
+  strings->fonts = mpui_strdup (fonts);
   strings->lang = mpui_strdup (lang);
   strings->strings = mpui_list_new ();
   return strings;
@@ -352,7 +352,7 @@ mpui_strings_free (mpui_strings_t *strings)
 {
   mpui_string_t **s = strings->strings;
 
-  free (strings->encoding);
+  free (strings->fonts);
   free (strings->lang);
   while (*s)
     mpui_string_free (*s++);

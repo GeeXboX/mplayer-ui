@@ -2,7 +2,7 @@
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
-  <strings encoding="gb2312" lang="zh">
+  <strings fonts="gb2312" lang="zh">
     <string id="version" text="Devel"/>
     <string id="media_menu" text="打开文件"/>
     <string id="play_menu" text="打开文件夹"/>

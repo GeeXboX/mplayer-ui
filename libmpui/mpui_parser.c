@@ -482,26 +482,26 @@ static mpui_strings_t *
 mpui_parse_node_strings (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
-  char *code, *lang, *element;
+  char *fonts, *lang, *element;
   mpui_strings_t *strings;
 
-  code = asx_get_attrib ("encoding", attribs);
+  fonts = asx_get_attrib ("fonts", attribs);
   lang = asx_get_attrib ("lang", attribs);
   asx_free_attribs (attribs);
 
-  if (!code || !lang)
+  if (!fonts || !lang)
     return NULL;
 
   /* do not care of <strings> from another language */
   if (strcmp (lang, mpui->lang) && *mpui->lang)
     {
-      free (code);
+      free (fonts);
       free (lang);
       return NULL;
     }
 
-  strings = mpui_strings_new (code, lang);
-  free (code);
+  strings = mpui_strings_new (fonts, lang);
+  free (fonts);
   free (lang);
 
   while (1)
@@ -684,22 +684,22 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
 static mpui_fonts_t *
 mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 {
-  char *dflt, *encoding, *element;
+  char *id, *dflt, *element;
   mpui_fonts_t *fonts;
   mpui_font_t **fnts;
 
   dflt = asx_get_attrib ("default", attribs);
-  encoding = asx_get_attrib ("encoding", attribs);
+  id = asx_get_attrib ("id", attribs);
   asx_free_attribs (attribs);
 
-  if (!dflt || !encoding)
+  if (!id || !dflt)
     return NULL;
 
-  /* font encoding does not match the language encoding */
-  if (!mpui->strings->encoding || strcmp (encoding, mpui->strings->encoding))
+  /* font id does not match the language fonts */
+  if (!mpui->strings->fonts || strcmp (id, mpui->strings->fonts))
     {
+      free (id);
       free (dflt);
-      free (encoding);
       return NULL;
     }
 
@@ -731,8 +731,8 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
         break;
       }
 
+  free (id);
   free (dflt);
-  free (encoding);
 
   return fonts;
 }
