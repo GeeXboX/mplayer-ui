@@ -469,6 +469,26 @@ mpui_menuitem_free (mpui_menuitem_t *menuitem)
   free (menuitem);
 }
 
+mpui_allmenuitem_t *
+mpui_allmenuitem_new (void)
+{
+  mpui_allmenuitem_t *allmenuitem;
+
+  allmenuitem = (mpui_allmenuitem_t *) malloc (sizeof (*allmenuitem));
+  allmenuitem->elements = mpui_list_new ();
+  return allmenuitem;
+}
+
+void
+mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem)
+{
+  mpui_element_t **e = allmenuitem->elements;
+
+  while (*e)
+    mpui_element_free (*e++);
+  free (allmenuitem->elements);
+  free (allmenuitem);
+}
 
 mpui_action_t *
 mpui_action_new (char *cmd)

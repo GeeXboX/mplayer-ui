@@ -44,6 +44,7 @@ typedef struct mpui_object mpui_object_t;
 typedef struct mpui_obj mpui_obj_t;
 typedef unsigned int mpui_menu_orientation_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
+typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
 typedef struct mpui_mnu mpui_mnu_t;
@@ -65,6 +66,7 @@ enum mpui_type {
   MPUI_ACTION,
   MPUI_MENU,
   MPUI_MENUITEM,
+  MPUI_ALLMENUITEM,
 };
 
 struct mpui_element {
@@ -78,6 +80,7 @@ struct mpui_element {
     mpui_action_t *action;
     mpui_menu_t *menu;
     mpui_menuitem_t *menuitem;
+    mpui_allmenuitem_t *allmenuitem;
   };
 };
 
@@ -177,6 +180,10 @@ struct mpui_menuitem {
   mpui_element_t **elements;
 };
 
+struct mpui_allmenuitem {
+  mpui_element_t **elements;
+};
+
 struct mpui_menus {
   mpui_menu_t **menus;
 };
@@ -257,6 +264,7 @@ void mpui_fonts_free (mpui_fonts_t *fonts);
 
 mpui_object_t *mpui_object_new (char *id, mpui_object_flags_t flags);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
+#define mpui_object_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_object_free (mpui_object_t *object);
 
 mpui_obj_t *mpui_obj_new (mpui_object_t *object,
@@ -282,7 +290,12 @@ mpui_menus_t *mpui_menus_new (void);
 void mpui_menus_free (mpui_menus_t *menus);
 
 mpui_menuitem_t *mpui_menuitem_new (void);
+#define mpui_menuitem_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);
+
+mpui_allmenuitem_t *mpui_allmenuitem_new (void);
+#define mpui_allmenuitem_add(a,b) a->elements = mpui_list_add(a->elements, b)
+void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd);
 void mpui_action_free (mpui_action_t *action);
