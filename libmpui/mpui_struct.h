@@ -117,6 +117,7 @@ struct mpui_coord {
 };
 
 struct mpui_element {
+  char *id;
   mpui_type_t type;
   mpui_flags_t flags;
   mpui_coord_t x, y;
