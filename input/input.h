@@ -99,6 +99,7 @@
 #define MP_CMD_MPUI_CD       8003
 #define MP_CMD_MPUI_HIDE     8004
 #define MP_CMD_MPUI_SHOW     8005
+#define MP_CMD_MPUI_INFO     8006
 
 // The arg types
 #define MP_CMD_ARG_INT 0

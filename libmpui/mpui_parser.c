@@ -1478,6 +1478,169 @@ mpui_parse_node_popups (mpui_t *mpui, char **attribs, char *body)
   asx_free_attribs (attribs);
 }
 
+static mpui_tag_t *
+mpui_parse_node_tag (mpui_t *mpui, char **attribs)
+{
+  char *id, *caption, *type, *x, *y;
+  mpui_tag_t *tag = NULL;
+  mpui_string_t *string = NULL;
+  mpui_coord_t mx, my;
+
+  id = asx_get_attrib ("id", attribs);
+  caption = asx_get_attrib ("caption", attribs);
+  type = asx_get_attrib ("type", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+
+  if (caption)
+    string = mpui_string_get (mpui, caption);
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+
+  if (id && string && type)
+    tag = mpui_tag_new (id, string->text, type, mx, my);
+
+  asx_free_attribs (attribs);
+  free (id);
+  free (caption);
+  free (type);
+  free (x);
+  free (y);
+
+  return tag;
+}
+
+static mpui_inf_t *
+mpui_parse_node_inf (mpui_t *mpui, char **attribs)
+{
+  char *id, *x, *y, *absolute, *hidden;
+  mpui_inf_t *inf = NULL;
+
+  id = asx_get_attrib ("id", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
+
+  if (id)
+    {
+      mpui_info_t *info;
+      mpui_flags_t flags = 0;
+      mpui_coord_t sx, sy;
+      mpui_when_focused_t wf = MPUI_DISPLAY_ALWAYS;
+
+      info = mpui_info_get (mpui, id);
+      if (absolute && !strcmp (absolute, "yes"))
+        flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
+      wf = mpui_parse_when_focused (attribs);
+
+      if (info)
+        {
+          sx = mpui_parse_size (x, mpui->width, mpui->diag, info->x.val);
+          sy = mpui_parse_size (y, mpui->height, mpui->diag, info->y.val);
+          inf = mpui_inf_new (info, sx, sy, wf);
+        }
+    }
+  asx_free_attribs (attribs);
+  free (id);
+  free (x);
+  free (y);
+  free (absolute);
+  free (hidden);
+
+  return inf;
+}
+
+static mpui_info_t *
+mpui_parse_node_info (mpui_t *mpui, char **attribs, char *body)
+{
+  char *id, *font_id, *x, *y, *w, *h, *element;
+  ASX_Parser_t* parser;
+  mpui_info_t *info = NULL;
+  mpui_font_t *font;
+  mpui_coord_t mx, my, mw, mh;
+
+  id = asx_get_attrib ("id", attribs);
+  font_id = asx_get_attrib ("font", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
+  asx_free_attribs (attribs);
+
+  font = mpui_font_get (mpui, font_id);
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+  mw = mpui_parse_size (w, mpui->width, mpui->diag, 0);
+  mh = mpui_parse_size (h, mpui->height, mpui->diag, 0);
+
+  if (id && font)
+    info = mpui_info_new (id, font, mx, my, mw, mh);
+
+  free (id);
+  free (font_id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+
+  if (info)
+    while (1)
+      {
+        mpui_element_t *elt = NULL;
+        char *sbody;
+        int res;
+        
+        parser = asx_parser_new ();
+        res = mpui_parse_get_element (parser,&body,&element,&sbody,&attribs);
+        if (res <= 0)
+          break;
+        
+        if (!strcmp (element, "tag"))
+          elt = (mpui_element_t *) mpui_parse_node_tag (mpui, attribs);
+        
+        if (elt)
+          mpui_info_add (info, elt);
+        free (parser);
+      }
+  asx_free_attribs (attribs);
+
+  return info;
+}
+
+static void
+mpui_parse_node_infos (mpui_t *mpui, char **attribs, char *body)
+{
+  char *element, *sbody;
+  ASX_Parser_t* parser;
+  int res;
+
+  asx_free_attribs (attribs);
+
+  while (1)
+    {
+      parser = asx_parser_new ();
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+
+      if (!strcmp (element, "info"))
+        {
+          mpui_info_t *info;
+          info = mpui_parse_node_info (mpui, attribs, sbody);
+          
+          if (info)
+            mpui_infos_add (mpui->infos, info);
+        }
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+}
+
 static mpui_screen_t *
 mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
 {
@@ -1511,6 +1674,8 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
         elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
       else if (!strcmp (element, "mnu"))
         elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
+      else if (!strcmp (element, "inf"))
+        elt = (mpui_element_t *) mpui_parse_node_inf (mpui, attribs);
 
       if (elt && screen)
         mpui_add_element (screen, elt);
@@ -1653,6 +1818,10 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
       else if (!strcmp (element, "popups"))
         {
           mpui_parse_node_popups (mpui, attribs, sbody);
+        }
+      else if (!strcmp (element, "infos"))
+        {
+          mpui_parse_node_infos (mpui, attribs, sbody);
         }
       else if (mpui->screens == NULL && !strcmp (element, "screens"))
         {

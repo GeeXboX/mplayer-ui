@@ -6,6 +6,8 @@
     <file-type match="ext">
       <icon id="i-film"/>
       <action cmd="loadfile '%s'"/>
+      <action cmd="mpui_info '%s'" when="focus"/>
+      <action cmd="mpui_info" when="unfocus"/>
       <ext>avi</ext>
       <ext>mpeg</ext>
       <ext>mpg</ext>
@@ -60,6 +62,8 @@
     <file-type match="ext">
       <icon id="i-music"/>
       <action cmd="loadfile '%s'"/>
+      <action cmd="mpui_info '%s'" when="focus"/>
+      <action cmd="mpui_info" when="unfocus"/>
       <ext>mp3</ext>
       <ext>mp2</ext>
       <ext>ogg</ext>

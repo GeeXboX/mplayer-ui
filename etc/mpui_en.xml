@@ -29,5 +29,19 @@
 
     <string id="txt_help" file="help_en.txt"/>
     <string id="txt_info" text="System's Information"/>
+
+    <string id="info_title" text="Title"/>
+    <string id="info_artist" text="Artist"/>
+    <string id="info_album" text="Album"/>
+    <string id="info_year" text="Year"/>
+    <string id="info_comment" text="Comment"/>
+    <string id="info_genre" text="Genre"/>
+    <string id="info_codec" text="Codec"/>
+    <string id="info_size" text="Size"/>
+    <string id="info_res" text="Resolution"/>
+    <string id="info_depth" text="Depth"/>
+    <string id="info_fps" text="Fps"/>
+    <string id="info_vbitrate" text="Vid. Birate"/>
+    <string id="info_abitrate" text="Aud. Bitrate"/>
   </strings>
 </mpui>

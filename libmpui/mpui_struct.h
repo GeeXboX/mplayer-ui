@@ -62,6 +62,10 @@ typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
 typedef struct mpui_mnu mpui_mnu_t;
 typedef struct mpui_browser mpui_browser_t;
+typedef struct mpui_infos mpui_infos_t;
+typedef struct mpui_info mpui_info_t;
+typedef struct mpui_inf mpui_inf_t;
+typedef struct mpui_tag mpui_tag_t;
 typedef struct mpui_popup mpui_popup_t;
 typedef struct mpui_popups mpui_popups_t;
 typedef struct mpui_screens mpui_screens_t;
@@ -124,6 +128,7 @@ enum mpui_type {
   MPUI_MENUITEM,
   MPUI_ALLMENUITEM,
   MPUI_POPUP,
+  MPUI_INF,
 };
 
 struct mpui_coord {
@@ -306,6 +311,29 @@ struct mpui_browser {
   int cwd_id;
 };
 
+struct mpui_infos {
+  mpui_info_t **info;
+};
+
+struct mpui_info {
+  char *id;
+  mpui_font_t *font;
+  mpui_coord_t x, y, w, h;
+  mpui_tag_t **tags;
+};
+
+struct mpui_inf {
+  mpui_container_t container;
+  mpui_info_t *info;
+};
+
+struct mpui_tag {
+  char *id;
+  char *caption;
+  char *type;
+  mpui_coord_t x, y;
+};
+
 struct mpui_popups {
   mpui_popup_t **popups;
 };
@@ -340,6 +368,7 @@ struct mpui {
   mpui_filetypes_t **filetypes;
   mpui_objects_t *objects;
   mpui_menus_t *menus;
+  mpui_infos_t *infos;
   mpui_popups_t *popups;
   mpui_screens_t *screens;
   mpui_screen_t *current_screen;
@@ -478,6 +507,26 @@ mpui_browser_t *mpui_browser_new (char * id, mpui_font_t *font,
                                   mpui_object_t *item_border,
                                   mpui_filetypes_t *filter);
 void mpui_browser_free (mpui_browser_t *browser);
+
+mpui_tag_t *mpui_tag_new (char *id, char *caption, char *type,
+                          mpui_coord_t x, mpui_coord_t y);
+void mpui_tag_free (mpui_tag_t *tag);
+
+mpui_info_t *mpui_info_new (char *id, mpui_font_t *font,
+                            mpui_coord_t x, mpui_coord_t y,
+                            mpui_coord_t w, mpui_coord_t h);
+mpui_info_t *mpui_info_get (mpui_t *mpui, char *id);
+#define mpui_info_add(a,b) (a)->tags = mpui_list_add((a)->tags, (b))
+void mpui_info_free (mpui_info_t *info);
+
+mpui_inf_t *mpui_inf_new (mpui_info_t *info,
+                          mpui_coord_t x, mpui_coord_t y,
+                          mpui_when_focused_t when_focused);
+void mpui_inf_free (mpui_inf_t *inf);
+
+mpui_infos_t *mpui_infos_new (void);
+#define mpui_infos_add(a,b) (a)->info = mpui_list_add((a)->info, (b))
+void mpui_infos_free (mpui_infos_t *infos);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);

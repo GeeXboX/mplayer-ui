@@ -20,6 +20,7 @@
 #include "mpui_struct.h"
 #include "mpui_focus.h"
 #include "mpui_cmd.h"
+#include "mpui_info.h"
 
 
 typedef void (* mpui_cmd_action_t) (mpui_element_t *element, void *data);
@@ -102,4 +103,33 @@ mpui_cmd_show (mpui_t *mpui, char *element_id)
   if (mpui->current_screen)
     mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
                                mpui_cmd_show_func, NULL);
+}
+
+static void
+mpui_cmd_info_clean_func (mpui_element_t *element, void *data)
+{
+  if (element->type == MPUI_INF)
+    mpui_info_clean ((mpui_inf_t *) element);
+}
+
+static void
+mpui_cmd_info_update_func (mpui_element_t *element, void *data)
+{
+  if (element->type == MPUI_INF)
+    mpui_info_update ((mpui_inf_t *) element, (char *) data);
+}
+
+void
+mpui_cmd_info (mpui_t *mpui, char *filename)
+{
+  if (!mpui->current_screen)
+    return;
+
+  if (!filename)
+    mpui_cmd_for_each_element (mpui->current_screen->elements,
+                               NULL, mpui_cmd_info_clean_func, NULL);
+  else
+    mpui_cmd_for_each_element (mpui->current_screen->elements,
+                               NULL, mpui_cmd_info_update_func,
+                               (void *) filename);
 }

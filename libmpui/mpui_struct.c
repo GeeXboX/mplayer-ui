@@ -1091,6 +1091,9 @@ mpui_element_free (mpui_element_t *element)
     case MPUI_POPUP:
       mpui_popup_free ((mpui_popup_t *) element);
       break;
+    case MPUI_INF:
+      mpui_inf_free ((mpui_inf_t *) element);
+      break;
     }
 }
 
@@ -1189,6 +1192,115 @@ mpui_browser_free (mpui_browser_t *browser)
   mpui_menu_free (&browser->menu);
 }
 
+mpui_tag_t *
+mpui_tag_new (char *id, char *caption, char *type,
+              mpui_coord_t x, mpui_coord_t y)
+{
+  mpui_tag_t *tag;
+
+  tag = (mpui_tag_t *) malloc (sizeof (*tag));
+  tag->id = mpui_strdup (id);
+  tag->caption = mpui_strdup (caption);
+  tag->type = mpui_strdup (type);
+  tag->x = x;
+  tag->y = y;
+
+  return tag;
+}
+
+void
+mpui_tag_free (mpui_tag_t *tag)
+{
+  free (tag->id);
+  free (tag->caption);
+  free (tag->type);
+  free (tag);
+}
+
+mpui_info_t *
+mpui_info_new (char *id, mpui_font_t *font, mpui_coord_t x, mpui_coord_t y,
+               mpui_coord_t w, mpui_coord_t h)
+{
+  mpui_info_t *info;
+    
+  info = (mpui_info_t *) malloc (sizeof (*info));
+  info->id = mpui_strdup (id);
+  info->font = font;
+  info->x = x;
+  info->y = y;
+  info->w = w;
+  info->h = h;
+  info->tags = mpui_list_new ();
+
+  return info;
+}
+
+mpui_info_t *
+mpui_info_get (mpui_t *mpui, char *id)
+{
+  mpui_info_t **info;
+
+  for (info = mpui->infos->info; *info; info++)
+    if (!strcmp ((*info)->id, id))
+      return *info;
+  return NULL;
+}
+
+void
+mpui_info_free (mpui_info_t *info)
+{
+  mpui_tag_t **tags;
+
+  free (info->id);
+  for (tags = info->tags; *tags; tags++)
+    mpui_tag_free (*tags);
+  free (info);
+}
+
+mpui_inf_t *
+mpui_inf_new (mpui_info_t *info, mpui_coord_t x, mpui_coord_t y,
+              mpui_when_focused_t when_focused)
+{
+  mpui_inf_t *inf;
+
+  inf = (mpui_inf_t *) malloc (sizeof (*inf));
+  mpui_container_init ((mpui_container_t *) inf, info->id, MPUI_INF,
+                       0, NULL, NULL);
+  inf->container.element.x = x;
+  inf->container.element.y = y;
+  inf->container.element.when_focused = when_focused;
+  inf->info = info;
+
+  return inf;
+}
+
+void
+mpui_inf_free (mpui_inf_t *inf)
+{
+  mpui_container_uninit ((mpui_container_t *) inf);
+  free (inf);
+}
+
+mpui_infos_t *
+mpui_infos_new (void)
+{
+  mpui_infos_t *infos;
+
+  infos = (mpui_infos_t *) malloc (sizeof (*infos));
+  infos->info = mpui_list_new ();
+  return infos;
+}
+
+void
+mpui_infos_free (mpui_infos_t *infos)
+{
+  mpui_info_t **p = infos->info;
+
+  while (*p)
+    mpui_info_free (*p++);
+  free (infos->info);
+  free (infos);
+}
 
 mpui_popup_t *
 mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y)
@@ -1324,6 +1436,7 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
   mpui->filetypes = mpui_list_new ();
   mpui->objects = mpui_objects_new ();
   mpui->menus = mpui_menus_new ();
+  mpui->infos = mpui_infos_new ();
   mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
   mpui->current_screen = NULL;
@@ -1362,6 +1475,9 @@ mpui_free (mpui_t *mpui)
 
   if (mpui->menus)
     mpui_menus_free (mpui->menus);
+
+  if (mpui->infos)
+    mpui_infos_free (mpui->infos);
 
   if (mpui->popups)
     mpui_popups_free (mpui->popups);

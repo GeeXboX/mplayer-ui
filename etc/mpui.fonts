@@ -9,6 +9,8 @@
                          color="#FFFFFF" focused-color="#FFFFFF"/>
     <font id="subtitle_font" file="Handycandy.ttf" size="20"
                              color="#FFFFFF" focused-color="#FFFFFF"/>
+    <font id="info_font" file="Handycandy.ttf" size="14"
+                             color="#FFFFFF" focused-color="#FFFFFF"/>
     <font id="version_font" file="subfont.ttf" size="14"
                             color="#ffffff" focused-color="#ffff81"/>
   </fonts>
