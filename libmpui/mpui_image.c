@@ -87,6 +87,7 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 {
   struct SwsContext *sws;
   float dbpp;
+  int num_planes = 0;
   unsigned char *src[3];
   int src_stride[3];
   int sformat;
@@ -98,7 +99,7 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
   switch (format)
     {
     case IMGFMT_YVU9:
-      image->num_planes = 3;
+      num_planes = 3;
       image->chroma_width = image->w >> 2;
       image->chroma_height = image->h >> 2;
       dbpp = image->alpha ? 2.1875 : 1.125;
@@ -107,14 +108,14 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
     case IMGFMT_IYUV:
       sformat = sformat == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
     case IMGFMT_YV12:
-      image->num_planes = 3;
+      num_planes = 3;
       image->chroma_width = image->w >> 1;
       image->chroma_height = image->h >> 1;
       dbpp = image->alpha ? 2.75 : 1.5;
       break;
     case IMGFMT_UYVY:
     case IMGFMT_YUY2:
-      image->num_planes = 1;
+      num_planes = 1;
       image->bpp = 2;
       dbpp = image->alpha ? image->bpp + 1 : image->bpp;
       /* strange but needed to avoid color inversion */
@@ -126,7 +127,7 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
   src_stride[0] = raw->stride;
 
   image->planes[0] = (unsigned char *) malloc(dbpp * image->w * image->h);
-  if (image->num_planes >= 3)
+  if (num_planes >= 3)
     {
       image->planes[1] = image->planes[0] + image->w * image->h;
       image->planes[2] = image->planes[1] + image->chroma_width*image->chroma_height;
@@ -139,6 +140,11 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 
   sws = sws_getContext (raw->w, raw->h, sformat, image->w,
                         image->h, format, SWS_BILINEAR, NULL, NULL, NULL);
+  if (!sws)
+    {
+      free (image->planes[0]);
+      return;
+    }
   sws_scale (sws, src, src_stride, 0, raw->h,
              image->planes, image->stride);
   sws_freeContext (sws);
@@ -148,7 +154,7 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
     {
       unsigned char *alpha_buffer, *a, *img, *end;
 
-      if (image->num_planes >= 3)
+      if (num_planes >= 3)
         image->planes[3] = image->planes[2] + image->chroma_width*image->chroma_height;
       else
         image->planes[3] = image->planes[0] + image->bpp * image->w * image->h;
@@ -164,11 +170,17 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
       sws = sws_getContext (raw->w, raw->h, IMGFMT_Y8,
                             image->w, image->h, IMGFMT_Y8,
                             SWS_BILINEAR, NULL, NULL, NULL);
+      if (!sws)
+        {
+          free (image->planes[0]);
+          free (alpha_buffer);
+          return;
+        }
       sws_scale (sws, src, src_stride, 0, raw->h,
                  image->planes+3, image->stride+3);
       sws_freeContext (sws);
 
-      if (image->num_planes >= 3)
+      if (num_planes >= 3)
         {
           image->planes[4] = image->planes[3] + image->w * image->h;
           image->stride[4] = image->chroma_width;
@@ -176,6 +188,12 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
           sws = sws_getContext (raw->w, raw->h, IMGFMT_Y8,
                                 image->chroma_width, image->chroma_height,
                                 IMGFMT_Y8, SWS_BILINEAR, NULL, NULL, NULL);
+          if (!sws)
+            {
+              free (image->planes[0]);
+              free (alpha_buffer);
+              return;
+            }
           sws_scale (sws, src, src_stride, 0, raw->h,
                      image->planes+4, image->stride+4);
           sws_freeContext (sws);
@@ -185,6 +203,8 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 
       mpui_image_permultiply_alpha (image);
     }
+
+  image->num_planes = num_planes;
 }
 
 
