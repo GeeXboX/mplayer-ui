@@ -475,7 +475,7 @@ mpui_objects_free (mpui_objects_t *objects)
 
 
 mpui_menu_t *
-mpui_menu_new (char *id, mpui_menu_orientation_t orientation, mpui_font_t *font,
+mpui_menu_new (char *id, mpui_menu_orientation_t orientation,
                mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h)
 {
   mpui_menu_t *menu;
@@ -483,7 +483,6 @@ mpui_menu_new (char *id, mpui_menu_orientation_t orientation, mpui_font_t *font,
   menu = (mpui_menu_t *) malloc (sizeof (*menu));
   menu->id = mpui_strdup (id);
   menu->orientation = orientation;
-  menu->font = font;
   menu->x = x;
   menu->y = y;
   menu->w = w;

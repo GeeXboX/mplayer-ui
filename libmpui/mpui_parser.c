@@ -711,17 +711,17 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
 static mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *orientation, *font, *x, *y, *w, *h, *element;
+  char *id, *orientation, *font_id, *x, *y, *w, *h, *element;
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_menu_orientation_t morientation = MPUI_MENU_ORIENTATION_V;
-  mpui_font_t *mfont = NULL;
+  mpui_font_t *default_font, *font = NULL;
   mpui_size_t mx, my, mw, mh;
   mpui_size_t item_x = 0, item_y = 0;
 
   id = asx_get_attrib ("id", attribs);
   orientation = asx_get_attrib ("orientation", attribs);
-  font = asx_get_attrib ("font", attribs);
+  font_id = asx_get_attrib ("font", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   w = asx_get_attrib ("w", attribs);
@@ -730,16 +730,19 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   if (orientation && !strcmp (orientation, "horizontal"))
     morientation = MPUI_MENU_ORIENTATION_H;
 
-  if (font)
-    mfont = mpui_font_get (mpui, font);
+  if (font_id && (font = mpui_font_get (mpui, font_id)))
+    {
+      default_font = mpui->fonts[0]->deflt;
+      mpui->fonts[0]->deflt = font;
+    }
 
   mx = mpui_parse_size (x, mpui->width, 0);
   my = mpui_parse_size (y, mpui->height, 0);
   mw = mpui_parse_size (w, mpui->width, 0);
   mh = mpui_parse_size (h, mpui->height, 0);
 
-  if (id && mfont)
-    menu = mpui_menu_new (id, morientation, mfont, mx, my, mw, mh);
+  if (id)
+    menu = mpui_menu_new (id, morientation, mx, my, mw, mh);
   asx_free_attribs (attribs);
 
   while (1)
@@ -780,6 +783,9 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
     }
   asx_free_attribs (attribs);
   
+  if (font)
+    mpui->fonts[0]->deflt = default_font;
+
   return menu;
 }
 
