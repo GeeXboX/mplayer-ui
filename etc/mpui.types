@@ -90,6 +90,8 @@
   <file-types id="picture-types">
     <file-type match="ext">
       <icon id="i-picture"/>
+      <action cmd="mpui_screen slideshow"/>
+      <action cmd="mpui_slideshow_path image_viewer '%s'"/>
       <ext>png</ext>
       <ext>jpg</ext>
       <ext>jpeg</ext>
@@ -106,6 +108,14 @@
   </file-types>
 
   <file-types id="info-types">
+    <file-type match="ext">
+      <ext>png</ext>
+      <ext>jpg</ext>
+      <ext>jpeg</ext>
+    </file-type>
+  </file-types>
+
+  <file-types id="slideshow-types">
     <file-type match="ext">
       <ext>png</ext>
       <ext>jpg</ext>
@@ -155,6 +165,8 @@
     </file-type>
     <file-type match="ext">
       <icon id="i-picture"/>
+      <action cmd="mpui_screen slideshow"/>
+      <action cmd="mpui_slideshow_path image_viewer '%s'"/>
       <ext>png</ext>
       <ext>jpg</ext>
       <ext>jpeg</ext>

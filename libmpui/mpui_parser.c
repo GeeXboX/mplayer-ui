@@ -1341,6 +1341,75 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   return browser;
 }
 
+static mpui_slideshow_t *
+mpui_parse_node_slideshow (mpui_t *mpui, char **attribs)
+{
+  char *id, *x, *y, *w, *h, *path, *filter_id, *mode, *timer, *border_id;
+  char *name_x, *name_y, *name_font_id;
+  mpui_coord_t sx, sy, sw, sh, nx, ny;
+  mpui_filetypes_t *filter;
+  mpui_font_t *name_font = NULL;
+  mpui_object_t *border = NULL;
+  mpui_slideshow_t *slideshow = NULL;
+  int t = 0;
+
+  id = asx_get_attrib ("id", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
+  path = asx_get_attrib ("path", attribs);
+  filter_id = asx_get_attrib ("filter", attribs);
+  mode = asx_get_attrib ("mode", attribs);
+  timer = asx_get_attrib ("timer", attribs);
+  name_x = asx_get_attrib ("name_x", attribs);
+  name_y = asx_get_attrib ("name_y", attribs);
+  name_font_id = asx_get_attrib ("name_font", attribs);
+  border_id = asx_get_attrib ("border", attribs);
+
+  sx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  sy = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+  sw = mpui_parse_size (w, mpui->width, mpui->diag, 0);
+  sh = mpui_parse_size (h, mpui->height, mpui->diag, 0);
+  nx = mpui_parse_size (name_x, mpui->width, mpui->diag, -1);
+  ny = mpui_parse_size (name_y, mpui->height, mpui->diag, 0);
+
+  filter = mpui_filetypes_get (mpui, filter_id);
+  if (name_y)
+    name_font = mpui_font_get (mpui, name_font_id);
+
+  if (timer)
+    {
+      char *endptr;
+      t = strtol (timer, &endptr, 0);
+      if (*endptr)
+        t = 0;
+    }
+
+  if (border_id)
+    border = mpui_object_get (mpui, border_id);
+
+  if (id && filter)
+    slideshow = mpui_slideshow_new (id, sx, sy, sw, sh, path, filter, mode, t,
+                                    nx, ny, name_font, border);
+
+  free (id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+  free (path);
+  free (filter_id);
+  free (mode);
+  free (timer);
+  free (name_x);
+  free (name_y);
+  free (name_font_id);
+  free (border_id);
+
+  return slideshow;
+}
+
 static mpui_mnu_t *
 mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
 {
@@ -1453,6 +1522,8 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
             elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
           else if (!strcmp (element, "mnu"))
             elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
+          else if (!strcmp (element, "slideshow"))
+            elt = (mpui_element_t *) mpui_parse_node_slideshow (mpui, attribs);
 
           if (elt)
             mpui_container_elements_add (container, elt);
@@ -1732,6 +1803,8 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
         elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
       else if (!strcmp (element, "inf"))
         elt = (mpui_element_t *) mpui_parse_node_inf (mpui, attribs);
+      else if (!strcmp (element, "slideshow"))
+        elt = (mpui_element_t *) mpui_parse_node_slideshow (mpui, attribs);
 
       if (elt && screen)
         mpui_screen_elements_add (screen, elt);

@@ -19,6 +19,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_browser.h"
+#include "mpui_slideshow.h"
 #include "mpui_focus.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
@@ -492,6 +493,9 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
           if (element->type == MPUI_MNU
               && ((mpui_mnu_t *) element)->menu->is_browser)
             mpui_browser_update (context.mpui, (mpui_mnu_t *) element);
+          else if (element->type == MPUI_SLIDESHOW)
+            mpui_slideshow_update (context.mpui, (mpui_slideshow_t *) element,
+                                   context.x, context.y);
           for (elements = ((mpui_container_t *) element)->elements;
                *elements; elements++)
             {

@@ -122,6 +122,21 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
     case MP_CMD_MPUI_INFO:
       mpui_cmd_info (priv->mpui, cmd->args[0].v.s);
       return 1;
+    case MP_CMD_MPUI_SLIDESHOW_PATH:
+      mpui_cmd_slideshow_path (priv->mpui, cmd->args[0].v.s,cmd->args[1].v.s);
+      return 1;
+    case MP_CMD_MPUI_SLIDESHOW_PAUSE:
+      mpui_cmd_slideshow_pause (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_SLIDESHOW_PREV:
+      mpui_cmd_slideshow_prev (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_SLIDESHOW_NEXT:
+      mpui_cmd_slideshow_next (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_SLIDESHOW_MODE:
+      mpui_cmd_slideshow_mode (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
+      return 1;
     }
   return 0;
 }

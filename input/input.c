@@ -111,6 +111,11 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_MPUI_SHOW, "mpui_show", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_HIDE_SWITCH, "mpui_hide_switch", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_INFO, "mpui_info", 0, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SLIDESHOW_PATH, "mpui_slideshow_path", 2, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SLIDESHOW_PAUSE, "mpui_slideshow_pause", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SLIDESHOW_PREV, "mpui_slideshow_prev", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SLIDESHOW_NEXT, "mpui_slideshow_next", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SLIDESHOW_MODE, "mpui_slideshow_mode", 1, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
 
   { MP_CMD_VO_FULLSCREEN, "vo_fullscreen", 0, { {-1,{0}} } },
   { MP_CMD_VO_ONTOP, "vo_ontop", 0, { {-1,{0}} } },

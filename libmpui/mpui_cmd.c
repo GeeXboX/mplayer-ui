@@ -19,6 +19,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
+#include "mpui_slideshow.h"
 #include "mpui_cmd.h"
 #include "mpui_info.h"
 
@@ -153,4 +154,88 @@ mpui_cmd_info (mpui_t *mpui, char *filename)
   mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
                              NULL, MPUI_INF, mpui_cmd_info_update_func,
                              (void *) filename);
+}
+
+
+static void
+mpui_cmd_slideshow_path_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element, void *data)
+{
+  mpui_slideshow_path ((mpui_slideshow_t *) element, (char *) data);
+}
+
+void
+mpui_cmd_slideshow_path (mpui_t *mpui, char *slideshow_id, char *path)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW,
+                               mpui_cmd_slideshow_path_func, (void *) path);
+}
+
+static void
+mpui_cmd_slideshow_pause_func (mpui_t *mpui __attribute__((unused)),
+                               mpui_element_t *element,
+                               void *data __attribute__((unused)))
+{
+  mpui_slideshow_pause ((mpui_slideshow_t *) element);
+}
+
+void
+mpui_cmd_slideshow_pause (mpui_t *mpui, char *slideshow_id)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW,
+                               mpui_cmd_slideshow_pause_func, NULL);
+}
+
+static void
+mpui_cmd_slideshow_prev_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element,
+                              void *data __attribute__((unused)))
+{
+  mpui_slideshow_prev ((mpui_slideshow_t *) element);
+}
+
+void
+mpui_cmd_slideshow_prev (mpui_t *mpui, char *slideshow_id)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW,
+                               mpui_cmd_slideshow_prev_func, NULL);
+}
+
+static void
+mpui_cmd_slideshow_next_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element,
+                              void *data __attribute__((unused)))
+{
+  mpui_slideshow_next ((mpui_slideshow_t *) element);
+}
+
+void
+mpui_cmd_slideshow_next (mpui_t *mpui, char *slideshow_id)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW,
+                               mpui_cmd_slideshow_next_func, NULL);
+}
+
+static void
+mpui_cmd_slideshow_mode_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element, void *data)
+{
+  mpui_slideshow_mode ((mpui_slideshow_t *) element, (char *) data);
+}
+
+void
+mpui_cmd_slideshow_mode (mpui_t *mpui, char *slideshow_id, char *mode)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW,
+                               mpui_cmd_slideshow_mode_func, mode);
 }

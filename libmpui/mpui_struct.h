@@ -21,6 +21,8 @@
 #define MPUI_STRUCT_H
 
 #include <stdlib.h>
+#include <dirent.h>
+
 #include "config.h"
 #include "libvo/font_load.h"
 
@@ -68,6 +70,8 @@ typedef struct mpui_info mpui_info_t;
 typedef struct mpui_inf mpui_inf_t;
 typedef struct mpui_tag mpui_tag_t;
 typedef struct mpui_pic mpui_pic_t;
+typedef enum mpui_slideshow_mode mpui_slideshow_mode_t;
+typedef struct mpui_slideshow mpui_slideshow_t;
 typedef struct mpui_popup mpui_popup_t;
 typedef struct mpui_popups mpui_popups_t;
 typedef struct mpui_screens mpui_screens_t;
@@ -124,6 +128,11 @@ enum mpui_match {
   MPUI_MATCH_EXT,
 };
 
+enum mpui_slideshow_mode {
+  MPUI_SLIDESHOW_MODE_1_1,
+  MPUI_SLIDESHOW_MODE_ZOOM,
+};
+
 enum mpui_type {
   MPUI_ANY,
   MPUI_STR,
@@ -134,6 +143,7 @@ enum mpui_type {
   MPUI_ALLMENUITEM,
   MPUI_POPUP,
   MPUI_INF,
+  MPUI_SLIDESHOW,
 };
 
 struct mpui_coord {
@@ -344,6 +354,26 @@ struct mpui_pic {
   char *id;
   mpui_coord_t x, y, w, h;
   mpui_filetypes_t *filter;
+};
+
+struct mpui_slideshow {
+  mpui_container_t container;
+  char path[NAME_MAX+1];
+  char *name;
+  int path_id;
+  int last_path_id;
+  mpui_filetypes_t *filter;
+  mpui_slideshow_mode_t mode;
+  int play;
+  unsigned int timer;
+  unsigned int next_timer;
+  mpui_coord_t name_x, name_y;
+  mpui_font_t *name_font;
+  mpui_obj_t *border;
+  struct dirent **dirent;
+  int dirent_size;
+  int dirent_cur;
+  int need_generate;
 };
 
 struct mpui_popups {
@@ -625,6 +655,15 @@ mpui_infos_add (mpui_infos_t *infos, mpui_info_t *info)
 {
   infos->infos = mpui_list_add(infos->infos, info);
 }
+
+mpui_slideshow_t *mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
+                                      mpui_coord_t w, mpui_coord_t h,
+                                      char *path, mpui_filetypes_t *filter,
+                                      char *mode, int timer,
+                                      mpui_coord_t name_x, mpui_coord_t name_y,
+                                      mpui_font_t *name_font,
+                                      mpui_object_t *border);
+void mpui_slideshow_free (mpui_slideshow_t *slideshow);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);

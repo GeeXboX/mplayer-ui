@@ -25,6 +25,7 @@
 #include "mpui_struct.h"
 #include "mpui_focus.h"
 #include "mpui_image.h"
+#include "mpui_slideshow.h"
 
 
 static inline char *
@@ -1176,6 +1177,9 @@ mpui_element_free (mpui_element_t *element)
     case MPUI_INF:
       mpui_inf_free ((mpui_inf_t *) element);
       break;
+    case MPUI_SLIDESHOW:
+      mpui_slideshow_free ((mpui_slideshow_t *) element);
+      break;
     }
 }
 
@@ -1399,6 +1403,55 @@ mpui_infos_free (mpui_infos_t *infos)
   mpui_list_free (infos->infos, (mpui_list_free_func_t) mpui_info_free);
   free (infos);
 }
+
+mpui_slideshow_t *
+mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
+                    mpui_coord_t w, mpui_coord_t h, char *path,
+                    mpui_filetypes_t *filter, char *mode,
+                    int timer, mpui_coord_t name_x, mpui_coord_t name_y,
+                    mpui_font_t *name_font, mpui_object_t *border)
+{
+  mpui_slideshow_t *slideshow;
+
+  slideshow = (mpui_slideshow_t *) malloc (sizeof (*slideshow));
+  mpui_container_init ((mpui_container_t *) slideshow, id, MPUI_SLIDESHOW,
+                       0, NULL, NULL);
+  slideshow->container.element.x = x;
+  slideshow->container.element.y = y;
+  slideshow->container.element.w = w;
+  slideshow->container.element.h = h;
+  slideshow->path_id = slideshow->last_path_id = 0;
+  slideshow->path[sizeof (slideshow->path) - 1] = '\0';
+  slideshow->name = NULL;
+  mpui_slideshow_path (slideshow, path);
+  slideshow->filter = filter;
+  slideshow->mode = -1;
+  mpui_slideshow_mode (slideshow, mode);
+  slideshow->play = timer;
+  slideshow->timer = 1000*timer;
+  slideshow->next_timer = 0;
+  slideshow->name_x = name_x;
+  slideshow->name_y = name_y;
+  slideshow->name_font = name_font;
+  slideshow->border = mpui_obj_new (border, x, y, MPUI_FLAG_DYNAMIC,
+                                    MPUI_DISPLAY_ALWAYS);
+  slideshow->dirent = NULL;
+  slideshow->dirent_size = 0;
+  slideshow->need_generate = 1;
+
+  return slideshow;
+}
+
+void
+mpui_slideshow_free (mpui_slideshow_t *slideshow)
+{
+  mpui_slideshow_cleanup (slideshow);
+  mpui_obj_free (slideshow->border);
+  free (slideshow->name);
+  mpui_container_uninit ((mpui_container_t *) slideshow);
+  free (slideshow);
+}
+
 
 mpui_popup_t *
 mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y)
