@@ -37,4 +37,6 @@ void mpui_focus_popup_close (mpui_t *mpui);
 int mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element);
 int mpui_is_really_focused (mpui_screen_t *screen, mpui_element_t *element);
 
+void mpui_goto_screen (mpui_t *mpui, char *id);
+
 #endif  /* MPUI_FOCUS_H */

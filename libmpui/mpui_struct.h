@@ -271,6 +271,7 @@ struct mpui {
   mpui_popups_t *popups;
   mpui_screens_t *screens;
   mpui_screen_t *current_screen;
+  mpui_screen_t *previous_screen;
 };
 
 

@@ -92,6 +92,7 @@
 // mpui commands
 #define MP_CMD_MPUI          8000
 #define MP_CMD_MPUI_POPUP    8001
+#define MP_CMD_MPUI_GOTOSCREEN   8002
 
 // The arg types
 #define MP_CMD_ARG_INT 0

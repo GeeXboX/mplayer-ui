@@ -169,3 +169,16 @@ mpui_is_really_focused (mpui_screen_t *screen, mpui_element_t *element)
 {
   return ((mpui_focus_box_t *) screen->focus_box[0])->focus[0] == element;
 }
+
+void
+mpui_goto_screen (mpui_t *mpui, char *id)
+{
+  mpui_screen_t *screen = NULL;
+
+  screen = mpui_screen_get (mpui->screens, id);
+  if (screen)
+    {
+      mpui->previous_screen = mpui->current_screen;
+      mpui->current_screen = screen;
+    }
+}

@@ -91,6 +91,10 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
     case MP_CMD_MPUI_POPUP:
       mpui_focus_popup (priv->mpui, cmd->args[0].v.s);
       return 1;
+    case MP_CMD_MPUI_GOTOSCREEN:
+      mpui_goto_screen (priv->mpui, cmd->args[0].v.s);
+      mpui_focus_box_first (priv->mpui->current_screen);
+      return 1;
     }
   return 0;
 }
@@ -128,7 +132,14 @@ read_keycode (int code)
         mpui_focus_action_exec (fb);
         break;
       case KEY_ESC:
-        exit_player ("mpui");
+        if (st_priv->mpui->previous_screen)
+          {
+            st_priv->mpui->current_screen = st_priv->mpui->previous_screen;
+            st_priv->mpui->previous_screen = NULL;
+            mpui_focus_box_first (st_priv->mpui->current_screen);
+          }
+        else
+          exit_player ("mpui");
       }
   else
     switch (code)
