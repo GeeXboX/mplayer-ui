@@ -231,13 +231,18 @@ mpui_images_free (mpui_images_t *images)
 
 
 mpui_font_t *
-mpui_font_new (char *id)
+mpui_font_new (char *id, char *file, int size,
+               mpui_color_t color, mpui_color_t focused_color)
 {
   mpui_font_t *font;
 
   font = (mpui_font_t *) malloc (sizeof (*font));
-  font->id = strdup (id);
-  /* FIXME: to implement */
+  font->id = mpui_strdup (id);
+  font->file = mpui_strdup (file);
+  font->size = size;
+  font->color = color;
+  font->focused_color = focused_color;
+
   return font;
 }
 
@@ -257,8 +262,8 @@ mpui_font_get (mpui_t *mpui, char *id)
 void
 mpui_font_free (mpui_font_t *font)
 {
-  /* FIXME: to implement */
   free (font->id);
+  free (font->file);
   free (font);
 }
 

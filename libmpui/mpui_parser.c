@@ -83,6 +83,14 @@ mpui_parse_size (char *size)
   return st;
 }
 
+mpui_color_t
+mpui_parse_color (char *color)
+{
+  mpui_color_t c;
+  
+  return c;
+}
+
 mpui_string_t *
 mpui_parse_node_string (char **attribs)
 {
@@ -297,34 +305,56 @@ mpui_parse_node_images (char **attribs, char *body)
   return images;
 }
 
-void
+mpui_font_t *
 mpui_parse_node_font (char **attribs)
 {
-  char *id, *file, *size, *color, *focused_color;
-                  
+  char *id, *file, *size, *col, *focused_col;
+  mpui_font_t *font = NULL;
+  mpui_color_t color, focused_color;
+  int s = MPUI_FONT_SIZE_DEFAULT;
+
   id = asx_get_attrib ("id", attribs);
   file = asx_get_attrib ("file", attribs);
   size = asx_get_attrib ("size", attribs);
-  color = asx_get_attrib ("color", attribs);
-  focused_color = asx_get_attrib ("focused-color", attribs);
+  col = asx_get_attrib ("color", attribs);
+  focused_col = asx_get_attrib ("focused-color", attribs);
   asx_free_attribs (attribs);
-                  
+  
+  if (size && *size)
+    {
+      char *endptr;
+      s = strtol (size, &endptr, 0);
+      if (*endptr)
+        s = MPUI_FONT_SIZE_DEFAULT;
+    }
+
+  color = mpui_parse_color (col);
+  focused_color = mpui_parse_color (focused_col);
+
+  if (id && file)
+    font = mpui_font_new (id, file, s, color, focused_color);
+
   printf ("Font attrib id =  %s\n", id);
   printf ("Font attrib file =  %s\n", file);
   printf ("Font attrib size =  %s\n", size);
-  printf ("Font attrib color =  %s\n", color);
-  printf ("Font attrib focused-color =  %s\n", focused_color);
+  printf ("Font attrib color =  %s\n", col);
+  printf ("Font attrib focused-color =  %s\n", focused_col);
+
+  return font;
 }
 
-void
+mpui_fonts_t *
 mpui_parse_node_fonts (char **attribs, char *body)
 {
   char *dflt, *element;
+  mpui_fonts_t *fonts;
 
   dflt = asx_get_attrib ("default", attribs);
   asx_free_attribs (attribs);
 
   printf ("Fonts attrib default =  %s\n", dflt);
+
+  fonts = mpui_fonts_new ();
 
   while (1)
     {
@@ -337,10 +367,15 @@ mpui_parse_node_fonts (char **attribs, char *body)
         break;
 
       if (!strcmp (element, "font"))
-        mpui_parse_node_font (attribs);
+        {
+          mpui_font_t *font = mpui_parse_node_font (attribs);
+          mpui_fonts_add (fonts, font);
+        }
       free (parser);
     }
   asx_free_attribs (attribs);
+
+  return fonts;
 }
 
 
@@ -710,8 +745,8 @@ mpui_parse_config (char *buffer)
         }
       else if (!strcmp (element, "fonts"))
         {
-/*           mpui_fonts_t *fonts = mpui_parse_node_fonts (attribs, sbody); */
-/*           mpui_fonts_add (mpui, fonts); */
+          mpui_fonts_t *fonts = mpui_parse_node_fonts (attribs, sbody);
+          mpui_fonts_add (mpui, fonts);
         }
       else if (!strcmp (element, "objects"))
         {

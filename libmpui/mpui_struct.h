@@ -240,7 +240,8 @@ mpui_images_t *mpui_images_new (void);
 #define mpui_images_add(a,b) a->images = mpui_list_add(a->images, b)
 void mpui_images_free (mpui_images_t *images);
 
-mpui_font_t *mpui_font_new (char *id);
+mpui_font_t *mpui_font_new (char *id, char *file, int size,
+                            mpui_color_t color, mpui_color_t focused_color);
 mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 
