@@ -245,6 +245,7 @@ mpui_font_t *mpui_font_get (mpui_t *mpui, char *id);
 void mpui_font_free (mpui_font_t *font);
 
 mpui_fonts_t *mpui_fonts_new (void);
+#define mpui_fonts_add(a,b) a->fonts = mpui_list_add(a->fonts, b)
 void mpui_fonts_free (mpui_fonts_t *fonts);
 
 mpui_object_t *mpui_object_new (char *id, mpui_object_flags_t flags);
@@ -265,7 +266,10 @@ mpui_menu_t *mpui_menu_new (mpui_menu_orientation_t orientation,
 void mpui_menu_free (mpui_menu_t *menu);
 
 mpui_menus_t *mpui_menus_new (void);
+#define mpui_menus_add(a,b) a->menus = mpui_list_add(a->menus, b)
 void mpui_menus_free (mpui_menus_t *menus);
+
+#define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
 
 mpui_menuitem_t *mpui_menuitem_new (void);
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);

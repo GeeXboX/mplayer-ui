@@ -709,13 +709,27 @@ mpui_parse_config (char *buffer)
           mpui_images_add (mpui, images);
         }
       else if (!strcmp (element, "fonts"))
-        mpui_parse_node_fonts (attribs, sbody);
+        {
+/*           mpui_fonts_t *fonts = mpui_parse_node_fonts (attribs, sbody); */
+/*           mpui_fonts_add (mpui, fonts); */
+        }
       else if (!strcmp (element, "objects"))
-        mpui_parse_node_objects (mpui, attribs, sbody);
+        {
+          mpui_objects_t *objects = mpui_parse_node_objects (mpui,
+                                                             attribs, sbody);
+          mpui_objects_add (mpui, objects);
+        }
       else if (!strcmp (element, "menus"))
-        mpui_parse_node_menus (mpui, attribs, sbody);
+        {
+/*           mpui_menus_t *menus = mpui_parse_node_menus (mpui, attribs, sbody); */
+/*           mpui_menus_add (mpui, menus); */
+        }
       else if (!strcmp (element, "screens"))
-        mpui_parse_node_screens (mpui, attribs, sbody);
+        {
+/*           mpui_screens_t *screens = mpui_parse_node_screens (mpui, */
+/*                                                              attribs, sbody); */
+/*           mpui_screens_add (mpui, screens); */
+        }
 
       free (element);
     }
