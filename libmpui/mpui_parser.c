@@ -1511,6 +1511,42 @@ mpui_parse_node_tag (mpui_t *mpui, char **attribs)
   return tag;
 }
 
+static mpui_pic_t *
+mpui_parse_node_pic (mpui_t *mpui, char **attribs)
+{
+  char *id, *x, *y, *w, *h, *filter_id;
+  mpui_pic_t *pic = NULL;
+  mpui_coord_t mx, my, mw, mh;
+  mpui_filetypes_t *filter;
+
+  id = asx_get_attrib ("id", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
+  filter_id = asx_get_attrib ("filter", attribs);
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+  mw = mpui_parse_size (w, mpui->height, mpui->diag, 0);
+  mh = mpui_parse_size (h, mpui->height, mpui->diag, 0);
+
+  filter = mpui_filetypes_get (mpui, filter_id);
+
+  if (id && filter)
+    pic = mpui_pic_new (id, mx, my, mw, mh, filter);
+
+  asx_free_attribs (attribs);
+  free (id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+  free (filter_id);
+
+  return pic;
+}
+
 static mpui_inf_t *
 mpui_parse_node_inf (mpui_t *mpui, char **attribs)
 {
@@ -1601,11 +1637,15 @@ mpui_parse_node_info (mpui_t *mpui, char **attribs, char *body)
         
         if (!strcmp (element, "tag"))
           {
-            mpui_tag_t *tag;
-            tag = mpui_parse_node_tag (mpui, attribs);
-
+            mpui_tag_t *tag = mpui_parse_node_tag (mpui, attribs);
             if (tag)
-              mpui_info_add (info, tag);
+              mpui_info_add_tag (info, tag);
+          }
+        else if (!strcmp (element, "pic"))
+          {
+            mpui_pic_t *pic = mpui_parse_node_pic (mpui, attribs);
+            if (pic)
+              mpui_info_add_pic (info, pic);
           }
         free (parser);
       }

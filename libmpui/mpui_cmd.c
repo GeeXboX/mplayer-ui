@@ -117,10 +117,9 @@ mpui_cmd_show (mpui_t *mpui, char *element_id)
 }
 
 static void
-mpui_cmd_info_update_func (mpui_t *mpui __attribute__((unused)),
-                           mpui_element_t *element, void *data)
+mpui_cmd_info_update_func (mpui_t *mpui, mpui_element_t *element, void *data)
 {
-  mpui_info_update ((mpui_inf_t *) element, (char *) data);
+  mpui_info_update (mpui, (mpui_inf_t *) element, (char *) data);
 }
 
 void

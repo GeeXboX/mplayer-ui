@@ -24,12 +24,14 @@
 #include <ctype.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
 
 #include "libmpdemux/stream.h"
 #include "libmpdemux/demuxer.h"
 #include "libmpdemux/stheader.h"
 
 #include "mpui_struct.h"
+#include "mpui_parser.h"
 #include "mpui_info.h"
 
 #define MPUI_INFO_CODEC "Codec"
@@ -90,9 +92,9 @@ mpui_tag_update (demuxer_t *demuxer, char *file, mpui_tag_t *tag)
 }
 
 static void
-mpui_info_add_tag (mpui_inf_t *inf, mpui_tag_t *tag,
-                   mpui_coord_t *cx, mpui_coord_t *cy,
-                   demuxer_t *demuxer, char *file)
+mpui_info_update_tag (mpui_inf_t *inf, mpui_tag_t *tag,
+                      mpui_coord_t *cx, mpui_coord_t *cy,
+                      demuxer_t *demuxer, char *file)
 {
   mpui_string_t *string;
   mpui_str_t *str;
@@ -117,6 +119,74 @@ mpui_info_add_tag (mpui_inf_t *inf, mpui_tag_t *tag,
   (*cy).val = y.val + ((mpui_element_t *) str)->h.val;
 }
 
+static char *
+mpui_info_get_picture_file (mpui_t *mpui, mpui_pic_t *pic, char *filename)
+{
+  mpui_filetype_t **filetypes;
+  char **exts;
+
+  for (filetypes = pic->filter->filetypes; *filetypes; filetypes++)
+    switch ((*filetypes)->match)
+      {
+      case MPUI_MATCH_EXT:
+        for (exts = (*filetypes)->exts; *exts; exts++)
+          {
+            struct dirent **namelist;
+            char file[256], tmp[256];
+            char *res = NULL;
+            int n;
+            
+            snprintf (file, 256, "%s.%s", filename, *exts);
+            n = scandir (mpui->cwd, &namelist, 0, alphasort);
+            if (n < 0)
+              return NULL;
+            while (n--)
+              {
+                snprintf (tmp, 256, "%s/%s", mpui->cwd, namelist[n]->d_name);
+                if (strcasecmp (tmp, file) == 0)
+                  res = strdup (tmp);
+                free (namelist[n]);
+              }
+            free (namelist);
+            if (res)
+              return res;
+          }
+        break;
+      default:
+        break;
+      }
+
+  return NULL;
+}
+
+static void
+mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf,
+                      mpui_pic_t *pic, char *filename)
+{
+  mpui_image_t *image = NULL;
+  mpui_img_t *img = NULL;
+  char *file, *tmp;
+
+  tmp = strrchr (filename, '.');
+  if (!tmp)
+    return;
+
+  *tmp = '\0';
+  file = mpui_info_get_picture_file (mpui, pic, filename);
+ 
+  image = mpui_image_new (pic->id, file,
+                          pic->x.val, pic->y.val, pic->w.val, pic->h.val);
+  free (file);
+
+  img = mpui_img_new (image, pic->x, pic->y, pic->w, pic->h,
+                          0, MPUI_DISPLAY_ALWAYS);
+
+  mpui_img_load (mpui, img);
+  mpui_clip (mpui, (mpui_element_t *) img, 0, 0, 0);
+  mpui_container_elements_add ((mpui_container_t *) inf,
+                               (mpui_element_t *) img);
+}
+
 void
 mpui_info_clean (mpui_inf_t *inf)
 {
@@ -128,9 +198,10 @@ mpui_info_clean (mpui_inf_t *inf)
 }
 
 void
-mpui_info_update (mpui_inf_t *inf, char *filename)
+mpui_info_update (mpui_t *mpui, mpui_inf_t *inf, char *filename)
 {
   mpui_tag_t **tag;
+  mpui_pic_t **pic;
   stream_t* stream = NULL;
   demuxer_t *demuxer = NULL;
   mpui_coord_t x, y;
@@ -155,7 +226,9 @@ mpui_info_update (mpui_inf_t *inf, char *filename)
   y = inf->info->y;
 
   for (tag = inf->info->tags; *tag; tag++)
-    mpui_info_add_tag (inf, *tag, &x, &y, demuxer, filename);
+    mpui_info_update_tag (inf, *tag, &x, &y, demuxer, filename);
+  for (pic = inf->info->pics; *pic; pic++)
+    mpui_info_update_pic (mpui, inf, *pic, filename);
 
   free_demuxer (demuxer);
   free_stream (stream);

@@ -67,6 +67,7 @@ typedef struct mpui_infos mpui_infos_t;
 typedef struct mpui_info mpui_info_t;
 typedef struct mpui_inf mpui_inf_t;
 typedef struct mpui_tag mpui_tag_t;
+typedef struct mpui_pic mpui_pic_t;
 typedef struct mpui_popup mpui_popup_t;
 typedef struct mpui_popups mpui_popups_t;
 typedef struct mpui_screens mpui_screens_t;
@@ -324,6 +325,7 @@ struct mpui_info {
   mpui_font_t *font;
   mpui_coord_t x, y, w, h;
   mpui_tag_t **tags;
+  mpui_pic_t **pics;
 };
 
 struct mpui_inf {
@@ -336,6 +338,12 @@ struct mpui_tag {
   char *caption;
   char *type;
   mpui_coord_t x, y;
+};
+
+struct mpui_pic {
+  char *id;
+  mpui_coord_t x, y, w, h;
+  mpui_filetypes_t *filter;
 };
 
 struct mpui_popups {
@@ -581,6 +589,11 @@ mpui_tag_t *mpui_tag_new (char *id, char *caption, char *type,
                           mpui_coord_t x, mpui_coord_t y);
 void mpui_tag_free (mpui_tag_t *tag);
 
+mpui_pic_t *mpui_pic_new (char *id, mpui_coord_t x, mpui_coord_t y,
+                          mpui_coord_t w, mpui_coord_t h,
+                          mpui_filetypes_t *filter);
+void mpui_pic_free (mpui_pic_t *pic);
+
 mpui_info_t *mpui_info_new (char *id, mpui_font_t *font,
                             mpui_coord_t x, mpui_coord_t y,
                             mpui_coord_t w, mpui_coord_t h);
@@ -588,9 +601,15 @@ mpui_info_t *mpui_info_get (mpui_t *mpui, char *id);
 void mpui_info_free (mpui_info_t *info);
 
 static inline void
-mpui_info_add (mpui_info_t *info, mpui_tag_t *tag)
+mpui_info_add_tag (mpui_info_t *info, mpui_tag_t *tag)
 {
   info->tags = mpui_list_add(info->tags, tag);
+}
+
+static inline void
+mpui_info_add_pic (mpui_info_t *info, mpui_pic_t *pic)
+{
+  info->pics = mpui_list_add(info->pics, pic);
 }
 
 mpui_inf_t *mpui_inf_new (mpui_info_t *info,

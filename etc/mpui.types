@@ -105,6 +105,14 @@
     </file-type>
   </file-types>
 
+  <file-types id="info-types">
+    <file-type match="ext">
+      <ext>png</ext>
+      <ext>jpg</ext>
+      <ext>jpeg</ext>
+    </file-type>
+  </file-types>
+
   <file-types id="all-types">
     <file-type match="ext">
       <icon id="i-film"/>

@@ -1296,6 +1296,30 @@ mpui_tag_free (mpui_tag_t *tag)
   free (tag);
 }
 
+mpui_pic_t *
+mpui_pic_new (char *id, mpui_coord_t x, mpui_coord_t y,
+              mpui_coord_t w, mpui_coord_t h, mpui_filetypes_t *filter)
+{
+  mpui_pic_t *pic;
+
+  pic = (mpui_pic_t *) malloc (sizeof (*pic));
+  pic->id = mpui_strdup (id);
+  pic->x = x;
+  pic->y = y;
+  pic->w = w;
+  pic->h = h;
+  pic->filter = filter;
+
+  return pic;
+}
+
+void
+mpui_pic_free (mpui_pic_t *pic)
+{
+  free (pic->id);
+  free (pic);
+}
+
 mpui_info_t *
 mpui_info_new (char *id, mpui_font_t *font, mpui_coord_t x, mpui_coord_t y,
                mpui_coord_t w, mpui_coord_t h)
@@ -1310,6 +1334,7 @@ mpui_info_new (char *id, mpui_font_t *font, mpui_coord_t x, mpui_coord_t y,
   info->w = w;
   info->h = h;
   info->tags = mpui_list_new ();
+  info->pics = mpui_list_new ();
 
   return info;
 }
@@ -1329,6 +1354,7 @@ void
 mpui_info_free (mpui_info_t *info)
 {
   mpui_list_free (info->tags, (mpui_list_free_func_t) mpui_tag_free);
+  mpui_list_free (info->pics, (mpui_list_free_func_t) mpui_pic_free);
   free (info->id);
   free (info);
 }
