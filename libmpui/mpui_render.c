@@ -138,10 +138,22 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
     case MPUI_IMG:
       mpui_render_image (element->img->image, mpi);
       break;
+    case MPUI_OBJ:
+      mpui_render_object (element->obj->object, mpi);
+      break;
 
     default:
       break;
     }
+}
+
+void
+mpui_render_object (mpui_object_t *object, mp_image_t *mpi)
+{
+  mpui_element_t **elements;
+
+  for (elements=object->elements; *elements; elements++)
+    mpui_render_element (*elements, mpi);
 }
 
 int
