@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include "../libmpcodecs/mp_image.h"
+#include "libmpcodecs/mp_image.h"
 #include "mpui_struct.h"
 
 int mpui_render_screen (mpui_t *mpui, mp_image_t *mpi);

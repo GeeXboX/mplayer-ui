@@ -24,8 +24,8 @@
 #include <setjmp.h>
 
 #include <stdint.h>
-#include "../postproc/swscale.h"
-#include "../libmpcodecs/img_format.h"
+#include "postproc/swscale.h"
+#include "libmpcodecs/img_format.h"
 
 #include "mpui_image.h"
 

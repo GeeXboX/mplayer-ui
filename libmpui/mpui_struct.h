@@ -22,7 +22,7 @@
 
 #include <stdlib.h>
 #include "config.h"
-#include "../libvo/font_load.h"
+#include "libvo/font_load.h"
 
 
 typedef enum mpui_when_focused mpui_when_focused_t;

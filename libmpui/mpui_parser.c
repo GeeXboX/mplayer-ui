@@ -26,8 +26,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../asxparser.h"
-#include "../config.h"
+#include "asxparser.h"
+#include "config.h"
 
 #include "mpui_struct.h"
 #include "mpui_browser.h"

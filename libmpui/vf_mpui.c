@@ -17,7 +17,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "../config.h"
+#include "config.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,13 +28,13 @@
 #include <malloc.h>
 #endif
 
-#include "../libmpcodecs/mp_image.h"
-#include "../libmpcodecs/img_format.h"
-#include "../libmpcodecs/vf.h"
-#include "../libvo/fastmemcpy.h"
-#include "../input/input.h"
-#include "../osdep/keycodes.h"
-#include "../mplayer.h"
+#include "libmpcodecs/mp_image.h"
+#include "libmpcodecs/img_format.h"
+#include "libmpcodecs/vf.h"
+#include "libvo/fastmemcpy.h"
+#include "input/input.h"
+#include "osdep/keycodes.h"
+#include "mplayer.h"
 
 #include "mpui_focus.h"
 #include "mpui_browser.h"

@@ -19,7 +19,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
-#include "../input/input.h"
+#include "input/input.h"
 
 
 int

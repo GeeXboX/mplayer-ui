@@ -23,11 +23,9 @@
 #include "mpui_parser.h"
 #include "mpui_render.h"
 
-#include "../libmpcodecs/img_format.h"
-#include "../libvo/fastmemcpy.h"
-#include "../libvo/osd.h"
-#include "../libvo/font_load.h"
-#include "../mp_msg.h"
+#include "libmpcodecs/img_format.h"
+#include "libvo/fastmemcpy.h"
+#include "libvo/font_load.h"
 
 
 typedef struct mpui_render_context mpui_render_context_t;

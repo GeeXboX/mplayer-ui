@@ -21,7 +21,7 @@
 #define MPUI_PARSER_H
 
 #include "mpui_struct.h"
-#include "../config.h"
+#include "config.h"
 
 #define MPUI_DATADIR MPLAYER_DATADIR"/mpui/"
 
