@@ -371,6 +371,7 @@ mpui_object_new (char *id, mpui_flags_t flags)
   object->id = mpui_strdup (id);
   object->flags = flags;
   object->elements = mpui_list_new ();
+  object->actions = mpui_list_new ();
   return object;
 }
 
@@ -391,10 +392,14 @@ void
 mpui_object_free (mpui_object_t *object)
 {
   mpui_element_t **e = object->elements;
+  mpui_action_t **a = object->actions;
 
   while (*e)
     mpui_element_free (*e++);
   free (object->elements);
+  while (*a)
+    mpui_action_free (*a++);
+  free (object->actions);
   free (object->id);
   free (object);
 }
@@ -453,6 +458,7 @@ mpui_menu_new (char *id, mpui_menu_orientation_t orientation, mpui_font_t *font,
   menu->y = y;
   menu->w = w;
   menu->h = h;
+  menu->allmenuitem = NULL;
   menu->elements = mpui_list_new ();
   return menu;
 }
@@ -475,6 +481,8 @@ mpui_menu_free (mpui_menu_t *menu)
 {
   mpui_element_t **e = menu->elements;
 
+  if (menu->allmenuitem)
+    mpui_allmenuitem_free (menu->allmenuitem);
   while (*e)
     mpui_element_free (*e++);
   free (menu->elements);
@@ -527,6 +535,7 @@ mpui_menuitem_new (void)
 
   menuitem = (mpui_menuitem_t *) malloc (sizeof (*menuitem));
   menuitem->elements = mpui_list_new ();
+  menuitem->actions = mpui_list_new ();
   return menuitem;
 }
 
@@ -534,10 +543,14 @@ void
 mpui_menuitem_free (mpui_menuitem_t *menuitem)
 {
   mpui_element_t **e = menuitem->elements;
+  mpui_action_t **a = menuitem->actions;
 
   while (*e)
     mpui_element_free (*e++);
   free (menuitem->elements);
+  while (*a)
+    mpui_action_free (*a++);
+  free (menuitem->actions);
   free (menuitem);
 }
 
@@ -548,6 +561,7 @@ mpui_allmenuitem_new (void)
 
   allmenuitem = (mpui_allmenuitem_t *) malloc (sizeof (*allmenuitem));
   allmenuitem->elements = mpui_list_new ();
+  allmenuitem->actions = mpui_list_new ();
   return allmenuitem;
 }
 
@@ -555,10 +569,14 @@ void
 mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem)
 {
   mpui_element_t **e = allmenuitem->elements;
+  mpui_action_t **a = allmenuitem->actions;
 
   while (*e)
     mpui_element_free (*e++);
   free (allmenuitem->elements);
+  while (*a)
+    mpui_action_free (*a++);
+  free (allmenuitem->actions);
   free (allmenuitem);
 }
 
@@ -593,41 +611,20 @@ mpui_element_new (mpui_type_t type, void *elem)
   element->focus = 0;
   switch (type)
     {
-    case MPUI_STRING:
-      element->string = (mpui_string_t *) elem;
-      break;
     case MPUI_STR:
       element->str = (mpui_str_t *) elem;
-      break;
-    case MPUI_IMAGE:
-      element->image = (mpui_image_t *) elem;
       break;
     case MPUI_IMG:
       element->img = (mpui_img_t *) elem;
       break;
-    case MPUI_FONT:
-      element->font = (mpui_font_t *) elem;
-      break;
-    case MPUI_OBJECT:
-      element->object = (mpui_object_t *) elem;
-      break;
     case MPUI_OBJ:
       element->obj = (mpui_obj_t *) elem;
-      break;
-    case MPUI_ACTION:
-      element->action = (mpui_action_t *) elem;
-      break;
-    case MPUI_MENU:
-      element->menu = (mpui_menu_t *) elem;
       break;
     case MPUI_MNU:
       element->mnu = (mpui_mnu_t *) elem;
       break;
     case MPUI_MENUITEM:
       element->menuitem = (mpui_menuitem_t *) elem;
-      break;
-    case MPUI_ALLMENUITEM:
-      element->allmenuitem = (mpui_allmenuitem_t *) elem;
       break;
     default:
       element->ptr = elem;
@@ -638,8 +635,24 @@ mpui_element_new (mpui_type_t type, void *elem)
 void
 mpui_element_free (mpui_element_t *element)
 {
-  if (element->type == MPUI_ACTION)
-    mpui_action_free (element->action);
+  switch (element->type)
+    {
+    case MPUI_STR:
+      mpui_str_free (element->str);
+      break;
+    case MPUI_IMG:
+      mpui_img_free (element->img);
+      break;
+    case MPUI_OBJ:
+      mpui_obj_free (element->obj);
+      break;
+    case MPUI_MNU:
+      mpui_mnu_free (element->mnu);
+      break;
+    case MPUI_MENUITEM:
+      mpui_menuitem_free (element->menuitem);
+      break;
+    }
   free (element);
 }
 

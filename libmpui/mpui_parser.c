@@ -487,7 +487,7 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "action"))
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
-          elt = mpui_element_new (MPUI_ACTION, action);
+          mpui_actions_add (object, action);
         }
 
       if (elt)
@@ -568,7 +568,7 @@ mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "action"))
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
-          elt = mpui_element_new (MPUI_ACTION, action);
+          mpui_actions_add (allmenuitem, action);
         }
 
       if (elt)
@@ -617,7 +617,7 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
       else if (!strcmp (element, "action"))
         {
           mpui_action_t *action = mpui_parse_node_action (attribs);
-          elt = mpui_element_new (MPUI_ACTION, action);
+          mpui_actions_add (menuitem, action);
         }
       
       if (elt)
@@ -690,9 +690,8 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
         }
       else if (!strcmp (element, "all-menu-items"))
         {
-          mpui_allmenuitem_t *allmenuitem;
-          allmenuitem = mpui_parse_node_menu_all_items (mpui, attribs, sbody);
-          elt = mpui_element_new (MPUI_ALLMENUITEM, allmenuitem);
+          menu->allmenuitem = mpui_parse_node_menu_all_items (mpui, attribs,
+                                                              sbody);
         }
       else if (!strcmp (element, "menu-item"))
         {

@@ -65,18 +65,11 @@ enum mpui_when_focused {
 };
 
 enum mpui_type {
-  MPUI_STRING,
   MPUI_STR,
-  MPUI_IMAGE,
   MPUI_IMG,
-  MPUI_FONT,
-  MPUI_OBJECT,
   MPUI_OBJ,
-  MPUI_ACTION,
-  MPUI_MENU,
   MPUI_MNU,
   MPUI_MENUITEM,
-  MPUI_ALLMENUITEM,
 };
 
 struct mpui_element {
@@ -84,18 +77,11 @@ struct mpui_element {
   int focus;
   union {
     void *ptr;
-    mpui_string_t *string;
     mpui_str_t *str;
-    mpui_image_t *image;
     mpui_img_t *img;
-    mpui_font_t *font;
-    mpui_object_t *object;
     mpui_obj_t *obj;
-    mpui_action_t *action;
-    mpui_menu_t *menu;
     mpui_mnu_t *mnu;
     mpui_menuitem_t *menuitem;
-    mpui_allmenuitem_t *allmenuitem;
   };
 };
 
@@ -178,6 +164,7 @@ struct mpui_object {
   char *id;
   mpui_flags_t flags;
   mpui_element_t **elements;
+  mpui_action_t **actions;
 };
 
 struct mpui_obj {
@@ -190,10 +177,12 @@ struct mpui_obj {
 
 struct mpui_menuitem {
   mpui_element_t **elements;
+  mpui_action_t **actions;
 };
 
 struct mpui_allmenuitem {
   mpui_element_t **elements;
+  mpui_action_t **actions;
 };
 
 struct mpui_menus {
@@ -205,6 +194,7 @@ struct mpui_menu {
   mpui_menu_orientation_t orientation;
   mpui_font_t *font;
   mpui_size_t x, y, w, h;
+  mpui_allmenuitem_t *allmenuitem;
   mpui_element_t **elements;
 };
 
@@ -311,6 +301,7 @@ mpui_allmenuitem_t *mpui_allmenuitem_new (void);
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd);
+#define mpui_actions_add(a,b) a->actions = mpui_list_add(a->actions, b)
 void mpui_action_free (mpui_action_t *action);
 
 mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
