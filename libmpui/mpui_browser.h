@@ -22,7 +22,7 @@
 
 #include "mpui_struct.h"
 
-void mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser);
+mpui_element_t *mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser);
 void mpui_browser_clean (mpui_browser_t *browser);
 void mpui_browser_update (mpui_t *mpui, mpui_mnu_t *mnu);
 void mpui_browser_cd (mpui_t *mpui, char *directory);

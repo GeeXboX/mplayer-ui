@@ -63,9 +63,9 @@ mpui_browser_get_filetype (mpui_browser_t *browser, char *filename)
   return NULL;
 }
 
-static mpui_size_t
+static mpui_element_t *
 mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
-                       mpui_size_t *cx, mpui_size_t *cy)
+                       mpui_size_t *cx, mpui_size_t *cy, mpui_size_t *size)
 {
   char name[NAME_MAX], cmd[NAME_MAX+32];
   mpui_filetype_t *filetype;
@@ -85,7 +85,7 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
 
   filetype = mpui_browser_get_filetype (browser, name);
   if (!filetype)
-    return -1;
+    return NULL;
   icon = filetype->icon;
 
   menuitem = mpui_menuitem_new ();
@@ -200,15 +200,18 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
   if (((mpui_menu_t *) browser)->orientation == MPUI_ORIENTATION_H
       || (((mpui_menu_t *) browser)->orientation & MPUI_ORIENTATION_H
           && ((mpui_menu_t *) browser)->scrolling == MPUI_ORIENTATION_V))
-    return ((mpui_element_t *) menuitem)->h.val;
+    *size = ((mpui_element_t *) menuitem)->h.val;
   else
-    return ((mpui_element_t *) menuitem)->w.val;
+    *size = ((mpui_element_t *) menuitem)->w.val;
+
+  return (mpui_element_t *) menuitem;
 }
 
 
-void
+mpui_element_t *
 mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
 {
+  mpui_element_t *element, *select = NULL;
   struct dirent **dirent;
   mpui_size_t x, y, val, max = 0;
   int i, n;
@@ -229,7 +232,10 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
           free (dirent[i]);
           continue;
         }
-      val = mpui_browser_add_item (mpui, browser, dirent[i]->d_name, &x, &y);
+      element = mpui_browser_add_item (mpui, browser, dirent[i]->d_name,
+                                       &x, &y, &val);
+      if (mpui->lwd && !strcmp (mpui->lwd, dirent[i]->d_name))
+        select = element;
       free (dirent[i]);
       if (val < 0)
         continue;
@@ -267,6 +273,7 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
   free (dirent);
 
   browser->cwd_id = mpui->cwd_id;
+  return select;
 }
 
 void
@@ -285,19 +292,36 @@ void
 mpui_browser_update (mpui_t *mpui, mpui_mnu_t *mnu)
 {
   mpui_browser_t *browser = (mpui_browser_t *) mnu->menu;
+  mpui_element_t *element;
 
   if (browser->cwd_id != mpui->cwd_id)
     {
       mpui_browser_clean (browser);
-      mpui_browser_generate (mpui, browser);
+      element = mpui_browser_generate (mpui, browser);
       ((mpui_container_t *) mnu)->elements = mnu->menu->elements;
-      mpui_focus_first ((mpui_focus_box_t *) mnu);
+      if (element)
+        mpui_focus_element ((mpui_focus_box_t *) mnu, element);
+      else
+        mpui_focus_first ((mpui_focus_box_t *) mnu);
     }
 }
 
 void
 mpui_browser_cd (mpui_t *mpui, char *directory)
 {
-  strncpy (mpui->cwd, directory, sizeof (mpui->cwd)-1);
+  int l = strlen (directory), i = directory[l-1] == '/' ? 0 : 1;
+
+  if (!strncmp (directory, mpui->cwd, l) && !strchr (mpui->cwd + l + i, '/'))
+    {
+      if (l == 1)
+        memmove (mpui->cwd+2, mpui->cwd+1, strlen (mpui->cwd));
+      mpui->cwd[l] = '\0';
+      mpui->lwd = mpui->cwd + l + 1;
+    }
+  else
+    {
+      strncpy (mpui->cwd, directory, sizeof (mpui->cwd)-1);
+      mpui->lwd = NULL;
+    }
   mpui->cwd_id++;
 }

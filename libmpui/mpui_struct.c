@@ -1264,6 +1264,7 @@ mpui_new (int width, int height, int format)
   mpui->previous_screen = NULL;
   getcwd (mpui->cwd, sizeof (mpui->cwd));
   mpui->cwd[NAME_MAX] = '\0';
+  mpui->lwd = NULL;
   mpui->cwd_id = 0;
   return mpui;
 }

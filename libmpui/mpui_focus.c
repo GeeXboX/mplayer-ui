@@ -304,6 +304,36 @@ mpui_focus_previous_line (mpui_focus_box_t *focus_box)
       }
 }
 
+void
+mpui_focus_element (mpui_focus_box_t *focus_box, mpui_element_t *element)
+{
+  mpui_element_t **elements;
+
+  for (elements=focus_box->container.elements; *elements; elements++)
+    if (*elements == element)
+      {
+        if (element->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = element->y.val + element->h.val - focus_box->yoffset
+                         - ((mpui_element_t *) focus_box)->h.val;
+                if (offset > 0)
+                  focus_box->yoffset += offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = element->x.val + element->w.val - focus_box->xoffset
+                         - ((mpui_element_t *) focus_box)->w.val;
+                if (offset > 0)
+                  focus_box->xoffset += offset;
+              }
+          }
+        focus_box->focus = elements;
+      }
+}
+
 
 void
 mpui_focus_action_exec (mpui_focus_box_t *focus_box)
