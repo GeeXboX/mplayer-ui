@@ -46,6 +46,7 @@ typedef unsigned int mpui_menu_orientation_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
 typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
+typedef struct mpui_mnu mpui_mnu_t;
 typedef struct mpui_screens mpui_screens_t;
 typedef struct mpui_screen mpui_screen_t;
 typedef struct mpui mpui_t;
@@ -93,7 +94,6 @@ struct mpui_ids {
   char *id;
   mpui_element_t *elem;
 };
-
 
 struct mpui_strings {
   char *encoding;
@@ -182,10 +182,15 @@ struct mpui_menus {
 };
 
 struct mpui_menu {
+  char *id;
   mpui_menu_orientation_t orientation;
   mpui_font_t *font;
   mpui_size_t x, y, h, w;
   mpui_element_t **elements;
+};
+
+struct mpui_mnu {
+  mpui_menu_t *menu;
 };
 
 struct mpui_screens {
@@ -205,7 +210,7 @@ struct mpui {
   mpui_fonts_t **fonts;
   mpui_objects_t **objects;
   mpui_menus_t **menus;
-  mpui_screens_t **screens;
+  mpui_screens_t *screens;
 };
 
 
@@ -262,10 +267,15 @@ mpui_objects_t *mpui_objects_new (void);
 #define mpui_objects_add(a,b) a->objects = mpui_list_add(a->objects, b)
 void mpui_objects_free (mpui_objects_t *objects);
 
-mpui_menu_t *mpui_menu_new (mpui_menu_orientation_t orientation,
+mpui_menu_t *mpui_menu_new (char * id, mpui_menu_orientation_t orientation,
                             mpui_font_t *font, mpui_size_t x, mpui_size_t y,
                             mpui_size_t w, mpui_size_t h);
+mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
+#define mpui_menu_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_menu_free (mpui_menu_t *menu);
+
+mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu);
+void mpui_mnu_free (mpui_mnu_t *mnu);
 
 mpui_menus_t *mpui_menus_new (void);
 #define mpui_menus_add(a,b) a->menus = mpui_list_add(a->menus, b)
@@ -281,6 +291,7 @@ mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
 void mpui_element_free (mpui_element_t *element);
 
 mpui_screen_t *mpui_screen_new (char *id);
+#define mpui_screen_add(a,b) a->elements = mpui_list_add(a->elements, b)
 mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id);
 void mpui_screen_free (mpui_screen_t *screen);
 
