@@ -24,6 +24,7 @@
 #include "config.h"
 #include "libvo/font_load.h"
 
+typedef void (* mpui_list_free_func_t) (void *ptr);
 
 typedef enum mpui_when_focused mpui_when_focused_t;
 typedef enum mpui_type mpui_type_t;
@@ -385,6 +386,7 @@ int mpui_list_empty (void *list);
 int mpui_list_length (void *list);
 void *mpui_list_add (void *list, void *element);
 void mpui_list_remove_last (void *list);
+void mpui_list_free (void *list, mpui_list_free_func_t func);
 
 mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
 mpui_color_t *mpui_color_dup (mpui_color_t *color);

@@ -84,8 +84,14 @@ mpui_list_remove_last (void *list)
 }
 
 void
-mpui_list_free (void *list)
+mpui_list_free (void *list, mpui_list_free_func_t func)
 {
+  if (func)
+    {
+      void **elm = list;
+      while (*elm)
+        func (*elm++);
+    }
   free (list);
 }
 
@@ -532,13 +538,9 @@ mpui_strings_new (char *fonts, char *lang)
 void
 mpui_strings_free (mpui_strings_t *strings)
 {
-  mpui_string_t **s = strings->strings;
-
   free (strings->fonts);
   free (strings->lang);
-  while (*s)
-    mpui_string_free (*s++);
-  free (strings->strings);
+  mpui_list_free (strings->strings, (mpui_list_free_func_t) mpui_string_free);
   free (strings);
 }
 
@@ -694,11 +696,7 @@ mpui_images_new (void)
 void
 mpui_images_free (mpui_images_t *images)
 {
-  mpui_image_t **i = images->images;
-
-  while (*i)
-    mpui_image_free (*i++);
-  free (images->images);
+  mpui_list_free (images->images, (mpui_list_free_func_t) mpui_image_free);
   free (images);
 }
 
@@ -769,11 +767,7 @@ mpui_fonts_new (void)
 void
 mpui_fonts_free (mpui_fonts_t *fonts)
 {
-  mpui_font_t **f = fonts->fonts;
-
-  while (*f)
-    mpui_font_free (*f++);
-  free (fonts->fonts);
+  mpui_list_free (fonts->fonts, (mpui_list_free_func_t) mpui_font_free);
   free (fonts);
 }
 
@@ -810,17 +804,10 @@ mpui_filetype_dup (mpui_filetype_t *filetype,
 void
 mpui_filetype_free (mpui_filetype_t *filetype)
 {
-  mpui_action_t **actions = filetype->actions;
-  char **exts = filetype->exts;
-
   if (!filetype->dup)
     {
-      while (*actions)
-        mpui_action_free (*actions++);
-      while (*exts)
-        free (*exts++);
-      free (filetype->actions);
-      free (filetype->exts);
+      mpui_list_free (filetype->actions, (mpui_list_free_func_t) mpui_action_free);
+      mpui_list_free (filetype->exts, (mpui_list_free_func_t) free);
     }
   free (filetype);
 }
@@ -863,12 +850,8 @@ mpui_filetypes_dup (mpui_filetypes_t *filetypes,
 void
 mpui_filetypes_free (mpui_filetypes_t *filetypes)
 {
-  mpui_filetype_t **filetype = filetypes->filetypes;
-
-  while (*filetype)
-    mpui_filetype_free (*filetype++);
+  mpui_list_free (filetypes->filetypes, (mpui_list_free_func_t) mpui_filetype_free);
   free (filetypes->id);
-  free (filetypes->filetypes);
   free (filetypes);
 }
 
@@ -917,15 +900,8 @@ mpui_object_dup (mpui_object_t *object)
 void
 mpui_object_free (mpui_object_t *object)
 {
-  mpui_element_t **e = object->elements;
-  mpui_action_t **a = object->actions;
-
-  while (*e)
-    mpui_element_free (*e++);
-  free (object->elements);
-  while (*a)
-    mpui_action_free (*a++);
-  free (object->actions);
+  mpui_list_free (object->elements, (mpui_list_free_func_t) mpui_element_free);
+  mpui_list_free (object->actions, (mpui_list_free_func_t) mpui_action_free);
   free (object->id);
   free (object);
 }
@@ -999,11 +975,7 @@ mpui_objects_new (void)
 void
 mpui_objects_free (mpui_objects_t *objects)
 {
-  mpui_object_t **o = objects->objects;
-
-  while (*o)
-    mpui_object_free (*o++);
-  free (objects->objects);
+  mpui_list_free (objects->objects, (mpui_list_free_func_t) mpui_object_free);
   free (objects);
 }
 
@@ -1039,11 +1011,7 @@ mpui_menu_get (mpui_t *mpui, char *id)
 void
 mpui_menu_free (mpui_menu_t *menu)
 {
-  mpui_element_t **e = menu->elements;
-
-  while (*e)
-    mpui_element_free (*e++);
-  free (menu->elements);
+  mpui_list_free (menu->elements, (mpui_list_free_func_t) mpui_element_free);
   free (menu);
 }
 
@@ -1085,11 +1053,7 @@ mpui_menus_new (void)
 void
 mpui_menus_free (mpui_menus_t *menus)
 {
-  mpui_menu_t **m = menus->menus;
-
-  while (*m)
-    mpui_menu_free (*m++);
-  free (menus->menus);
+  mpui_list_free (menus->menus, (mpui_list_free_func_t) mpui_menu_free);
   free (menus);
 }
 
@@ -1152,11 +1116,7 @@ mpui_action_free (mpui_action_t *action)
 void
 mpui_actions_free (mpui_action_t **actions)
 {
-  mpui_action_t **a = actions;
-
-  while (*a)
-    mpui_action_free (*a++);
-  mpui_list_free (actions);
+  mpui_list_free (actions, (mpui_list_free_func_t) mpui_action_free);
 }
 
 
@@ -1244,11 +1204,7 @@ mpui_elements_get_size (mpui_element_t *element, mpui_element_t **elements)
 void
 mpui_elements_free (mpui_element_t **elements)
 {
-  mpui_element_t **e = elements;
-
-  while (*e)
-    mpui_element_free (*e++);
-  mpui_list_free (elements);
+  mpui_list_free (elements, (mpui_list_free_func_t) mpui_element_free);
 }
 
 
@@ -1371,11 +1327,8 @@ mpui_info_get (mpui_t *mpui, char *id)
 void
 mpui_info_free (mpui_info_t *info)
 {
-  mpui_tag_t **tags;
-
+  mpui_list_free (info->tags, (mpui_list_free_func_t) mpui_tag_free);
   free (info->id);
-  for (tags = info->tags; *tags; tags++)
-    mpui_tag_free (*tags);
   free (info);
 }
 
@@ -1416,11 +1369,7 @@ mpui_infos_new (void)
 void
 mpui_infos_free (mpui_infos_t *infos)
 {
-  mpui_info_t **p = infos->infos;
-
-  while (*p)
-    mpui_info_free (*p++);
-  free (infos->infos);
+  mpui_list_free (infos->infos, (mpui_list_free_func_t) mpui_info_free);
   free (infos);
 }
 
@@ -1470,11 +1419,7 @@ mpui_popups_new (void)
 void
 mpui_popups_free (mpui_popups_t *popups)
 {
-  mpui_popup_t **p = popups->popups;
-
-  while (*p)
-    mpui_popup_free (*p++);
-  free (popups->popups);
+  mpui_list_free (popups->popups, (mpui_list_free_func_t) mpui_popup_free);
   free (popups);
 }
 
@@ -1505,12 +1450,8 @@ mpui_screen_get (mpui_screens_t *screens, char *id)
 void
 mpui_screen_free (mpui_screen_t *screen)
 {
-  mpui_element_t **e = screen->elements;
-
-  while (*e)
-    mpui_element_free (*e++);
-  free (screen->elements);
-  free (screen->popup_stack);
+  mpui_list_free (screen->elements, (mpui_list_free_func_t) mpui_element_free);
+  mpui_list_free (screen->popup_stack, (mpui_list_free_func_t) NULL);
   free (screen);
 }
 
@@ -1531,11 +1472,7 @@ mpui_screens_new (void)
 void
 mpui_screens_free (mpui_screens_t *screens)
 {
-  mpui_screen_t **s = screens->screens;
-
-  while (*s)
-    mpui_screen_free (*s++);
-  free (screens->screens);
+  mpui_list_free (screens->screens, (mpui_list_free_func_t) mpui_screen_free);
   free (screens);
 }
 
@@ -1573,8 +1510,6 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
 void
 mpui_free (mpui_t *mpui)
 {
-  mpui_filetypes_t **filetypes = mpui->filetypes;
-
   free (mpui->theme);
   free (mpui->datadir);
   free (mpui->lang);
@@ -1588,9 +1523,7 @@ mpui_free (mpui_t *mpui)
   if (mpui->images)
     mpui_images_free (mpui->images);
 
-  while (*filetypes)
-    mpui_filetypes_free (*filetypes++);
-  free (mpui->filetypes);
+  mpui_list_free (mpui->filetypes, (mpui_list_free_func_t) mpui_filetypes_free);
 
   if (mpui->objects)
     mpui_objects_free (mpui->objects);
