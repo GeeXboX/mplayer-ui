@@ -232,6 +232,7 @@ int demux_audio_open(demuxer_t* demuxer) {
 	}
 	g = stream_read_char(s);
 	demux_info_add(demuxer,"Genre",genres[g]);
+        demux_info_add(demuxer,"Codec","MP3");
       }
     }
     break;
