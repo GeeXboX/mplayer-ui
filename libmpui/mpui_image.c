@@ -89,13 +89,6 @@ mpui_image_convert (mpui_image_t *image, int format)
   float dbpp = image->alpha ? 2.75 : 1.5;
   unsigned char *src[3];
   int src_stride[3];
-/*   int w, h; */
-
-/*   w = image->width; */
-/*   h = image->height; */
-/*   /\* here we should set scaled values in image->{width, height} *\/ */
-/*   image->width *= 3; */
-/*   image->height *= 2; */
 
   switch (format)
     {

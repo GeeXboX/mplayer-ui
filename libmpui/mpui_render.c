@@ -83,7 +83,7 @@ mpui_render_packed_image (mpui_image_t *image, mp_image_t *mpi)
   int i, incr;
 
   yi  = image->planes[0];
-  y = mpi->planes[0] + image->y*mpi->stride[0] + image->x;
+  y = mpi->planes[0] + image->y*mpi->stride[0] + image->x*image->bpp;
 
   if (image->alpha)
     {
