@@ -41,8 +41,16 @@ struct vf_priv_s {
 static int
 query_format (struct vf_instance_s* vf, unsigned int fmt)
 {
-  if (fmt == IMGFMT_YVU9 || fmt == IMGFMT_YV12 || fmt == IMGFMT_YUY2)
-    return VFCAP_CSP_SUPPORTED;
+  switch (fmt)
+    {
+    case IMGFMT_YVU9:
+    case IMGFMT_YV12:
+    case IMGFMT_I420:
+    case IMGFMT_IYUV:
+    case IMGFMT_YUY2:
+    case IMGFMT_UYVY:
+      return VFCAP_CSP_SUPPORTED;
+    }
   return 0;
 }
 

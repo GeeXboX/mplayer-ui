@@ -116,9 +116,12 @@ mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
     {
     case IMGFMT_YVU9:
     case IMGFMT_YV12:
+    case IMGFMT_I420:
+    case IMGFMT_IYUV:
       mpui_render_planar_image (image, mpi);
       break;
     case IMGFMT_YUY2:
+    case IMGFMT_UYVY:
       mpui_render_packed_image (image, mpi);
       break;
     }

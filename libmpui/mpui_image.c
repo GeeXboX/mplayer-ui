@@ -98,12 +98,16 @@ mpui_image_convert (mpui_image_t *image, int format)
       image->chroma_height = image->h >> 2;
       dbpp = image->alpha ? 2.1875 : 1.125;
       break;
+    case IMGFMT_I420:
+    case IMGFMT_IYUV:
+      image->format = image->format == IMGFMT_BGR24 ? IMGFMT_RGB24 : IMGFMT_RGB32;
     case IMGFMT_YV12:
       image->num_planes = 3;
       image->chroma_width = image->w >> 1;
       image->chroma_height = image->h >> 1;
       dbpp = image->alpha ? 2.75 : 1.5;
       break;
+    case IMGFMT_UYVY:
     case IMGFMT_YUY2:
       image->num_planes = 1;
       image->bpp = 2;
