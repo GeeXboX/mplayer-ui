@@ -218,7 +218,7 @@ mpui_render_image (mpui_img_t *img, mp_image_t *mpi,
 }
 
 static inline void
-mpui_render_planar_glyph (font_desc_t *font, int c,
+mpui_render_planar_glyph (font_desc_t *font, unsigned int c,
                           int pos_x, int pos_y, mpui_color_t *color,
                           mp_image_t *mpi)
 {
@@ -276,7 +276,7 @@ mpui_render_planar_glyph (font_desc_t *font, int c,
 }
 
 static inline void
-mpui_render_packed_glyph (font_desc_t *font, int c,
+mpui_render_packed_glyph (font_desc_t *font, unsigned int c,
                           int pos_x, int pos_y, mpui_color_t *color,
                           mp_image_t *mpi)
 {
@@ -333,7 +333,7 @@ mpui_render_packed_glyph (font_desc_t *font, int c,
 }
 
 static inline void
-mpui_render_glyph (font_desc_t *font, int c,
+mpui_render_glyph (font_desc_t *font, unsigned int c,
                    int pos_x, int pos_y, mpui_color_t *color,
                    mp_image_t *mpi)
 {
@@ -360,7 +360,8 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   size_t len = str->string->len;
   font_desc_t *font;
   mpui_color_t *color;
-  int f, c;
+  unsigned int c;
+  int f;
   int x_init = context->x, x_end = context->x + ((mpui_element_t *)str)->w.val;
 
   if (!str->font || !str->font->font_desc)

@@ -218,7 +218,7 @@ mpui_string_new (char *id, unsigned char *str, size_t len, mpui_encoding_t encod
   mpui_string_t *string;
   unsigned char *dst;
   size_t dlen;
-  int c;
+  unsigned int c;
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
@@ -258,10 +258,10 @@ mpui_string_get (mpui_t *mpui, char *id)
   return NULL;
 }
 
-int
+unsigned int
 mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t encoding)
 {
-  int c;
+  unsigned int c;
 
   if (!*len)
     return 0;
@@ -317,7 +317,7 @@ mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t enc
 
 void
 mpui_string_put_next_char (unsigned char **txt, size_t *len,
-                           int c, mpui_encoding_t encoding)
+                           unsigned int c, mpui_encoding_t encoding)
 {
   switch (encoding)
     {
@@ -396,7 +396,8 @@ static void
 mpui_str_get_size (mpui_str_t *str)
 {
   font_desc_t *font = str->font->font_desc;
-  int c, w = 0, wmax = 0, htot = 0;
+  unsigned int c;
+  int w = 0, wmax = 0, htot = 0;
   unsigned char *txt = str->string->text;
   size_t len = str->string->len;
 
