@@ -92,6 +92,12 @@ mpui_image_convert (mpui_image_t *image, int format)
 
   switch (format)
     {
+    case IMGFMT_YVU9:
+      image->num_planes = 3;
+      image->chroma_width = image->w >> 2;
+      image->chroma_height = image->h >> 2;
+      dbpp = image->alpha ? 2.1875 : 1.125;
+      break;
     case IMGFMT_YV12:
       image->num_planes = 3;
       image->chroma_width = image->w >> 1;

@@ -114,6 +114,7 @@ mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
 
   switch (mpi->imgfmt)
     {
+    case IMGFMT_YVU9:
     case IMGFMT_YV12:
       mpui_render_planar_image (image, mpi);
       break;
