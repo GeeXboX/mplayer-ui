@@ -22,6 +22,9 @@
 
 #include "mpui_struct.h"
 
+void mpui_cmd_screen_set_keymaps (mpui_t *mpui, mpui_screen_t *screen);
+void mpui_cmd_screen_unset_keymaps (mpui_t *mpui, mpui_screen_t *screen);
+
 void mpui_cmd_screen (mpui_t *mpui, char *screen_id);
 void mpui_cmd_popup (mpui_t *mpui, char *popup_id);
 void mpui_cmd_popup_close (mpui_t *mpui);

@@ -50,16 +50,60 @@ mpui_cmd_for_each_element (mpui_t *mpui, mpui_element_t **elements,
 }
 
 
+static void
+mpui_cmd_screen_set_keymaps_func (mpui_t *mpui __attribute__((unused)),
+                                  mpui_element_t *element, void *data)
+{
+  mpui_screen_t *screen = data;
+  if ((element->flags & MPUI_FLAG_FOCUS_BOX) && *screen->focus_box != element)
+    return;
+  if (((mpui_container_t *) element)->keymaps)
+    mp_input_add_binds_filter (((mpui_container_t *) element)->keymaps->binds);
+}
+
+void
+mpui_cmd_screen_set_keymaps (mpui_t *mpui, mpui_screen_t *screen)
+{
+  if (screen->keymaps)
+    mp_input_add_binds_filter (screen->keymaps->binds);
+  mpui_cmd_for_each_element (mpui, screen->elements,
+                             NULL, MPUI_ANY, MPUI_FLAG_CONTAINER,
+                             mpui_cmd_screen_set_keymaps_func, screen);
+}
+
+static void
+mpui_cmd_screen_unset_keymaps_func (mpui_t *mpui __attribute__((unused)),
+                                    mpui_element_t *element, void *data)
+{
+  mpui_screen_t *screen = data;
+  if ((element->flags & MPUI_FLAG_FOCUS_BOX) && *screen->focus_box != element)
+    return;
+  if (((mpui_container_t *) element)->keymaps)
+    mp_input_remove_binds_filter(((mpui_container_t*)element)->keymaps->binds);
+}
+
+void
+mpui_cmd_screen_unset_keymaps (mpui_t *mpui, mpui_screen_t *screen)
+{
+  if (screen->keymaps)
+    mp_input_remove_binds_filter (screen->keymaps->binds);
+  mpui_cmd_for_each_element (mpui, screen->elements,
+                             NULL, MPUI_ANY, MPUI_FLAG_CONTAINER,
+                             mpui_cmd_screen_unset_keymaps_func, screen);
+}
+
 void
 mpui_cmd_screen (mpui_t *mpui, char *screen_id)
 {
-  mpui_screen_t *screen = NULL;
+  mpui_screen_t *screen = mpui_screen_get (mpui->screens, screen_id);
 
-  screen = mpui_screen_get (mpui->screens, screen_id);
   if (screen)
     {
+      if (mpui->current_screen)
+        mpui_cmd_screen_unset_keymaps (mpui, mpui->current_screen);
       mpui->current_screen = screen;
       mpui_focus_box_first (mpui->current_screen);
+      mpui_cmd_screen_set_keymaps (mpui, screen);
     }
 }
 
@@ -69,18 +113,42 @@ mpui_cmd_popup (mpui_t *mpui, char *popup_id)
 {
   mpui_popup_t *popup;
 
-  if (!mpui->current_screen)
-    return;
-
-  popup = mpui_popup_get (mpui->popups, popup_id);
-  mpui_screen_popups_add (mpui->current_screen, popup);
+  if (mpui->current_screen && (popup = mpui_popup_get(mpui->popups, popup_id)))
+    {
+      if (mpui_screen_has_popups (mpui->current_screen))
+        {
+          mpui_container_t *c;
+          c = (mpui_container_t*) mpui_screen_last_popup(mpui->current_screen);
+          if (c->keymaps)
+            mp_input_remove_binds_filter (c->keymaps->binds);
+        }
+      else if (mpui->current_screen->keymaps)
+        mpui_cmd_screen_unset_keymaps (mpui, mpui->current_screen);
+      mpui_screen_popups_add (mpui->current_screen, popup);
+      if (((mpui_container_t *) popup)->keymaps)
+        mp_input_add_binds_filter (((mpui_container_t*)popup)->keymaps->binds);
+    }
 }
 
 void
 mpui_cmd_popup_close (mpui_t *mpui)
 {
   if (mpui->current_screen)
-    mpui_screen_popups_remove_last (mpui->current_screen);
+    {
+      mpui_popup_t *popup;
+      popup = mpui_screen_popups_remove_last (mpui->current_screen);
+      if (popup && ((mpui_container_t *) popup)->keymaps)
+        mp_input_remove_binds_filter (((mpui_container_t *) popup)->keymaps->binds);
+      if (mpui_screen_has_popups (mpui->current_screen))
+        {
+          mpui_container_t *c;
+          c = (mpui_container_t*) mpui_screen_last_popup(mpui->current_screen);
+          if (c->keymaps)
+            mp_input_add_binds_filter (c->keymaps->binds);
+        }
+      else if (mpui->current_screen->keymaps)
+        mpui_cmd_screen_set_keymaps (mpui, mpui->current_screen);
+    }
 }
 
 

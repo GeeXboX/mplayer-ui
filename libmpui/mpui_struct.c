@@ -136,7 +136,8 @@ mpui_element_uninit (mpui_element_t *element)
 static void
 mpui_container_init (mpui_container_t *container, char *id,
                      mpui_type_t type, mpui_flags_t flags,
-                     mpui_element_t **elements, mpui_action_t **actions)
+                     mpui_element_t **elements, mpui_action_t **actions,
+                     mpui_keymaps_t *keymaps)
 {
   if (!elements && !actions)
     {
@@ -150,6 +151,7 @@ mpui_container_init (mpui_container_t *container, char *id,
       container->elements = elements;
       container->actions = actions;
     }
+  container->keymaps = keymaps;
   mpui_element_init ((mpui_element_t *) container, id,
                      type, flags | MPUI_FLAG_CONTAINER);
 }
@@ -169,11 +171,11 @@ static void
 mpui_foxus_box_init (mpui_focus_box_t *focus_box, char *id,
                      mpui_type_t type, mpui_flags_t flags,
                      mpui_element_t **elements, mpui_action_t **actions,
-                     mpui_orientation_t orientation,
+                     mpui_keymaps_t *keymaps, mpui_orientation_t orientation,
                      mpui_orientation_t scrolling)
 {
   mpui_container_init ((mpui_container_t *) focus_box, id, type,
-                       flags, elements, actions);
+                       flags, elements, actions, keymaps);
   focus_box->container.element.flags |= MPUI_FLAG_FOCUS_BOX;
   focus_box->orientation = orientation;
   focus_box->scrolling = scrolling;
@@ -221,6 +223,87 @@ mpui_color_free (mpui_color_t *color)
 {
   free (color);
 }
+
+
+mpui_keymaps_t *
+mpui_keymaps_new (char *id)
+{
+  mpui_keymaps_t *keymaps;
+
+  keymaps = (mpui_keymaps_t *) malloc (sizeof (*keymaps));
+  keymaps->id = mpui_strdup (id);
+  keymaps->num = 0;
+  keymaps->binds = (mp_cmd_bind_t *) malloc (sizeof (*keymaps->binds));
+  keymaps->binds->input[0] = 0;
+  keymaps->binds->cmd = NULL;
+
+  return keymaps;
+}
+
+int
+mpui_keymaps_add (mpui_keymaps_t *keymaps, char *key, char *cmd)
+{
+  int input;
+
+  if (!(input = mp_input_get_key_from_name(key)))
+    return -1;
+
+  keymaps->binds = (mp_cmd_bind_t *) realloc (keymaps->binds,
+                                              (keymaps->num + 2)
+                                              * sizeof (*keymaps->binds));
+  keymaps->binds[keymaps->num].input[0] = input;
+  keymaps->binds[keymaps->num].input[1] = 0;
+  keymaps->binds[keymaps->num].cmd = mpui_strdup (cmd);
+  keymaps->num++;
+  keymaps->binds[keymaps->num].input[0] = 0;
+  keymaps->binds[keymaps->num].cmd = NULL;
+  return 0;
+}
+
+mpui_keymaps_t *
+mpui_keymaps_get (mpui_t *mpui, char *id)
+{
+  mpui_keymaps_t **keymaps;
+
+  if (id)
+    for (keymaps=mpui->keymapping->keymaps; *keymaps; keymaps++)
+      if (!strcmp ((*keymaps)->id, id))
+        return *keymaps;
+
+  return NULL;
+}
+
+void
+mpui_keymaps_free (mpui_keymaps_t *keymaps)
+{
+  mp_cmd_bind_t *binds;
+
+  free (keymaps->id);
+  for (binds=keymaps->binds; binds->input[0]; binds++)
+    free (binds->cmd);
+  free (keymaps->binds);
+  free (keymaps);
+}
+
+mpui_keymapping_t *
+mpui_keymapping_new (void)
+{
+  mpui_keymapping_t *keymapping;
+
+  keymapping = (mpui_keymapping_t *) malloc (sizeof (*keymapping));
+  keymapping->keymaps = mpui_list_new ();
+
+  return keymapping;
+}
+
+void
+mpui_keymapping_free (mpui_keymapping_t *keymapping)
+{
+  mpui_list_free (keymapping->keymaps,
+                  (mpui_list_free_func_t) mpui_keymaps_free);
+  free (keymapping);
+}
+
 
 mpui_string_t *
 mpui_string_get (mpui_t *mpui, char *id)
@@ -862,7 +945,8 @@ mpui_filetypes_free (mpui_filetypes_t *filetypes)
 
 
 mpui_object_t *
-mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
+mpui_object_new (char *id, mpui_size_t x, mpui_size_t y,
+                 mpui_keymaps_t *keymaps)
 {
   mpui_object_t *object;
 
@@ -874,6 +958,7 @@ mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
   object->y = y;
   object->elements = mpui_list_new ();
   object->actions = mpui_list_new ();
+  object->keymaps = keymaps;
   return object;
 }
 
@@ -894,7 +979,7 @@ mpui_object_dup (mpui_object_t *object)
   mpui_element_t **e;
   mpui_object_t *dup;
 
-  dup = mpui_object_new ("", object->x, object->y);
+  dup = mpui_object_new ("", object->x, object->y, object->keymaps);
   for (e=object->elements; *e; e++)
     mpui_object_elements_add (dup, mpui_element_dup (*e));
   dup->dup = 1;
@@ -933,7 +1018,7 @@ mpui_obj_new (mpui_object_t *object, mpui_coord_t x, mpui_coord_t y,
 
   obj = (mpui_obj_t *) malloc (sizeof (*obj));
   mpui_container_init ((mpui_container_t *) obj, object->id, MPUI_OBJ, flags,
-                       object->elements, object->actions);
+                       object->elements, object->actions, object->keymaps);
   obj->container.element.x = x;
   obj->container.element.y = y;
   obj->container.element.when_focused = when_focused;
@@ -987,7 +1072,8 @@ mpui_objects_free (mpui_objects_t *objects)
 
 mpui_menu_t *
 mpui_menu_new (char *id, mpui_orientation_t orientation,
-               mpui_size_t x, mpui_size_t y, mpui_font_t *font)
+               mpui_size_t x, mpui_size_t y, mpui_font_t *font,
+               mpui_keymaps_t *keymaps)
 {
   mpui_menu_t *menu;
 
@@ -1001,6 +1087,7 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu->y = y;
   menu->font = font;
   menu->elements = mpui_list_new ();
+  menu->keymaps = keymaps;
   return menu;
 }
 
@@ -1030,7 +1117,7 @@ mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
 
   mnu = (mpui_mnu_t *) malloc (sizeof (*mnu));
   mpui_foxus_box_init ((mpui_focus_box_t *) mnu, menu->id, MPUI_MNU, flags,
-                       menu->elements, NULL,
+                       menu->elements, NULL, menu->keymaps,
                        menu->orientation, menu->scrolling);
   mnu->fb.container.element.x = x;
   mnu->fb.container.element.y = y;
@@ -1072,7 +1159,7 @@ mpui_menuitem_new (void)
 
   menuitem = (mpui_menuitem_t *) malloc (sizeof (*menuitem));
   mpui_container_init ((mpui_container_t *) menuitem, NULL, MPUI_MENUITEM,
-                       MPUI_FLAG_FOCUSABLE, NULL, NULL);
+                       MPUI_FLAG_FOCUSABLE, NULL, NULL, NULL);
   return menuitem;
 }
 
@@ -1090,7 +1177,7 @@ mpui_allmenuitem_new (mpui_menu_t *menu)
 
   allmenuitem = (mpui_allmenuitem_t *) malloc (sizeof (*allmenuitem));
   mpui_container_init ((mpui_container_t *) allmenuitem, NULL,
-                       MPUI_ALLMENUITEM, MPUI_FLAG_DYNAMIC, NULL, NULL);
+                       MPUI_ALLMENUITEM, MPUI_FLAG_DYNAMIC, NULL, NULL, NULL);
   allmenuitem->menu = menu;
   return allmenuitem;
 }
@@ -1225,7 +1312,7 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
                   mpui_size_t icon_w, mpui_size_t icon_h,
                   mpui_size_t item_w, mpui_size_t spacing,
                   mpui_object_t *border, mpui_object_t *item_border,
-                  mpui_filetypes_t *filter)
+                  mpui_filetypes_t *filter, mpui_keymaps_t *keymaps)
 {
   mpui_browser_t *browser;
   mpui_coord_t tx, ty;
@@ -1242,6 +1329,7 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   browser->menu.h = h;
   browser->menu.font = font;
   browser->menu.elements = mpui_list_new ();
+  browser->menu.keymaps = keymaps;
   browser->icon_w = icon_w;
   browser->icon_h = icon_h;
   browser->item_w = item_w;
@@ -1287,7 +1375,8 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
                    mpui_orientation_t scrolling, mpui_alignment_t align,
                    mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h,
                    mpui_size_t item_w, mpui_size_t spacing,
-                   mpui_object_t *border, mpui_object_t *item_border)
+                   mpui_object_t *border, mpui_object_t *item_border,
+                   mpui_keymaps_t *keymaps)
 {
   mpui_playlist_t *playlist;
   mpui_coord_t tx, ty;
@@ -1304,6 +1393,7 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   playlist->menu.h = h;
   playlist->menu.font = font;
   playlist->menu.elements = mpui_list_new ();
+  playlist->menu.keymaps = keymaps;
   playlist->item_w = item_w;
   playlist->spacing = spacing;
   playlist->align = align;
@@ -1442,7 +1532,7 @@ mpui_inf_new (mpui_info_t *info, mpui_coord_t x, mpui_coord_t y,
 
   inf = (mpui_inf_t *) malloc (sizeof (*inf));
   mpui_container_init ((mpui_container_t *) inf, info->id, MPUI_INF,
-                       0, NULL, NULL);
+                       0, NULL, NULL, NULL);
   inf->container.element.x = x;
   inf->container.element.y = y;
   inf->container.element.when_focused = when_focused;
@@ -1489,7 +1579,7 @@ mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
 
   slideshow = (mpui_slideshow_t *) malloc (sizeof (*slideshow));
   mpui_container_init ((mpui_container_t *) slideshow, id, MPUI_SLIDESHOW,
-                       0, NULL, NULL);
+                       0, NULL, NULL, NULL);
   slideshow->container.element.x = x;
   slideshow->container.element.y = y;
   slideshow->container.element.w = w;
@@ -1528,13 +1618,14 @@ mpui_slideshow_free (mpui_slideshow_t *slideshow)
 
 
 mpui_popup_t *
-mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y)
+mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y,
+                mpui_keymaps_t *keymaps)
 {
   mpui_popup_t *popup;
 
   popup = (mpui_popup_t *) malloc (sizeof (*popup));
   mpui_container_init ((mpui_container_t *) popup, id, MPUI_POPUP, 0, 
-                       NULL, NULL);
+                       NULL, NULL, keymaps);
   popup->container.element.x = x;
   popup->container.element.y = y;
   popup->id = mpui_strdup (id);
@@ -1579,7 +1670,7 @@ mpui_popups_free (mpui_popups_t *popups)
 
 
 mpui_screen_t *
-mpui_screen_new (char *id)
+mpui_screen_new (char *id, mpui_keymaps_t *keymaps)
 {
   mpui_screen_t *screen;
 
@@ -1587,6 +1678,7 @@ mpui_screen_new (char *id)
   screen->id = mpui_strdup (id);
   screen->elements = mpui_list_new ();
   screen->popup_stack = mpui_list_new ();
+  screen->keymaps = keymaps;
   return screen;
 }
 
@@ -1643,6 +1735,7 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
   mpui->lang = mpui_strdup (lang);
   mpui->diag = sqrt (width*width + height*height);
   mpui->format = format;
+  mpui->keymapping = mpui_keymapping_new ();
   mpui->strings = NULL;
   mpui->fonts = NULL;
   mpui->images = mpui_images_new ();
@@ -1666,6 +1759,9 @@ mpui_free (mpui_t *mpui)
   free (mpui->theme);
   free (mpui->datadir);
   free (mpui->lang);
+
+  if (mpui->keymapping)
+    mpui_keymapping_free (mpui->keymapping);
 
   if (mpui->strings)
     mpui_strings_free (mpui->strings);

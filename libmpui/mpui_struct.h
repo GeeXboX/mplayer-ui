@@ -25,6 +25,8 @@
 
 #include "config.h"
 #include "libvo/font_load.h"
+#include "input/input.h"
+
 
 typedef void (* mpui_list_free_func_t) (void *ptr);
 
@@ -37,6 +39,8 @@ typedef int mpui_size_t;
 typedef struct mpui_coord mpui_coord_t;
 typedef struct mpui_color mpui_color_t;
 typedef struct mpui_ids mpui_ids_t;
+typedef struct mpui_keymaps mpui_keymaps_t;
+typedef struct mpui_keymapping mpui_keymapping_t;
 
 typedef enum mpui_encoding mpui_encoding_t;
 typedef struct mpui_strings mpui_strings_t;
@@ -165,6 +169,7 @@ struct mpui_container {
   mpui_element_t element;
   mpui_element_t **elements;
   mpui_action_t **actions;
+  mpui_keymaps_t *keymaps;
 };
 
 struct mpui_focus_box {
@@ -177,6 +182,16 @@ struct mpui_focus_box {
 struct mpui_color {
   unsigned char r, g, b;
   unsigned char y, u, v;
+};
+
+struct mpui_keymaps {
+  char *id;
+  int num;
+  mp_cmd_bind_t *binds;
+};
+
+struct mpui_keymapping {
+  mpui_keymaps_t **keymaps;
 };
 
 struct mpui_strings {
@@ -281,6 +296,7 @@ struct mpui_object {
   mpui_size_t x, y;
   mpui_element_t **elements;
   mpui_action_t **actions;
+  mpui_keymaps_t *keymaps;
 };
 
 struct mpui_obj {
@@ -309,6 +325,7 @@ struct mpui_menu {
   mpui_size_t x, y, w, h;
   mpui_font_t *font;
   mpui_element_t **elements;
+  mpui_keymaps_t *keymaps;
 };
 
 struct mpui_mnu {
@@ -414,6 +431,7 @@ struct mpui_screen {
   mpui_element_t **elements;
   mpui_element_t **focus_box;
   mpui_popup_t **popup_stack;
+  mpui_keymaps_t *keymaps;
 };
 
 struct mpui {
@@ -422,6 +440,7 @@ struct mpui {
   char *theme;
   char *datadir;
   char *lang;
+  mpui_keymapping_t *keymapping;
   mpui_strings_t *strings;
   mpui_fonts_t *fonts;
   mpui_images_t *images;
@@ -448,6 +467,20 @@ void mpui_list_free (void *list, mpui_list_free_func_t func);
 mpui_color_t *mpui_color_new (unsigned char r,unsigned char g,unsigned char b);
 mpui_color_t *mpui_color_dup (mpui_color_t *color);
 void mpui_color_free (mpui_color_t *color);
+
+mpui_keymaps_t *mpui_keymaps_new (char *id);
+int mpui_keymaps_add (mpui_keymaps_t *keymaps, char *key, char *cmd);
+mpui_keymaps_t *mpui_keymaps_get (mpui_t *mpui, char *id);
+void mpui_keymaps_free (mpui_keymaps_t *keymaps);
+
+mpui_keymapping_t *mpui_keymapping_new (void);
+void mpui_keymapping_free (mpui_keymapping_t *keymapping);
+
+static inline void
+mpui_keymapping_add (mpui_keymapping_t *keymapping, mpui_keymaps_t *keymaps)
+{
+  keymapping->keymaps = mpui_list_add (keymapping->keymaps, keymaps);
+}
 
 mpui_string_t *mpui_string_new (char *id, unsigned char *str,
                                 mpui_encoding_t encoding);
@@ -547,7 +580,8 @@ mpui_filetypes_list_add (mpui_t *mpui, mpui_filetypes_t *filetypes)
   mpui->filetypes = mpui_list_add(mpui->filetypes, filetypes);
 }
 
-mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
+mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y,
+                                mpui_keymaps_t *keymaps);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
 mpui_object_t *mpui_object_dup (mpui_object_t *object);
 void mpui_object_free (mpui_object_t *object);
@@ -579,7 +613,8 @@ mpui_objects_add (mpui_objects_t *objects, mpui_object_t *object)
 }
 
 mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
-                            mpui_size_t x, mpui_size_t y, mpui_font_t *font);
+                            mpui_size_t x, mpui_size_t y, mpui_font_t *font,
+                            mpui_keymaps_t *keymaps);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 
@@ -629,7 +664,8 @@ mpui_browser_t *mpui_browser_new (char * id, mpui_font_t *font,
                                   mpui_size_t item_w, mpui_size_t spacing,
                                   mpui_object_t *border,
                                   mpui_object_t *item_border,
-                                  mpui_filetypes_t *filter);
+                                  mpui_filetypes_t *filter,
+                                  mpui_keymaps_t *keymaps);
 void mpui_browser_free (mpui_browser_t *browser);
 
 mpui_playlist_t *mpui_playlist_new (char * id, mpui_font_t *font,
@@ -640,7 +676,8 @@ mpui_playlist_t *mpui_playlist_new (char * id, mpui_font_t *font,
                                     mpui_size_t w, mpui_size_t h,
                                     mpui_size_t item_w, mpui_size_t spacing,
                                     mpui_object_t *border,
-                                    mpui_object_t *item_border);
+                                    mpui_object_t *item_border,
+                                    mpui_keymaps_t *keymaps);
 void mpui_playlist_free (mpui_playlist_t *playlist);
 
 mpui_tag_t *mpui_tag_new (char *id, char *caption, char *type,
@@ -694,7 +731,8 @@ mpui_slideshow_t *mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
                                       mpui_object_t *border);
 void mpui_slideshow_free (mpui_slideshow_t *slideshow);
 
-mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
+mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y,
+                              mpui_keymaps_t *keymaps);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
 void mpui_popup_free (mpui_popup_t *popup);
 
@@ -707,7 +745,7 @@ mpui_popups_add (mpui_popups_t *popups, mpui_popup_t *popup)
   popups->popups = mpui_list_add(popups->popups, popup);
 }
 
-mpui_screen_t *mpui_screen_new (char *id);
+mpui_screen_t *mpui_screen_new (char *id, mpui_keymaps_t *keymaps);
 mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
 void mpui_screen_free (mpui_screen_t *screen);
 
@@ -727,6 +765,18 @@ static inline void *
 mpui_screen_popups_remove_last (mpui_screen_t *screen)
 {
   return mpui_list_remove_last (screen->popup_stack);
+}
+
+static inline int
+mpui_screen_has_popups (mpui_screen_t *screen)
+{
+  return !mpui_list_empty (screen->popup_stack);
+}
+
+static inline mpui_popup_t *
+mpui_screen_last_popup (mpui_screen_t *screen)
+{
+  return screen->popup_stack[mpui_list_length (screen->popup_stack) - 1];
 }
 
 mpui_screens_t *mpui_screens_new (void);

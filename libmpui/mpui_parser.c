@@ -36,6 +36,7 @@
 #include "mpui_focus.h"
 #include "mpui_image.h"
 #include "mpui_tv.h"
+#include "mpui_cmd.h"
 #include "mpui_parser.h"
 
 extern char * get_path (char *filename);
@@ -379,6 +380,81 @@ mpui_parse_color (char *color)
     }
 
   return NULL;
+}
+
+static void
+mpui_parse_node_keymap (mpui_keymaps_t *keymaps, char **attribs)
+{
+  char *key, *cmd;
+
+  key = asx_get_attrib ("key", attribs);
+  cmd = asx_get_attrib ("cmd", attribs);
+
+  if (!key || !cmd)
+    return;
+
+  mpui_keymaps_add (keymaps, key, cmd);
+
+  free (key);
+  free (cmd);
+}
+
+static mpui_keymaps_t *
+mpui_parse_node_keymaps (char *body, char **attribs)
+{
+  ASX_Parser_t* parser;
+  char *id, *element, *sbody;
+  mpui_keymaps_t *keymaps;
+
+  id = asx_get_attrib ("id", attribs);
+  asx_free_attribs (attribs);
+
+  if (!id)
+    return NULL;
+
+  keymaps = mpui_keymaps_new (id);
+  free (id);
+
+  while (1)
+    {
+      parser = asx_parser_new();
+      if (mpui_parse_get_element (parser,&body,&element,&sbody,&attribs) <= 0)
+        break;
+
+      if (!strcmp (element, "keymap"))
+        mpui_parse_node_keymap (keymaps, attribs);
+
+      asx_free_attribs (attribs);
+      asx_parser_free (parser);
+    }
+  asx_free_attribs (attribs);
+
+  return keymaps;
+}
+
+static void
+mpui_parse_node_keymapping (mpui_t *mpui, char *body)
+{
+  ASX_Parser_t* parser;
+  char *element, *sbody;
+  char **attribs = NULL;
+
+  while (1)
+    {
+      parser = asx_parser_new();
+      if (mpui_parse_get_element (parser,&body,&element,&sbody,&attribs) <= 0)
+        break;
+
+      if (!strcmp (element, "keymaps"))
+        {
+          mpui_keymaps_t *keymaps = mpui_parse_node_keymaps (sbody, attribs);
+          mpui_keymapping_add (mpui->keymapping, keymaps);
+        }
+      else
+        asx_free_attribs (attribs);
+      asx_parser_free (parser);
+    }
+  asx_free_attribs (attribs);
 }
 
 static mpui_string_t *
@@ -909,9 +985,10 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 static mpui_object_t *
 mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *x, *y, *element;
+  char *id, *x, *y, *keymaps_id, *element;
   mpui_coord_t sx, sy;
   mpui_object_t *object = NULL;
+  mpui_keymaps_t *keymaps;
   ASX_Parser_t* parser;
 
   id = asx_get_attrib ("id", attribs);
@@ -919,13 +996,16 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
     return NULL;
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
   sx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
   sy = mpui_parse_size (y, mpui->height, mpui->diag, 0);
-  object = mpui_object_new (id, sx.val, sy.val);
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
+  object = mpui_object_new (id, sx.val, sy.val, keymaps);
   asx_free_attribs (attribs);
   free (id);
   free (x);
   free (y);
+  free (keymaps_id);
 
   while (1)
     {
@@ -1098,7 +1178,7 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
 static mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *orient, *spacing, *font_id, *x, *y, *w, *h, *element;
+  char *id, *orient, *spacing, *font_id, *x, *y, *w, *h, *keymaps_id, *element;
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V;
@@ -1106,6 +1186,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   mpui_font_t *default_font = NULL, *font = NULL;
   mpui_coord_t mx, my, ms;
   mpui_size_t item_x, item_y, max_w = 0, max_h = 0, tmp;
+  mpui_keymaps_t *keymaps;
   mpui_element_t **elements, **e;
   mpui_size_t offset;
 
@@ -1117,6 +1198,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   y = asx_get_attrib ("y", attribs);
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
 
   if (orient && !strcmp (orient, "horizontal"))
     orientation = MPUI_ORIENTATION_H;
@@ -1136,8 +1218,10 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   item_x = ms.val/2;
   item_y = ms.val/2;
 
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
+
   if (id && font)
-    menu = mpui_menu_new (id, orientation, mx.val, my.val, font);
+    menu = mpui_menu_new (id, orientation, mx.val, my.val, font, keymaps);
 
   asx_free_attribs (attribs);
   free (id);
@@ -1146,6 +1230,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   free (font_id);
   free (x);
   free (y);
+  free (keymaps_id);
 
   while (1)
     {
@@ -1255,13 +1340,14 @@ static mpui_browser_t *
 mpui_parse_node_browser (mpui_t *mpui, char **attribs)
 {
   char *id, *orient, *scroll, *spacing, *font_id, *x, *y, *w, *h, *i_w, *i_h;
-  char *border_id, *item_border_id, *filter_id;
+  char *border_id, *item_border_id, *filter_id, *keymaps_id;
   mpui_browser_t *browser = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V, scrolling;
   mpui_alignment_t align;
   mpui_font_t *font;
   mpui_object_t *border, *item_border;
   mpui_filetypes_t *filter;
+  mpui_keymaps_t *keymaps;
   mpui_coord_t mx, my, mw, mh, miw, mih, ms;
   mpui_size_t item_w, tmp;
 
@@ -1279,6 +1365,7 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   border_id = asx_get_attrib ("border", attribs);
   item_border_id = asx_get_attrib ("item-border", attribs);
   filter_id = asx_get_attrib ("filter", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
 
   if (orient && !strcmp (orient, "both"))
     orientation = MPUI_ORIENTATION_H | MPUI_ORIENTATION_V;
@@ -1309,6 +1396,7 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
 
   font = mpui_font_get (mpui, font_id);
   filter = mpui_filetypes_get (mpui, filter_id);
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
   if (id && font && filter)
     {
       if (!i_w && !i_h)
@@ -1336,7 +1424,7 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
       browser = mpui_browser_new (id, font, orientation, scrolling, align,
                                   mx.val, my.val, mw.val, mh.val,
                                   miw.val, mih.val, item_w, ms.val,
-                                  border, item_border, filter);
+                                  border, item_border, filter, keymaps);
       mpui_browser_generate (mpui, browser);
     }
 
@@ -1355,6 +1443,7 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   free (border_id);
   free (item_border_id);
   free (filter_id);
+  free (keymaps_id);
 
   return browser;
 }
@@ -1363,12 +1452,13 @@ static mpui_playlist_t *
 mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
 {
   char *id, *orient, *scroll, *spacing, *font_id, *x, *y, *w, *h;
-  char *border_id, *item_border_id;
+  char *border_id, *item_border_id, *keymaps_id;
   mpui_playlist_t *playlist = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V, scrolling;
   mpui_alignment_t align;
   mpui_font_t *font;
   mpui_object_t *border, *item_border;
+  mpui_keymaps_t *keymaps;
   mpui_coord_t mx, my, mw, mh, ms;
   mpui_size_t item_w, tmp;
 
@@ -1383,6 +1473,7 @@ mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
   h = asx_get_attrib ("h", attribs);
   border_id = asx_get_attrib ("border", attribs);
   item_border_id = asx_get_attrib ("item-border", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
 
   if (orient && !strcmp (orient, "both"))
     orientation = MPUI_ORIENTATION_H | MPUI_ORIENTATION_V;
@@ -1410,6 +1501,8 @@ mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
   ms = mpui_parse_size (spacing, tmp, mpui->diag, 0);
   font = mpui_font_get (mpui, font_id);
 
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
+
   if (id && font)
     {
       if (orientation & MPUI_ORIENTATION_H)
@@ -1425,7 +1518,8 @@ mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
 
       playlist = mpui_playlist_new (id, font, orientation, scrolling, align,
                                     mx.val, my.val, mw.val, mh.val,
-                                    item_w, ms.val, border, item_border);
+                                    item_w, ms.val, border, item_border,
+                                    keymaps);
       mpui_playlist_generate (playlist);
     }
 
@@ -1441,6 +1535,7 @@ mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
   free (h);
   free (border_id);
   free (item_border_id);
+  free (keymaps_id);
 
   return playlist;
 }
@@ -1806,24 +1901,28 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
 static mpui_popup_t *
 mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *sx, *sy, *element;
+  char *id, *sx, *sy, *keymaps_id, *element;
   ASX_Parser_t* parser;
   mpui_popup_t *popup = NULL;
   mpui_container_t *container;
+  mpui_keymaps_t *keymaps;
   mpui_coord_t x, y;
   
   id = asx_get_attrib ("id", attribs);
   sx = asx_get_attrib ("x", attribs);
   sy = asx_get_attrib ("y", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
   x = mpui_parse_size (sx, mpui->width, mpui->diag, 0);
   y = mpui_parse_size (sy, mpui->height, mpui->diag, 0);
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
   asx_free_attribs (attribs);
   free (sx);
   free (sy);
+  free (keymaps_id);
 
   if (id)
     {
-      popup = mpui_popup_new (id, x, y);
+      popup = mpui_popup_new (id, x, y, keymaps);
       mpui_set_nocoord ((mpui_element_t *) popup);
       container = (mpui_container_t *) popup;
 
@@ -1892,16 +1991,20 @@ mpui_parse_node_popups (mpui_t *mpui, char **attribs, char *body)
 static mpui_screen_t *
 mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *element;
+  char *id, *keymaps_id, *element;
   ASX_Parser_t* parser;
   mpui_screen_t *screen = NULL;
+  mpui_keymaps_t *keymaps;
   
   id = asx_get_attrib ("id", attribs);
+  keymaps_id = asx_get_attrib ("keymaps", attribs);
   asx_free_attribs (attribs);
 
+  keymaps = mpui_keymaps_get (mpui, keymaps_id);
   if (id)
-    screen = mpui_screen_new (id);
+    screen = mpui_screen_new (id, keymaps);
   free (id);
+  free (keymaps_id);
 
   while (1)
     {
@@ -2029,6 +2132,10 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
           mpui_parse_config (mpui, buffer, width, height, format);
           free (buffer);
         }
+      else if (!strcmp (element, "keymapping"))
+        {
+          mpui_parse_node_keymapping (mpui, sbody);
+        }
       else if (!mpui->strings && !strcmp (element, "strings"))
         {
           mpui->strings = mpui_parse_node_strings (mpui, attribs, sbody);
@@ -2076,6 +2183,7 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
     {
       mpui_screen_t **screen;
       mpui->current_screen = mpui->screens->menu;
+      mpui_cmd_screen_set_keymaps (mpui, mpui->current_screen);
       for (screen=mpui->screens->screens; *screen; screen++)
         for (elements=(*screen)->elements; *elements; elements++)
           {

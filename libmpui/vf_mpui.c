@@ -32,8 +32,6 @@
 #include "libmpcodecs/img_format.h"
 #include "libmpcodecs/vf.h"
 #include "libvo/fastmemcpy.h"
-#include "input/input.h"
-#include "osdep/keycodes.h"
 #include "mp_msg.h"
 #include "mplayer.h"
 #include "m_option.h"
@@ -178,17 +176,6 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
   return 0;
 }
 
-static mp_cmd_bind_t binds_filter[] = {
-  { { KEY_TAB, 0 },   "mpui_focus_box_next" },
-  { { KEY_SPACE, 0 }, "mpui_focus_box_next" },
-  { { KEY_ENTER, 0 }, "mpui_focus_action_exec" },
-  { { KEY_UP, 0 },    "mpui_focus_previous" },
-  { { KEY_DOWN, 0 },  "mpui_focus_next" },
-  { { KEY_LEFT, 0 },  "mpui_focus_previous" },
-  { { KEY_RIGHT, 0 }, "mpui_focus_next" },
-  { { 0 }, NULL }
-};
-
 static int
 put_image (struct vf_instance_s* vf, mp_image_t *mpi)
 {
@@ -248,7 +235,6 @@ vf_open (vf_instance_t *vf, char* args __attribute__((unused)))
     }
 
   mp_input_add_cmd_filter ((mp_input_cmd_filter) cmd_filter, vf->priv);
-  mp_input_add_binds_filter (binds_filter);
 
   return 1;
 }

@@ -19,8 +19,24 @@
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
-#include "input/input.h"
 
+
+static void
+mpui_focus_box_change (mpui_screen_t *screen, mpui_element_t **element)
+{
+  mpui_container_t *container;
+  int keymap = 0;
+
+  if (screen->focus_box > screen->elements)
+    keymap = 1;
+  if (keymap && (container = (mpui_container_t *) *screen->focus_box)
+      && container->keymaps)
+    mp_input_remove_binds_filter(container->keymaps->binds);
+  screen->focus_box = element;
+  container = (mpui_container_t *) *element;
+  if (keymap && container->keymaps)
+    mp_input_add_binds_filter(container->keymaps->binds);
+}
 
 int
 mpui_focus_box_first (mpui_screen_t *screen)
@@ -42,14 +58,14 @@ mpui_focus_box_next (mpui_screen_t *screen)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
-        screen->focus_box = elements;
+        mpui_focus_box_change (screen, elements);
         return;
       }
   for (elements=screen->elements; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
-        screen->focus_box = elements;
+        mpui_focus_box_change (screen, elements);
         return;
       }
 }
@@ -63,7 +79,7 @@ mpui_focus_box_previous (mpui_screen_t *screen)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
-        screen->focus_box = elements;
+        mpui_focus_box_change (screen, elements);
         return;
       }
   for (elements=screen->focus_box+1; *elements; elements++);
@@ -71,7 +87,7 @@ mpui_focus_box_previous (mpui_screen_t *screen)
     if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
         && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
-        screen->focus_box = elements;
+        mpui_focus_box_change (screen, elements);
         return;
       }
 }
