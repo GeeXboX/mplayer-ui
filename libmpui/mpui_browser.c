@@ -237,7 +237,7 @@ mpui_browser_generate (mpui_t *mpui, mpui_browser_t *browser)
       if (mpui->lwd && !strcmp (mpui->lwd, dirent[i]->d_name))
         select = element;
       free (dirent[i]);
-      if (val < 0)
+      if (!element)
         continue;
       if (val > max)
         max = val;
