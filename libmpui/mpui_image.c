@@ -74,9 +74,9 @@ mpui_image_packed_permultiply_alpha (mpui_image_t *image)
 }
 
 static void
-mpui_image_permultiply_alpha (mpui_image_t *image)
+mpui_image_permultiply_alpha (mpui_image_t *image, int num_planes)
 {
-  if (image->num_planes > 1)
+  if (num_planes > 1)
     mpui_image_planar_permultiply_alpha (image);
   else
     mpui_image_packed_permultiply_alpha (image);
@@ -201,7 +201,7 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 
       free (alpha_buffer);
 
-      mpui_image_permultiply_alpha (image);
+      mpui_image_permultiply_alpha (image, num_planes);
     }
 
   image->num_planes = num_planes;
