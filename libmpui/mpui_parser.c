@@ -200,14 +200,8 @@ mpui_parse_size (char *size, int total, int diag, mpui_size_t deflt)
     {
       if (isdigit (size[0]) || (size[0] == '-' && isdigit (size[1])))
         {
-          int mul = 1;
           char *end;
-          if (*size == '-')
-            {
-              size++;
-              mul = -1;
-            }
-          coord.val = strtol (size, &end, 10) * mul;
+          coord.val = strtol (size, &end, 10);
           if (*end == '%')
             coord.val = coord.val * total / 100;
           else if (*end == 'p')
