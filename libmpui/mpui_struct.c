@@ -274,6 +274,7 @@ mpui_fonts_new (void)
   mpui_fonts_t *fonts;
 
   fonts = (mpui_fonts_t *) malloc (sizeof (*fonts));
+  fonts->deflt = NULL;
   fonts->fonts = mpui_list_new ();
   return fonts;
 }
@@ -515,7 +516,47 @@ mpui_element_new (mpui_type_t type, void *elem)
 
   element = (mpui_element_t *) malloc (sizeof (*element));
   element->type = type;
-  element->ptr = elem;
+  switch (type)
+    {
+    case MPUI_STRING:
+      element->string = (mpui_string_t *) elem;
+      break;
+    case MPUI_STR:
+      element->str = (mpui_str_t *) elem;
+      break;
+    case MPUI_IMAGE:
+      element->image = (mpui_image_t *) elem;
+      break;
+    case MPUI_IMG:
+      element->img = (mpui_img_t *) elem;
+      break;
+    case MPUI_FONT:
+      element->font = (mpui_font_t *) elem;
+      break;
+    case MPUI_OBJECT:
+      element->object = (mpui_object_t *) elem;
+      break;
+    case MPUI_OBJ:
+      element->obj = (mpui_obj_t *) elem;
+      break;
+    case MPUI_ACTION:
+      element->action = (mpui_action_t *) elem;
+      break;
+    case MPUI_MENU:
+      element->menu = (mpui_menu_t *) elem;
+      break;
+    case MPUI_MNU:
+      element->mnu = (mpui_mnu_t *) elem;
+      break;
+    case MPUI_MENUITEM:
+      element->menuitem = (mpui_menuitem_t *) elem;
+      break;
+    case MPUI_ALLMENUITEM:
+      element->allmenuitem = (mpui_allmenuitem_t *) elem;
+      break;
+    default:
+      element->ptr = elem;
+    }
   return element;
 }
 

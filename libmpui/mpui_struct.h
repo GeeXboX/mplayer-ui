@@ -59,12 +59,16 @@ enum mpui_when_focused {
 };
 
 enum mpui_type {
+  MPUI_STRING,
   MPUI_STR,
   MPUI_IMAGE,
+  MPUI_IMG,
   MPUI_FONT,
   MPUI_OBJECT,
+  MPUI_OBJ,
   MPUI_ACTION,
   MPUI_MENU,
+  MPUI_MNU,
   MPUI_MENUITEM,
   MPUI_ALLMENUITEM,
 };
@@ -73,12 +77,16 @@ struct mpui_element {
   mpui_type_t type;
   union {
     void *ptr;
-    mpui_string_t *str;
+    mpui_string_t *string;
+    mpui_str_t *str;
     mpui_image_t *image;
+    mpui_img_t *img;
     mpui_font_t *font;
     mpui_object_t *object;
+    mpui_obj_t *obj;
     mpui_action_t *action;
     mpui_menu_t *menu;
+    mpui_mnu_t *mnu;
     mpui_menuitem_t *menuitem;
     mpui_allmenuitem_t *allmenuitem;
   };
@@ -264,7 +272,6 @@ void mpui_fonts_free (mpui_fonts_t *fonts);
 
 mpui_object_t *mpui_object_new (char *id, mpui_object_flags_t flags);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
-#define mpui_object_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_object_free (mpui_object_t *object);
 
 mpui_obj_t *mpui_obj_new (mpui_object_t *object,
@@ -279,7 +286,6 @@ mpui_menu_t *mpui_menu_new (char * id, mpui_menu_orientation_t orientation,
                             mpui_font_t *font, mpui_size_t x, mpui_size_t y,
                             mpui_size_t w, mpui_size_t h);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
-#define mpui_menu_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_menu_free (mpui_menu_t *menu);
 
 mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu);
@@ -290,11 +296,9 @@ mpui_menus_t *mpui_menus_new (void);
 void mpui_menus_free (mpui_menus_t *menus);
 
 mpui_menuitem_t *mpui_menuitem_new (void);
-#define mpui_menuitem_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_menuitem_free (mpui_menuitem_t *menuitem);
 
 mpui_allmenuitem_t *mpui_allmenuitem_new (void);
-#define mpui_allmenuitem_add(a,b) a->elements = mpui_list_add(a->elements, b)
 void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 
 mpui_action_t *mpui_action_new (char *cmd);
@@ -304,9 +308,10 @@ mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
 void mpui_element_free (mpui_element_t *element);
 
 mpui_screen_t *mpui_screen_new (char *id);
-#define mpui_screen_add(a,b) a->elements = mpui_list_add(a->elements, b)
 mpui_screen_t *mpui_screen_get (mpui_t *mpui, char *id);
 void mpui_screen_free (mpui_screen_t *screen);
+
+#define mpui_add_element(a,b) a->elements = mpui_list_add(a->elements, b)
 
 mpui_screens_t *mpui_screens_new (void);
 #define mpui_screens_add(a,b) a->screens = mpui_list_add(a->screens, b)
