@@ -1586,14 +1586,16 @@ mpui_parse_node_pic (mpui_t *mpui, char **attribs)
 static mpui_inf_t *
 mpui_parse_node_inf (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *absolute, *hidden;
+  char *id, *x, *y, *absolute, *hidden, *timer;
   mpui_inf_t *inf = NULL;
+  unsigned int t = 0;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
   hidden = asx_get_attrib ("hidden", attribs);
+  timer = asx_get_attrib ("timer", attribs);
 
   if (id)
     {
@@ -1609,11 +1611,19 @@ mpui_parse_node_inf (mpui_t *mpui, char **attribs)
         flags |= MPUI_FLAG_HIDDEN;
       wf = mpui_parse_when_focused (attribs);
 
+      if (timer)
+        {
+          char *endptr;
+          t = strtol (timer, &endptr, 0);
+          if (*endptr)
+            t = 0;
+        }
+
       if (info)
         {
           sx = mpui_parse_size (x, mpui->width, mpui->diag, info->x.val);
           sy = mpui_parse_size (y, mpui->height, mpui->diag, info->y.val);
-          inf = mpui_inf_new (info, sx, sy, wf);
+          inf = mpui_inf_new (info, sx, sy, wf, t);
         }
     }
   asx_free_attribs (attribs);

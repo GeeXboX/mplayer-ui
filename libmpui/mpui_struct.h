@@ -353,6 +353,11 @@ struct mpui_info {
 struct mpui_inf {
   mpui_container_t container;
   mpui_info_t *info;
+  char filename[NAME_MAX+1];
+  int filename_id;
+  int last_filename_id;
+  unsigned int timer;
+  unsigned int next_timer;
 };
 
 struct mpui_tag {
@@ -667,7 +672,8 @@ mpui_info_add_pic (mpui_info_t *info, mpui_pic_t *pic)
 
 mpui_inf_t *mpui_inf_new (mpui_info_t *info,
                           mpui_coord_t x, mpui_coord_t y,
-                          mpui_when_focused_t when_focused);
+                          mpui_when_focused_t when_focused,
+                          unsigned int timer);
 void mpui_inf_free (mpui_inf_t *inf);
 
 mpui_infos_t *mpui_infos_new (void);

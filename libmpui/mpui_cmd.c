@@ -140,9 +140,10 @@ mpui_cmd_hide_switch (mpui_t *mpui, char *element_id)
 
 
 static void
-mpui_cmd_info_update_func (mpui_t *mpui, mpui_element_t *element, void *data)
+mpui_cmd_info_func (mpui_t *mpui __attribute__((unused)),
+                    mpui_element_t *element, void *data)
 {
-  mpui_info_update (mpui, (mpui_inf_t *) element, (char *) data);
+  mpui_info_filename ((mpui_inf_t *) element, (char *) data);
 }
 
 void
@@ -152,7 +153,7 @@ mpui_cmd_info (mpui_t *mpui, char *filename)
     return;
 
   mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                             NULL, MPUI_INF, mpui_cmd_info_update_func,
+                             NULL, MPUI_INF, mpui_cmd_info_func,
                              (void *) filename);
 }
 

@@ -1432,7 +1432,7 @@ mpui_info_free (mpui_info_t *info)
 
 mpui_inf_t *
 mpui_inf_new (mpui_info_t *info, mpui_coord_t x, mpui_coord_t y,
-              mpui_when_focused_t when_focused)
+              mpui_when_focused_t when_focused, unsigned int timer)
 {
   mpui_inf_t *inf;
 
@@ -1443,6 +1443,9 @@ mpui_inf_new (mpui_info_t *info, mpui_coord_t x, mpui_coord_t y,
   inf->container.element.y = y;
   inf->container.element.when_focused = when_focused;
   inf->info = info;
+  inf->filename_id = inf->last_filename_id = 0;
+  inf->filename[sizeof (inf->filename) - 1] = '\0';
+  inf->timer = timer;
 
   return inf;
 }

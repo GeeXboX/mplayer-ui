@@ -29,6 +29,7 @@
 #include "libmpdemux/stream.h"
 #include "libmpdemux/demuxer.h"
 #include "libmpdemux/stheader.h"
+#include "osdep/timer.h"
 
 #include "mpui_struct.h"
 #include "mpui_parser.h"
@@ -93,8 +94,7 @@ mpui_tag_update (demuxer_t *demuxer, char *file, mpui_tag_t *tag)
 
 static void
 mpui_info_update_tag (mpui_inf_t *inf, mpui_tag_t *tag,
-                      mpui_coord_t *cx, mpui_coord_t *cy,
-                      demuxer_t *demuxer, char *file)
+                      mpui_coord_t *cx, mpui_coord_t *cy, demuxer_t *demuxer)
 {
   mpui_string_t *string;
   mpui_str_t *str;
@@ -105,7 +105,7 @@ mpui_info_update_tag (mpui_inf_t *inf, mpui_tag_t *tag,
   y = (tag->y.val) ? tag->y : *cy;
 
   snprintf (tmp, 128, "%s : %s", tag->caption,
-            mpui_tag_update (demuxer, file, tag));
+            mpui_tag_update (demuxer, inf->filename, tag));
 
   string = mpui_string_new (NULL, tmp, MPUI_ENCODING_UTF8);
   str = mpui_str_new (string, x, y, 0, inf->info->font,
@@ -163,14 +163,13 @@ mpui_info_get_picture_file (mpui_pic_t *pic, char *filename)
 }
 
 static void
-mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf,
-                      mpui_pic_t *pic, char *filename)
+mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf, mpui_pic_t *pic)
 {
   mpui_image_t *image = NULL;
   mpui_img_t *img = NULL;
   char *file;
 
-  file = mpui_info_get_picture_file (pic, filename);
+  file = mpui_info_get_picture_file (pic, inf->filename);
  
   image = mpui_image_new (pic->id, file,
                           pic->x.val, pic->y.val, pic->w.val, pic->h.val);
@@ -185,6 +184,39 @@ mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf,
                                (mpui_element_t *) img);
 }
 
+static void
+mpui_info_generate (mpui_t *mpui, mpui_inf_t *inf)
+{
+  mpui_tag_t **tag;
+  mpui_pic_t **pic;
+  stream_t* stream = NULL;
+  demuxer_t *demuxer = NULL;
+  mpui_coord_t x, y;
+  int file_format;
+
+  stream = open_stream (inf->filename, 0, &file_format);
+  if (!stream)
+    return;
+
+  demuxer = demux_open (stream, file_format, -1, -1, -1, inf->filename);
+  if (!demuxer)
+    {
+      free_stream (stream);
+      return;
+    }
+
+  x = inf->info->x;
+  y = inf->info->y;
+
+  for (tag = inf->info->tags; *tag; tag++)
+    mpui_info_update_tag (inf, *tag, &x, &y, demuxer);
+  for (pic = inf->info->pics; *pic; pic++)
+    mpui_info_update_pic (mpui, inf, *pic);
+
+  free_demuxer (demuxer);
+  free_stream (stream);
+}
+
 void
 mpui_info_clean (mpui_inf_t *inf)
 {
@@ -196,38 +228,26 @@ mpui_info_clean (mpui_inf_t *inf)
 }
 
 void
-mpui_info_update (mpui_t *mpui, mpui_inf_t *inf, char *filename)
+mpui_info_filename (mpui_inf_t *inf, char *filename)
 {
-  mpui_tag_t **tag;
-  mpui_pic_t **pic;
-  stream_t* stream = NULL;
-  demuxer_t *demuxer = NULL;
-  mpui_coord_t x, y;
-  int file_format;
+  if (filename)
+    strncpy (inf->filename, filename, sizeof (inf->filename) - 1);
+  else
+    *inf->filename = '\0';
 
-  mpui_info_clean (inf);
-  if (!filename)
-    return;
+  inf->filename_id++;
+  inf->next_timer = GetTimer () + 1000*inf->timer;
+}
 
-  stream = open_stream (filename, 0, &file_format);
-  if (!stream)
-    return;
-
-  demuxer = demux_open (stream, file_format, -1, -1, -1, filename);
-  if (!demuxer)
+void
+mpui_info_update (mpui_t *mpui, mpui_inf_t *inf)
+{
+  if (inf->last_filename_id != inf->filename_id
+      && GetTimer() > inf->next_timer)
     {
-      free_stream (stream);
-      return;
+      mpui_info_clean (inf);
+      if (*inf->filename)
+        mpui_info_generate (mpui, inf);
+      inf->last_filename_id = inf->filename_id;
     }
-
-  x = inf->info->x;
-  y = inf->info->y;
-
-  for (tag = inf->info->tags; *tag; tag++)
-    mpui_info_update_tag (inf, *tag, &x, &y, demuxer, filename);
-  for (pic = inf->info->pics; *pic; pic++)
-    mpui_info_update_pic (mpui, inf, *pic, filename);
-
-  free_demuxer (demuxer);
-  free_stream (stream);
 }

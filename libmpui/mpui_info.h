@@ -21,6 +21,7 @@
 #define MPUI_INFO_H
 
 void mpui_info_clean (mpui_inf_t *inf);
-void mpui_info_update (mpui_t *mpui, mpui_inf_t *inf, char *filename);
+void mpui_info_filename (mpui_inf_t *inf, char *filename);
+void mpui_info_update (mpui_t *mpui, mpui_inf_t *inf);
 
 #endif  /* MPUI_INFO_H */
