@@ -67,6 +67,7 @@ typedef struct mpui mpui_t;
 #define MPUI_FLAG_CONTAINER ((mpui_flags_t) 0x08)
 #define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x10)
 #define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x20)
+#define MPUI_FLAG_OWNER     ((mpui_flags_t) 0x40)
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
@@ -368,6 +369,7 @@ void mpui_allmenuitem_free (mpui_allmenuitem_t *allmenuitem);
 mpui_action_t *mpui_action_new (char *cmd);
 #define mpui_actions_add(a,b) a->actions = mpui_list_add(a->actions, b)
 void mpui_action_free (mpui_action_t *action);
+void mpui_actions_free (mpui_action_t **actions);
 
 mpui_element_t *mpui_element_dup (mpui_element_t *element);
 void mpui_element_coord_dup (mpui_element_t *element);
@@ -375,6 +377,7 @@ void mpui_element_free (mpui_element_t *element);
 void mpui_elements_get_size (mpui_element_t *element,
                              mpui_element_t **elements,
                              mpui_element_t **elements2);
+void mpui_elements_free (mpui_element_t **elements);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);
