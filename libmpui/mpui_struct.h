@@ -51,7 +51,7 @@ typedef struct mpui_action mpui_action_t;
 typedef struct mpui_filetype mpui_filetype_t;
 typedef struct mpui_filetypes mpui_filetypes_t;
 typedef enum mpui_match mpui_match_t;
-typedef unsigned int mpui_flags_t;
+typedef enum mpui_flags mpui_flags_t;
 typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
 typedef struct mpui_obj mpui_obj_t;
@@ -73,14 +73,16 @@ typedef struct mpui_screens mpui_screens_t;
 typedef struct mpui_screen mpui_screen_t;
 typedef struct mpui mpui_t;
 
-#define MPUI_FLAG_ABSOLUTE  ((mpui_flags_t) 0x01)
-#define MPUI_FLAG_DYNAMIC   ((mpui_flags_t) 0x02)
-#define MPUI_FLAG_NOCOORD   ((mpui_flags_t) 0x04)
-#define MPUI_FLAG_CONTAINER ((mpui_flags_t) 0x08)
-#define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x10)
-#define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x20)
-#define MPUI_FLAG_OWNER     ((mpui_flags_t) 0x40)
-#define MPUI_FLAG_HIDDEN    ((mpui_flags_t) 0x80)
+enum mpui_flags {
+  MPUI_FLAG_ABSOLUTE  = 0x01,
+  MPUI_FLAG_DYNAMIC   = 0x02,
+  MPUI_FLAG_NOCOORD   = 0x04,
+  MPUI_FLAG_CONTAINER = 0x08,
+  MPUI_FLAG_FOCUS_BOX = 0x10,
+  MPUI_FLAG_FOCUSABLE = 0x20,
+  MPUI_FLAG_OWNER     = 0x40,
+  MPUI_FLAG_HIDDEN    = 0x80,
+};
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
