@@ -2142,7 +2142,7 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
         }
       else if (!strcmp (element, "images"))
         {
-          mpui_parse_node_images (mpui, attribs,sbody);
+          mpui_parse_node_images (mpui, attribs, sbody);
         }
       else if (!mpui->fonts && !strcmp (element, "fonts"))
         {
