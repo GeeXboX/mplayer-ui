@@ -5,11 +5,15 @@
   <strings encoding="iso8859-1">
     <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2004"/>
     <string id="watch_tv" text="Watch TV"/>
-    <string id="play_dvd" text="Play DVD"/>
-    <string id="view_img" text="View Pictures"/>
+    <string id="tv" text="TV Center"/>
+    <string id="play_dvd" text="Play CD/DVD"/>
+    <string id="view_img" text="Pictures Viewer"/>
+    <string id="img" text="Pictures Viewer"/>
     <string id="play_mov" text="Play Movies"/>
+    <string id="mov" text="Movie Player"/>
     <string id="play_snd" text="Jukebox"/>
-    <string id="settings" text="Settings TV"/>
+    <string id="snd" text="Audio Jukebox"/>
+    <string id="settings" text="Settings"/>
     <string id="txt_help" file="help_en.txt"/>
   </strings>
 </mpui>
