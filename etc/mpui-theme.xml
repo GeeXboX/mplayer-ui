@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+<!DOCTYPE mpui SYSTEM "mpui.dtd">
+
+<mpui>
+  <strings encoding="iso8859-1">
+    <string id="watch_tv" text="Watch TV"/>
+    <string id="play_dvd" text="Play DVD"/>
+    <string id="view_img" text="View Pictures"/>
+    <string id="play_mov" text="Play Movies"/>
+    <string id="play_snd" text="Jukebox"/>
+    <string id="settings" text="Settings TV"/>
+  </strings>
+
+  <images>
+    <image id="back" file="background.png" x="0" y="0" h="100%" w="100%"/>
+    <image id="logo_gx" file="logo_gx.png" x="70%" y="0%" h="15%" w="25%"/>
+
+    <image id="help" file="help.png" x="75%" y="90%" h="5%" w="5%"/>
+    <image id="help_focus" file="help_focus.png" x="75%" y="90%" h="5%" w="5%"/>
+    <image id="quit" file="quit.png" x="85%" y="90%" h="5%" w="5%"/>
+    <image id="quit" file="quit_focus.png" x="85%" y="90%" h="5%" w="5%"/>
+
+    <image id="sep" file="separator.png"/>
+
+    <image id="logo_tv" file="logo_tv.png" x="5%" y="30%" h="30%" w="30%"/>
+    <image id="logo_dvd" file="logo_dvd.png" x="5%" y="30%" h="30%" w="30%"/>
+    <image id="logo_img" file="logo_img.png" x="5%" y="30%" h="30%" w="30%"/>
+    <image id="logo_mov" file="logo_mov.png" x="5%" y="30%" h="30%" w="30%"/>
+    <image id="logo_snd" file="logo_snd.png" x="5%" y="30%" h="30%" w="30%"/>
+    <image id="logo_set" file="logo_set.png" x="5%" y="30%" h="30%" w="30%"/>
+  </images>
+
+  <fonts default="menu_font">
+    <font id="menu_font" file="Handycandy.ttf" size="12"
+                         color="#ffffff" focused-color="#ffff81"/>
+  </fonts>
+
+  <objects>
+    <object id="menu-item-border" relative="yes">
+      <img id="border-horiz" x="left" y="top-5%" w="width" h="2%"/>
+      <img id="border-horiz" x="left" y="bottom+5%" w="width" h="2%"/>
+      <img id="border-vert" x="left-5%" y="top" w="2%" h="height"/>
+      <img id="border-vert" x="right+5%" y="top" w="2%" h="height"/>
+      <img id="border-top-left" x="left-5%" y="top-5%" w="2%" h="2%"/>
+      <img id="border-top-right" x="right+5%" y="top-5%" w="2%" h="2%"/>
+      <img id="border-bottom-right" x="right+5%" y="bottom+5%" w="2%" h="2%"/>
+      <img id="border-bottom-left" x="left-5%" y="bottom+5%" w="2%" h="2%"/>
+    </object>
+    <object id="menu-border" relative="yes">
+      <img id="menu-border-horiz" x="left" y="top-5%" w="width" h="2%"/>
+      <img id="menu-border-horiz" x="left" y="bottom+5%" w="width" h="2%"/>
+      <img id="menu-border-vert" x="left-5%" y="top" w="2%" h="height"/>
+      <img id="menu-border-vert" x="right+5%" y="top" w="2%" h="height"/>
+      <img id="menu-border-top-left" x="left-5%" y="top-5%" w="2%" h="2%"/>
+      <img id="menu-border-top-right" x="right+5%" y="top-5%" w="2%" h="2%"/>
+      <img id="menu-border-bottom-right" x="right+5%" y="bottom+5%" w="2%" h="2%"/>
+      <img id="menu-border-bottom-left" x="left-5%" y="bottom+5%" w="2%" h="2%"/>
+    </object>
+    <object id="help_button" dynamic="yes">
+      <img id="help" when-focused="no"/>
+      <img id="help_focus" when-focused="yes"/>
+      <action cmd="screen help_screen"/>
+    </object>
+    <object id="quit_button" dynamic="yes">
+      <img id="quit" when-focused="no"/>
+      <img id="quit_focus" when-focused="yes"/>
+      <action cmd="exit"/>
+    </object>
+  </objects>
+
+  <menus>
+    <menu id="main-menu" orientation="vertical" font="menu_font"
+                         x="50%" y="20%" h="60%" w="40%">
+
+      <obj id="menu-border"/>
+
+      <all-menu-items>
+        <obj id="menu-item-border" when-focused="yes"/>
+      </all-menu-items>
+
+      <menu-item>
+        <str id="watch_tv"/>
+        <action cmd="screen tv_screen"/>
+        <img id="logo_tv" when-focused="yes"/>
+      </menu-item>
+
+      <menu-item>
+        <str id="play_dvd"/>
+        <action cmd="play dvd://"/>
+        <img id="logo_dvd" when-focused="yes"/>
+      </menu-item>
+
+      <menu-item>
+        <str id="view_img"/>
+        <action cmd="screen img_screen"/>
+        <img id="logo_img" when-focused="yes"/>
+      </menu-item>
+
+      <menu-item>
+        <str id="play_mov"/>
+        <action cmd="screen video_screen"/>
+        <img id="logo_mov" when-focused="yes"/>
+      </menu-item>
+
+      <menu-item>
+        <str id="play_snd"/>
+        <action cmd="screen audio_screen"/>
+        <img id="logo_snd" when-focused="yes"/>
+      </menu-item>
+
+      <img id="separator"/>
+
+      <menu-item>
+        <str id="settings"/>
+        <action cmd="screen settings_screen"/>
+        <img id="logo_set" when-focused="yes"/>
+      </menu-item>
+    </menu>
+  </menus>
+
+  <screens menu="main_screen" control="ctrl_screen">
+    <screen id="main_screen">
+      <img id="back"/>
+      <img id="logo_gx"/>
+      <obj id="help_button"/>
+      <obj id="quit_button"/>
+      <mnu id="main-menu"/>
+    </screen>
+  </screens>
+</mpui>
