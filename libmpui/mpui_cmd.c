@@ -18,6 +18,7 @@
  */
 
 #include "mpui_struct.h"
+#include "mpui_focus.h"
 #include "mpui_cmd.h"
 
 
@@ -36,6 +37,37 @@ mpui_cmd_for_each_element (mpui_element_t **elements, char *element_id,
         mpui_cmd_for_each_element (((mpui_container_t *) *elements)->elements,
                                    element_id, func, data);
     }
+}
+
+
+void
+mpui_cmd_screen (mpui_t *mpui, char *screen_id)
+{
+  mpui_screen_t *screen = NULL;
+
+  screen = mpui_screen_get (mpui->screens, screen_id);
+  if (screen)
+    {
+      mpui->previous_screen = mpui->current_screen;
+      mpui->current_screen = screen;
+      mpui_focus_box_first (mpui->current_screen);
+    }
+}
+
+
+void
+mpui_cmd_popup (mpui_t *mpui, char *popup_id)
+{
+  mpui_popup_t *popup;
+
+  popup = mpui_popup_get (mpui->popups, popup_id);
+  mpui_popup_add (mpui->current_screen, popup);
+}
+
+void
+mpui_cmd_popup_close (mpui_t *mpui)
+{
+  mpui_popup_remove (mpui->current_screen);
 }
 
 

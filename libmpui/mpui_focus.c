@@ -347,21 +347,6 @@ mpui_focus_action_exec (mpui_focus_box_t *focus_box)
   return;
 }
 
-void
-mpui_focus_popup (mpui_t *mpui, char *id)
-{
-  mpui_popup_t *popup;
-
-  popup = mpui_popup_get (mpui->popups, id);
-  mpui_popup_add (mpui->current_screen, popup);
-}
-
-void
-mpui_focus_popup_close (mpui_t *mpui)
-{
-  mpui_popup_remove (mpui->current_screen);
-}
-
 
 int
 mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element)
@@ -379,17 +364,4 @@ int
 mpui_is_really_focused (mpui_screen_t *screen, mpui_element_t *element)
 {
   return ((mpui_focus_box_t *) screen->focus_box[0])->focus[0] == element;
-}
-
-void
-mpui_switch_screen (mpui_t *mpui, char *id)
-{
-  mpui_screen_t *screen = NULL;
-
-  screen = mpui_screen_get (mpui->screens, id);
-  if (screen)
-    {
-      mpui->previous_screen = mpui->current_screen;
-      mpui->current_screen = screen;
-    }
 }

@@ -38,7 +38,7 @@
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
-      <action cmd="cd '%s'"/>
+      <action cmd="mpui_cd '%s'"/>
     </file-type>
   </file-types>
 
@@ -52,7 +52,7 @@
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
-      <action cmd="cd '%s'"/>
+      <action cmd="mpui_cd '%s'"/>
     </file-type>
   </file-types>
 
@@ -79,7 +79,7 @@
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
-      <action cmd="cd '%s'"/>
+      <action cmd="mpui_cd '%s'"/>
     </file-type>
   </file-types>
 
@@ -97,7 +97,7 @@
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
-      <action cmd="cd '%s'"/>
+      <action cmd="mpui_cd '%s'"/>
     </file-type>
   </file-types>
 
@@ -161,7 +161,7 @@
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
-      <action cmd="cd '%s'"/>
+      <action cmd="mpui_cd '%s'"/>
     </file-type>
     <file-type match="all">
       <icon id="i-file"/>

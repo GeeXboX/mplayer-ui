@@ -92,11 +92,10 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
   switch (cmd->id)
     {
     case MP_CMD_MPUI_POPUP:
-      mpui_focus_popup (priv->mpui, cmd->args[0].v.s);
+      mpui_cmd_popup (priv->mpui, cmd->args[0].v.s);
       return 1;
     case MP_CMD_MPUI_SCREEN:
-      mpui_switch_screen (priv->mpui, cmd->args[0].v.s);
-      mpui_focus_box_first (priv->mpui->current_screen);
+      mpui_cmd_screen (priv->mpui, cmd->args[0].v.s);
       return 1;
     case MP_CMD_MPUI_CD:
       mpui_browser_cd (priv->mpui, cmd->args[0].v.s);
@@ -177,7 +176,7 @@ read_keycode (int code)
     switch (code)
       {
       case KEY_ESC:
-        mpui_focus_popup_close (st_priv->mpui);
+        mpui_cmd_popup_close (st_priv->mpui);
       }
 }
 

@@ -101,9 +101,9 @@ static mp_cmd_t mp_cmds[] = {
 #endif
   { MP_CMD_SWITCH_RATIO, "switch_ratio", 0, { {MP_CMD_ARG_FLOAT,{0}}, {-1,{0}} } },
 
-  { MP_CMD_MPUI_POPUP, "popup", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
-  { MP_CMD_MPUI_SCREEN, "screen", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
-  { MP_CMD_MPUI_CD, "cd", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_POPUP, "mpui_popup", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_SCREEN, "mpui_screen", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_CD, "mpui_cd", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_HIDE, "mpui_hide", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_SHOW, "mpui_show", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
 
