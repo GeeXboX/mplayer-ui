@@ -215,11 +215,40 @@ mpui_parse_color (char *color)
 static mpui_string_t *
 mpui_parse_node_string (char **attribs)
 {
-  char *id, *text;
+  char *id, *text, *file;
   mpui_string_t *string = NULL;
 
   id = asx_get_attrib ("id", attribs);
   text = asx_get_attrib ("text", attribs);
+  file = asx_get_attrib ("file", attribs);
+
+  if (id && !text && file)
+    {
+      int fd, r;
+      struct stat st;
+      char *f;
+
+      f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
+      snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
+                "%s%s", MPUI_DATADIR, file);
+
+      fd = open (f, O_RDONLY);
+      if (fd == -1)
+        return NULL;
+      if (fstat (fd, &st) == -1)
+        {
+          close (fd);
+          return NULL;
+        }
+      text = (char *) malloc (st.st_size);
+      r = read (fd, text, st.st_size);
+      close (fd);
+      if (r != st.st_size)
+        {
+          free (text);
+          return NULL;
+        }
+    }
 
   if (id && text)
     string = mpui_string_new (id, text);

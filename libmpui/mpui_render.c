@@ -333,6 +333,12 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
             }
           continue;
         }
+      if (c == '\n')
+        {
+          context->x = x_init;
+          context->y += font->height;
+          continue;
+        }
       if ((f = font->font[c]) >= 0
           && (context->x + font->width[c] <= mpi->w)
           && (context->y + font->pic_a[f]->h <= mpi->h))

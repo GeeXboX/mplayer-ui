@@ -10,5 +10,6 @@
     <string id="play_mov" text="Play Movies"/>
     <string id="play_snd" text="Jukebox"/>
     <string id="settings" text="Settings TV"/>
+    <string id="txt_help" file="help_en.txt"/>
   </strings>
 </mpui>
