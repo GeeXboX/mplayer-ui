@@ -1165,6 +1165,8 @@ mpui_element_free (mpui_element_t *element)
 {
   switch (element->type)
     {
+    case MPUI_ANY:
+      break;
     case MPUI_STR:
       mpui_str_free ((mpui_str_t *) element);
       break;
