@@ -288,13 +288,11 @@ mpui_image_new (char *id, char *file,
 mpui_image_t *
 mpui_image_get (mpui_t *mpui, char *id)
 {
-  mpui_images_t **images;
   mpui_image_t **image;
 
-  for (images=mpui->images; *images; images++)
-    for (image=(*images)->images; *image; image++)
-      if (!strcmp ((*image)->id, id))
-        return *image;
+  for (image=mpui->images->images; *image; image++)
+    if (!strcmp ((*image)->id, id))
+      return *image;
   return NULL;
 }
 
@@ -380,7 +378,7 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
       image = mpui_image_new ("", image->file,
                               img->element.x, img->element.y,
                               img->element.w, img->element.h);
-      mpui_images_add (mpui->images[0], image);
+      mpui_images_add (mpui->images, image);
       if (img->image->raw.data)
         mpui_image_convert (image, &img->image->raw, mpui->format);
       img->image = image;
@@ -507,13 +505,11 @@ mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
 mpui_object_t *
 mpui_object_get (mpui_t *mpui, char *id)
 {
-  mpui_objects_t **objects;
   mpui_object_t **object;
 
-  for (objects=mpui->objects; *objects; objects++)
-    for (object=(*objects)->objects; *object; object++)
-      if (!strcmp ((*object)->id, id))
-        return *object;
+  for (object=mpui->objects->objects; *object; object++)
+    if (!strcmp ((*object)->id, id))
+      return *object;
   return NULL;
 }
 
@@ -639,13 +635,11 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
 mpui_menu_t *
 mpui_menu_get (mpui_t *mpui, char *id)
 {
-  mpui_menus_t **menus;
   mpui_menu_t **menu;
 
-  for (menus=mpui->menus; *menus; menus++)
-    for (menu=(*menus)->menus; *menu; menu++)
-      if (!strcmp ((*menu)->id, id))
-        return *menu;
+  for (menu=mpui->menus->menus; *menu; menu++)
+    if (!strcmp ((*menu)->id, id))
+      return *menu;
   return NULL;
 }
 
@@ -989,10 +983,10 @@ mpui_new (int width, int height, int format)
   mpui->height = height;
   mpui->format = format;
   mpui->strings = mpui_list_new ();
-  mpui->images = mpui_list_new ();
   mpui->fonts = mpui_list_new ();
-  mpui->objects = mpui_list_new ();
-  mpui->menus = mpui_list_new ();
+  mpui->images = mpui_images_new ();
+  mpui->objects = mpui_objects_new ();
+  mpui->menus = mpui_menus_new ();
   mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
   mpui->current_screen = NULL;
@@ -1004,30 +998,24 @@ void
 mpui_free (mpui_t *mpui)
 {
   mpui_strings_t **strings = mpui->strings;
-  mpui_images_t **images = mpui->images;
   mpui_fonts_t **fonts = mpui->fonts;
-  mpui_objects_t **objects = mpui->objects;
-  mpui_menus_t **menus = mpui->menus;
 
   while (*strings)
     mpui_strings_free (*strings++);
   free (mpui->strings);
 
-  while (*images)
-    mpui_images_free (*images++);
-  free (mpui->images);
-
   while (*fonts)
     mpui_fonts_free (*fonts++);
   free (mpui->fonts);
 
-  while (*objects)
-    mpui_objects_free (*objects++);
-  free (mpui->objects);
+  if (mpui->images)
+    mpui_images_free (mpui->images);
 
-  while (*menus)
-    mpui_menus_free (*menus++);
-  free (mpui->menus);
+  if (mpui->objects)
+    mpui_objects_free (mpui->objects);
+
+  if (mpui->menus)
+    mpui_menus_free (mpui->menus);
 
   if (mpui->popups)
     mpui_popups_free (mpui->popups);

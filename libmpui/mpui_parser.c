@@ -470,14 +470,11 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   return img;
 }
 
-static mpui_images_t *
+static void
 mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
   char *element;
-  mpui_images_t *images;
-
-  images = mpui_images_new ();
 
   while (1)
     {
@@ -492,12 +489,11 @@ mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
       if (!strcmp (element, "image"))
         {
           mpui_image_t *image = mpui_parse_node_image (mpui, attribs);
-          mpui_images_add (images, image);
+          mpui_images_add (mpui->images, image);
         }
       free (parser);
     }
   asx_free_attribs (attribs);
-  return images;
 }
 
 static mpui_font_t *
@@ -621,7 +617,7 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
           if (object->need_dup)
             {
               object = mpui_object_dup (object);
-              mpui_objects_add (mpui->objects[0], object);
+              mpui_objects_add (mpui->objects, object);
             }
 
           sx = mpui_parse_size (x, mpui->width, object->x);
@@ -685,15 +681,11 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
   return object;
 }
 
-static mpui_objects_t *
+static void
 mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
 {
   char *element;
   ASX_Parser_t* parser;
-  mpui_objects_t *objects;
-
-  objects = mpui_objects_new ();
-  mpui_objects_add (mpui, objects);
 
   while (1)
     {
@@ -708,13 +700,11 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
       if (!strcmp (element, "object"))
         {
           mpui_object_t *object = mpui_parse_node_object (mpui, attribs, sbody);
-          mpui_objects_add (objects, object);
+          mpui_objects_add (mpui->objects, object);
         }
       free (parser);
     }
   asx_free_attribs (attribs);
-
-  return objects;
 }
 
 static mpui_allmenuitem_t *
@@ -976,14 +966,11 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
   return mnu;
 }
 
-static mpui_menus_t *
+static void
 mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
   char *element;
-  mpui_menus_t *menus;
-
-  menus = mpui_menus_new ();
 
   while (1)
     {
@@ -998,13 +985,11 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
       if (!strcmp (element, "menu"))
         {
           mpui_menu_t *menu = mpui_parse_node_menu (mpui, attribs, sbody);
-          mpui_menus_add (menus, menu);
+          mpui_menus_add (mpui->menus, menu);
         }
       free (parser);
     }
   asx_free_attribs (attribs);
-
-  return menus;
 }
 
 static mpui_popup_t *
@@ -1249,8 +1234,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
         }
       else if (!strcmp (element, "images"))
         {
-          mpui_images_t *images = mpui_parse_node_images (mpui, attribs,sbody);
-          mpui_images_add (mpui, images);
+          mpui_parse_node_images (mpui, attribs,sbody);
         }
       else if (!strcmp (element, "fonts"))
         {
@@ -1263,8 +1247,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
         }
       else if (!strcmp (element, "menus"))
         {
-          mpui_menus_t *menus = mpui_parse_node_menus (mpui, attribs, sbody);
-          mpui_menus_add (mpui, menus);
+          mpui_parse_node_menus (mpui, attribs, sbody);
         }
       else if (!strcmp (element, "popups"))
         {

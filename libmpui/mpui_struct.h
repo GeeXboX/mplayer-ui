@@ -266,10 +266,10 @@ struct mpui {
   int width, height;
   int format;
   mpui_strings_t **strings;
-  mpui_images_t **images;
   mpui_fonts_t **fonts;
-  mpui_objects_t **objects;
-  mpui_menus_t **menus;
+  mpui_images_t *images;
+  mpui_objects_t *objects;
+  mpui_menus_t *menus;
   mpui_popups_t *popups;
   mpui_screens_t *screens;
   mpui_screen_t *current_screen;
