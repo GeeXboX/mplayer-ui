@@ -42,6 +42,20 @@
     </file-type>
   </file-types>
 
+  <file-types id="playlist-types">
+    <file-type match="ext">
+      <icon id="i-playlist"/>
+      <action cmd="loadlist '%s'"/>
+      <ext>m3u</ext>
+      <ext>pls</ext>
+      <ext>asx</ext>
+    </file-type>
+    <file-type match="dir">
+      <icon id="i-folder"/>
+      <action cmd="cd '%s'"/>
+    </file-type>
+  </file-types>
+
   <file-types id="music-types">
     <file-type match="ext">
       <icon id="i-music"/>

@@ -3,17 +3,28 @@
 
 <mpui>
   <strings encoding="iso8859-1">
-    <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2004"/>
-    <string id="watch_tv" text="Watch TV"/>
-    <string id="tv" text="TV Center"/>
-    <string id="play_dvd" text="Play CD/DVD"/>
-    <string id="view_img" text="Pictures Viewer"/>
-    <string id="img" text="Pictures Viewer"/>
-    <string id="play_mov" text="Play Movies"/>
-    <string id="mov" text="Movie Player"/>
-    <string id="play_snd" text="Jukebox"/>
-    <string id="snd" text="Audio Jukebox"/>
-    <string id="settings" text="Settings"/>
+    <string id="version" text="Development Release pre0.99\nGeeXboX Team (C) 2005"/>
+    <string id="media_menu" text="Media Browser"/>
+    <string id="play_menu" text="Play CD/DVD"/>
+    <string id="tv_menu" text="Watch TV"/>
+    <string id="playlist_menu" text="Playlist editor"/>    
+    <string id="settings_menu" text="Settings"/>
+
+    <string id="media_screen_title" text="Media Browser"/>
+    <string id="media_all_files" text="All files"/>
+    <string id="media_movie_files" text="Movie files"/>
+    <string id="media_music_files" text="Music files"/>
+    <string id="media_picture_files" text="Picture files"/>
+    <string id="media_playlist_files" text="Playlists"/>
+
+    <string id="tv_screen_title" text="TV Center"/>
+    <string id="tv_analog" text="Analog TV"/>
+    <string id="tv_digital" text="Digital TV"/>
+    <string id="tv_video_in" text="Video In"/>
+
+    <string id="playlist_screen_title" text="Playlist Editor"/>
+    <string id="settings_screen_title" text="Settings"/>
+
     <string id="txt_help" file="help_en.txt"/>
     <string id="txt_info" text="System's Information"/>
   </strings>
