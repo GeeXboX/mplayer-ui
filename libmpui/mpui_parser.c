@@ -121,7 +121,8 @@ mpui_parse_size (char *size, int total, mpui_size_t deflt)
 
 static mpui_size_t
 mpui_recompute_one_coord (mpui_size_t c, char *sc,
-                          mpui_size_t w, mpui_size_t h, mpui_size_t total)
+                          mpui_size_t w, mpui_size_t h,
+                          mpui_size_t total, mpui_size_t center)
 {
   struct { char *id; mpui_size_t v; } *l, list[] = {
     { "left",   0 },
@@ -130,6 +131,7 @@ mpui_recompute_one_coord (mpui_size_t c, char *sc,
     { "bottom", h },
     { "width",  w },
     { "height", h },
+    { "center", center},
     { NULL, 0 }
   };
 
@@ -176,21 +178,23 @@ mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
 
     case MPUI_STR:
     case MPUI_IMG:
-      element->x = mpui_recompute_one_coord (element->x, element->sx,
-                                             w, h, mpui->width);
-      element->y = mpui_recompute_one_coord (element->y, element->sy,
-                                             w, h, mpui->height);
       element->w = mpui_recompute_one_coord (element->w, element->sw,
-                                             w, h, mpui->width);
+                                             w, h, mpui->width, 0);
       element->h = mpui_recompute_one_coord (element->h, element->sh,
-                                             w, h, mpui->height);
-      if (element->type == MPUI_IMG)
-        mpui_img_load (mpui, (mpui_img_t *) element);
+                                             w, h, mpui->height, 0);
       break;
 
     default:
       break;
     }
+
+  element->x = mpui_recompute_one_coord (element->x, element->sx, w, h,
+                                         mpui->width, (w-element->w)/2);
+  element->y = mpui_recompute_one_coord (element->y, element->sy, w, h,
+                                         mpui->height, (h-element->h)/2);
+
+  if (element->type == MPUI_IMG)
+    mpui_img_load (mpui, (mpui_img_t *) element);
 
   if (element->flags & MPUI_FLAG_CONTAINER)
     for (elements=((mpui_container_t *) element)->elements;
@@ -989,6 +993,7 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
   if (id)
     {
       popup = mpui_popup_new (id, x, y);
+      mpui_set_nocoord ((mpui_element_t *) popup, sx, sy, NULL, NULL);
       container = (mpui_container_t *) popup;
 
       while (1)
@@ -1254,9 +1259,8 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
     {
       mpui_popup_t **popup;
       for (popup=mpui->popups->popups; *popup; popup++)
-        for (elements=(*popup)->container.elements; *elements; elements++)
-          mpui_recompute_coord (mpui, *elements, (*popup)->container.element.w,
-                                (*popup)->container.element.h);
+        mpui_recompute_coord (mpui, (mpui_element_t *) *popup,
+                              mpui->width, mpui->height);
     }
 
   return mpui;
