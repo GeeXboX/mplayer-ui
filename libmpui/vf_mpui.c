@@ -59,8 +59,6 @@ static struct vf_priv_s {
   1
 };
 
-static struct vf_priv_s *st_priv = NULL;
-
 
 static int
 query_format (struct vf_instance_s* vf __attribute__((unused)),
@@ -107,6 +105,9 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
     case MP_CMD_MPUI_POPUP:
       mpui_cmd_popup (priv->mpui, cmd->args[0].v.s);
       return 1;
+    case MP_CMD_MPUI_POPUP_CLOSE:
+      mpui_cmd_popup_close (priv->mpui);
+      return 1;
     case MP_CMD_MPUI_SCREEN:
       mpui_cmd_screen (priv->mpui, cmd->args[0].v.s);
       return 1;
@@ -121,6 +122,27 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
       return 1;
     case MP_CMD_MPUI_HIDE_SWITCH:
       mpui_cmd_hide_switch (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_ACTION_EXEC:
+      mpui_cmd_focus_action_exec (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_BOX_PREVIOUS:
+      mpui_cmd_focus_box_previous (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_BOX_NEXT:
+      mpui_cmd_focus_box_next (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_PREVIOUS:
+      mpui_cmd_focus_previous (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_PREVIOUS_LINE:
+      mpui_cmd_focus_previous_line (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_NEXT:
+      mpui_cmd_focus_next (priv->mpui);
+      return 1;
+    case MP_CMD_MPUI_FOCUS_NEXT_LINE:
+      mpui_cmd_focus_next_line (priv->mpui);
       return 1;
     case MP_CMD_MPUI_INFO:
       mpui_cmd_info (priv->mpui, cmd->args[0].v.s);
@@ -156,90 +178,21 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
   return 0;
 }
 
-static void
-read_keycode (int code)
-{
-  mpui_focus_box_t *fb;
-
-  if (!st_priv->mpui->current_screen)
-    return;
-
-  fb = (mpui_focus_box_t *) st_priv->mpui->current_screen->focus_box[0];
-
-  if (mpui_list_empty (st_priv->mpui->current_screen->popup_stack))
-    switch (code)
-      {
-      case KEY_UP:
-        if (fb->orientation == MPUI_ORIENTATION_V
-            || (fb->orientation & MPUI_ORIENTATION_V
-                && fb->scrolling == MPUI_ORIENTATION_H))
-          mpui_focus_previous (fb);
-        else if (fb->orientation & MPUI_ORIENTATION_V
-                 && fb->scrolling == MPUI_ORIENTATION_V)
-          mpui_focus_previous_line (fb);
-        break;
-      case KEY_DOWN:
-        if (fb->orientation == MPUI_ORIENTATION_V
-            || (fb->orientation & MPUI_ORIENTATION_V
-                && fb->scrolling == MPUI_ORIENTATION_H))
-          mpui_focus_next (fb);
-        else if (fb->orientation & MPUI_ORIENTATION_V
-                 && fb->scrolling == MPUI_ORIENTATION_V)
-          mpui_focus_next_line (fb);
-        break;
-      case KEY_LEFT:
-        if (fb->orientation == MPUI_ORIENTATION_H
-            || (fb->orientation & MPUI_ORIENTATION_H
-                && fb->scrolling == MPUI_ORIENTATION_V))
-          mpui_focus_previous (fb);
-        else if (fb->orientation & MPUI_ORIENTATION_H
-                 && fb->scrolling == MPUI_ORIENTATION_H)
-          mpui_focus_previous_line (fb);
-        break;
-      case KEY_RIGHT:
-        if (fb->orientation == MPUI_ORIENTATION_H
-            || (fb->orientation & MPUI_ORIENTATION_H
-                && fb->scrolling == MPUI_ORIENTATION_V))
-          mpui_focus_next (fb);
-        else if (fb->orientation & MPUI_ORIENTATION_H
-                 && fb->scrolling == MPUI_ORIENTATION_H)
-          mpui_focus_next_line (fb);
-        break;
-      case KEY_TAB:
-      case KEY_SPACE:
-        mpui_focus_box_next (st_priv->mpui->current_screen);
-        break;
-      case KEY_ENTER:
-        mpui_focus_action_exec (fb, MPUI_WHEN_VALIDATE);
-        break;
-      case KEY_ESC:
-        if (st_priv->mpui->previous_screen)
-          {
-            st_priv->mpui->current_screen = st_priv->mpui->previous_screen;
-            st_priv->mpui->previous_screen = NULL;
-            mpui_focus_box_first (st_priv->mpui->current_screen);
-          }
-        else
-          mp_input_queue_cmd (mp_input_parse_cmd ("quit"));
-      }
-  else
-    switch (code)
-      {
-      case KEY_ESC:
-        mpui_cmd_popup_close (st_priv->mpui);
-      }
-}
+static mp_cmd_bind_t binds_filter[] = {
+  { { KEY_TAB, 0 },   "mpui_focus_box_next" },
+  { { KEY_SPACE, 0 }, "mpui_focus_box_next" },
+  { { KEY_ENTER, 0 }, "mpui_focus_action_exec" },
+  { { KEY_UP, 0 },    "mpui_focus_previous" },
+  { { KEY_DOWN, 0 },  "mpui_focus_next" },
+  { { KEY_LEFT, 0 },  "mpui_focus_previous" },
+  { { KEY_RIGHT, 0 }, "mpui_focus_next" },
+  { { 0 }, NULL }
+};
 
 static int
 put_image (struct vf_instance_s* vf, mp_image_t *mpi)
 {
   mp_image_t *dmpi = mpi;
-
-  /* (Un)Grab the keys */
-  if (!mp_input_key_cb && vf->priv->show)
-    mp_input_key_cb = read_keycode;
-  if (mp_input_key_cb && !vf->priv->show)
-    mp_input_key_cb = NULL;
 
   if (vf->priv->mpui && vf->priv->mpui->screens && vf->priv->mpui->current_screen)
     {
@@ -294,9 +247,8 @@ vf_open (vf_instance_t *vf, char* args __attribute__((unused)))
       vf->priv->show = 1;
     }
 
-  st_priv = vf->priv;
-
   mp_input_add_cmd_filter ((mp_input_cmd_filter) cmd_filter, vf->priv);
+  mp_input_add_binds_filter (binds_filter);
 
   return 1;
 }

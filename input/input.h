@@ -95,6 +95,7 @@
 // mpui commands
 #define MP_CMD_MPUI                  8000
 #define MP_CMD_MPUI_POPUP            8001
+#define MP_CMD_MPUI_POPUP_CLOSE          8017
 #define MP_CMD_MPUI_SCREEN           8002
 #define MP_CMD_MPUI_CD               8003
 #define MP_CMD_MPUI_HIDE             8004
@@ -110,6 +111,13 @@
 #define MP_CMD_MPUI_PLAYLIST_REMOVE  8014
 #define MP_CMD_MPUI_PLAYLIST_EMPTY   8015
 #define MP_CMD_MPUI_PLAYLIST_LOAD    8016
+#define MP_CMD_MPUI_FOCUS_ACTION_EXEC    8018
+#define MP_CMD_MPUI_FOCUS_BOX_PREVIOUS   8019
+#define MP_CMD_MPUI_FOCUS_BOX_NEXT       8020
+#define MP_CMD_MPUI_FOCUS_PREVIOUS       8021
+#define MP_CMD_MPUI_FOCUS_PREVIOUS_LINE  8022
+#define MP_CMD_MPUI_FOCUS_NEXT           8023
+#define MP_CMD_MPUI_FOCUS_NEXT_LINE      8024
 
 // The arg types
 #define MP_CMD_ARG_INT 0

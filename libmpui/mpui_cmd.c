@@ -56,7 +56,6 @@ mpui_cmd_screen (mpui_t *mpui, char *screen_id)
   screen = mpui_screen_get (mpui->screens, screen_id);
   if (screen)
     {
-      mpui->previous_screen = mpui->current_screen;
       mpui->current_screen = screen;
       mpui_focus_box_first (mpui->current_screen);
     }
@@ -137,6 +136,56 @@ mpui_cmd_hide_switch (mpui_t *mpui, char *element_id)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
                                element_id, MPUI_ANY,
                                mpui_cmd_hide_switch_func, NULL);
+}
+
+
+void
+mpui_cmd_focus_action_exec (mpui_t *mpui)
+{
+  if (mpui->current_screen && mpui->current_screen->focus_box)
+    mpui_focus_action_exec ((mpui_focus_box_t *) mpui->current_screen->focus_box[0], MPUI_WHEN_VALIDATE);
+}
+
+void
+mpui_cmd_focus_box_previous (mpui_t *mpui)
+{
+  if (mpui->current_screen)
+    mpui_focus_box_previous (mpui->current_screen);
+}
+
+void
+mpui_cmd_focus_box_next (mpui_t *mpui)
+{
+  if (mpui->current_screen)
+    mpui_focus_box_next (mpui->current_screen);
+}
+
+void
+mpui_cmd_focus_previous (mpui_t *mpui)
+{
+  if (mpui->current_screen && mpui->current_screen->focus_box)
+    mpui_focus_previous ((mpui_focus_box_t *) mpui->current_screen->focus_box[0]);
+}
+
+void
+mpui_cmd_focus_previous_line (mpui_t *mpui)
+{
+  if (mpui->current_screen && mpui->current_screen->focus_box)
+    mpui_focus_previous_line ((mpui_focus_box_t *) mpui->current_screen->focus_box[0]);
+}
+
+void
+mpui_cmd_focus_next (mpui_t *mpui)
+{
+  if (mpui->current_screen && mpui->current_screen->focus_box)
+    mpui_focus_next ((mpui_focus_box_t *) mpui->current_screen->focus_box[0]);
+}
+
+void
+mpui_cmd_focus_next_line (mpui_t *mpui)
+{
+  if (mpui->current_screen && mpui->current_screen->focus_box)
+    mpui_focus_next_line ((mpui_focus_box_t *) mpui->current_screen->focus_box[0]);
 }
 
 

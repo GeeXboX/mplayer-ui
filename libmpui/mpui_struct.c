@@ -1649,7 +1649,6 @@ mpui_new (int width, int height, int format, char *theme, char *lang)
   mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
   mpui->current_screen = NULL;
-  mpui->previous_screen = NULL;
   getcwd (mpui->cwd, sizeof (mpui->cwd));
   mpui->cwd[NAME_MAX] = '\0';
   mpui->lwd = NULL;
