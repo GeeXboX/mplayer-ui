@@ -109,7 +109,7 @@ mpui_browser_add_item (mpui_t *mpui, mpui_browser_t *browser, char *filename,
         x.val = icon->w + browser->spacing/2;
     }
 
-  string = mpui_string_new (NULL, filename, strlen(filename), MPUI_ENCODING_UTF8);
+  string = mpui_string_new (NULL, filename, MPUI_ENCODING_UTF8);
   str = mpui_str_new (string, x, y, 0, browser->font, MPUI_FONT_SIZE_DEFAULT,
                       NULL, NULL, NULL, MPUI_DISPLAY_ALWAYS);
   if (x.val + ((mpui_element_t *) str)->w.val >= browser->item_w)

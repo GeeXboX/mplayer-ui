@@ -105,7 +105,7 @@ mpui_info_add_tag (mpui_inf_t *inf, mpui_tag_t *tag,
   snprintf (tmp, 128, "%s : %s", tag->caption,
             mpui_tag_update (demuxer, file, tag));
 
-  string = mpui_string_new (NULL, tmp, strlen(tmp), MPUI_ENCODING_UTF8);
+  string = mpui_string_new (NULL, tmp, MPUI_ENCODING_UTF8);
   str = mpui_str_new (string, x, y, 0, inf->info->font,
                       MPUI_FONT_SIZE_DEFAULT, NULL, NULL,
                       NULL, MPUI_DISPLAY_ALWAYS);

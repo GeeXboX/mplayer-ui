@@ -211,14 +211,33 @@ mpui_color_free (mpui_color_t *color)
   free (color);
 }
 
+static size_t
+mpui_string_strlen16bit (const unsigned char *str)
+{
+  const unsigned char *s;
+  for (s = str++; *s++ || *s; s++)
+    ;
+  return (s - str);
+}
 
 mpui_string_t *
-mpui_string_new (char *id, unsigned char *str, size_t len, mpui_encoding_t encoding)
+mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
 {
   mpui_string_t *string;
   unsigned char *dst;
-  size_t dlen;
+  size_t dlen, len;
   unsigned int c;
+
+  switch (encoding)
+    {
+    case MPUI_ENCODING_ISO_8859_1:
+    case MPUI_ENCODING_UTF8:
+      len = strlen(str);
+      break;
+    case MPUI_ENCODING_UTF16:
+      len = mpui_string_strlen16bit(str);
+      break;
+    }
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
