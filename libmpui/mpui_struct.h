@@ -38,7 +38,6 @@ typedef struct mpui_focus_box mpui_focus_box_t;
 typedef int mpui_size_t;
 typedef struct mpui_coord mpui_coord_t;
 typedef struct mpui_color mpui_color_t;
-typedef struct mpui_ids mpui_ids_t;
 typedef struct mpui_keymaps mpui_keymaps_t;
 typedef struct mpui_keymapping mpui_keymapping_t;
 
