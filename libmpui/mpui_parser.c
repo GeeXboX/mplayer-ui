@@ -58,20 +58,19 @@ mpui_get_full_name (mpui_t *mpui, char *name)
       fullname = get_path (path);
 
       /* try to get the full name of the file from home's dir first */
-      if (!fullname || stat (fullname, &st) != 0)
+      if (!fullname || stat (fullname, &st))
         {
           /* ... then try from global data dir */
+          int size = strlen (MPLAYER_DATADIR) + strlen (mpui->theme)
+                     + strlen (name) + 8;
           if (fullname)
-            fullname = realloc (fullname, strlen (MPLAYER_DATADIR)
-                                + strlen (mpui->theme) + strlen (name) + 8);
+            fullname = (char *) realloc (fullname, size);
           else
-            fullname = (char *) malloc (strlen (MPLAYER_DATADIR)
-                                        + strlen (mpui->theme)
-                                        + strlen (name) + 8);
+            fullname = (char *) malloc (size);
 
           sprintf (fullname, "%s/mpui/%s/%s",
                    MPLAYER_DATADIR, mpui->theme, name);
-          if (stat (fullname, &st) != 0)
+          if (stat (fullname, &st))
             {
               free (fullname);
               return NULL;
@@ -85,6 +84,8 @@ mpui_get_full_name (mpui_t *mpui, char *name)
           *tmp = '\0';
           mpui->datadir = datadir;
         }
+      else
+        free (datadir);
     }
 
   return fullname;
@@ -1698,7 +1699,7 @@ mpui_parse_config_file (char *theme, int width, int height, int format)
       return NULL;
     }
 
-  if (mpui_parse_config (mpui, buffer, width, height, format) != 0)
+  if (mpui_parse_config (mpui, buffer, width, height, format))
     {
       mpui_free (mpui);
       free (buffer);
