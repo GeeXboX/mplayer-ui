@@ -1591,7 +1591,6 @@ mpui_parse_node_info (mpui_t *mpui, char **attribs, char *body)
   if (info)
     while (1)
       {
-        mpui_element_t *elt = NULL;
         char *sbody;
         int res;
         
@@ -1601,10 +1600,13 @@ mpui_parse_node_info (mpui_t *mpui, char **attribs, char *body)
           break;
         
         if (!strcmp (element, "tag"))
-          elt = (mpui_element_t *) mpui_parse_node_tag (mpui, attribs);
-        
-        if (elt)
-          mpui_info_add (info, elt);
+          {
+            mpui_tag_t *tag;
+            tag = mpui_parse_node_tag (mpui, attribs);
+
+            if (tag)
+              mpui_info_add (info, tag);
+          }
         free (parser);
       }
   asx_free_attribs (attribs);
