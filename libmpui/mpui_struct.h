@@ -34,6 +34,7 @@ typedef struct mpui_string mpui_string_t;
 typedef struct mpui_str mpui_str_t;
 typedef struct mpui_images mpui_images_t;
 typedef struct mpui_image mpui_image_t;
+typedef struct mpui_img mpui_img_t;
 typedef struct mpui_fonts mpui_fonts_t;
 typedef struct mpui_font mpui_font_t;
 typedef struct mpui_action mpui_action_t;
@@ -119,9 +120,15 @@ struct mpui_images {
 };
 
 struct mpui_image {
+  char *id;
   char *file;
-  size_t x, y, h, w;
-  int focus;
+  mpui_size_t x, y, h, w;
+};
+
+struct mpui_img {
+  mpui_image_t *image;
+  mpui_size_t x, y, h, w;
+  mpui_when_focused_t when_focused;
 };
 
 struct mpui_fonts {
@@ -212,10 +219,18 @@ mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
 #define mpui_strings_add(a,b) a->strings = mpui_list_add(a->strings, b)
 void mpui_strings_free (mpui_strings_t *strings);
 
-mpui_image_t *mpui_image_new (void);
+mpui_image_t *mpui_image_new (char *id, char *file,
+                              char *x, char *y, char *h, char *w);
+mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
+mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
+                          mpui_size_t h, mpui_size_t w,
+                          mpui_when_focused_t when_focused);
+void mpui_img_free (mpui_img_t *img);
+
 mpui_images_t *mpui_images_new (void);
+#define mpui_images_add(a,b) a->images = mpui_list_add(a->images, b)
 void mpui_images_free (mpui_images_t *images);
 
 mpui_font_t *mpui_font_new (char *id);

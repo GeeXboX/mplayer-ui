@@ -148,22 +148,67 @@ mpui_strings_free (mpui_strings_t *strings)
 
 
 mpui_image_t *
-mpui_image_new (void)
+mpui_image_new (char *id, char *file, char *x, char *y, char *h, char *w)
 {
   mpui_image_t *image;
 
   image = (mpui_image_t *) malloc (sizeof (*image));
-  /* FIXME: to implement */
+  image->id = mpui_strdup (id);
+  image->file = mpui_strdup (file);
+/*   if (x != NULL) */
+/*     image->x =   /\* FIXME: to implement *\/ */
+/*   if (y != NULL) */
+/*     image->y =   /\* FIXME: to implement *\/ */
+/*   if (h != NULL) */
+/*     image->h =   /\* FIXME: to implement *\/ */
+/*   if (w != NULL) */
+/*     image->w =   /\* FIXME: to implement *\/ */
   return image;
+}
+
+mpui_image_t *
+mpui_image_get (mpui_t *mpui, char *id)
+{
+  mpui_images_t **images;
+  mpui_image_t **image;
+
+  for (images=mpui->images; *images; images++)
+    for (image=(*images)->images; *image; image++)
+      if (!strcmp ((*image)->id, id))
+        return *image;
+  return NULL;
 }
 
 void
 mpui_image_free (mpui_image_t *image)
 {
-  /* FIXME: to implement */
+  free (image->id);
+  free (image->file);
   free (image);
 }
 
+mpui_img_t *
+mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
+              mpui_size_t h, mpui_size_t w, mpui_when_focused_t when_focused)
+{
+  mpui_img_t *img;
+
+  img = (mpui_img_t *) malloc (sizeof (*img));
+  img->image = image;
+  img->x = x;
+  img->y = y;
+  img->h = h;
+  img->w = w;
+  img->when_focused = when_focused;
+
+  return img;
+}
+
+void
+mpui_img_free (mpui_img_t *img)
+{
+  free (img);
+}
 
 mpui_images_t *
 mpui_images_new (void)
