@@ -117,14 +117,6 @@ mpui_cmd_show (mpui_t *mpui, char *element_id)
 }
 
 static void
-mpui_cmd_info_clean_func (mpui_t *mpui __attribute__((unused)),
-                          mpui_element_t *element,
-                          void *data __attribute__((unused)))
-{
-  mpui_info_clean ((mpui_inf_t *) element);
-}
-
-static void
 mpui_cmd_info_update_func (mpui_t *mpui __attribute__((unused)),
                            mpui_element_t *element, void *data)
 {
@@ -137,11 +129,7 @@ mpui_cmd_info (mpui_t *mpui, char *filename)
   if (!mpui->current_screen)
     return;
 
-  if (!filename)
-    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               NULL, MPUI_INF, mpui_cmd_info_clean_func, NULL);
-  else
-    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
-                               NULL, MPUI_INF, mpui_cmd_info_update_func,
-                               (void *) filename);
+  mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                             NULL, MPUI_INF, mpui_cmd_info_update_func,
+                             (void *) filename);
 }

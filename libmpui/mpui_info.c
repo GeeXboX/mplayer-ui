@@ -135,6 +135,10 @@ mpui_info_update (mpui_inf_t *inf, char *filename)
   mpui_coord_t x, y;
   int file_format;
 
+  mpui_info_clean (inf);
+  if (!filename)
+    return;
+
   stream = open_stream (filename, 0, &file_format);
   if (!stream)
     return;
