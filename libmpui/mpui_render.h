@@ -26,7 +26,7 @@
 
 void mpui_render_object (mpui_object_t *object, mp_image_t *mpi);
 void mpui_render_menu (mpui_menu_t *menu, mp_image_t *mpi);
-void mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi, int focus);
+void mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi);
 int mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi);
 
 #endif /* MPUI_RENDER_H */

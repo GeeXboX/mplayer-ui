@@ -268,7 +268,7 @@ static inline void
 mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
 {
   char *p, *txt = str->string->text;
-  int x = str->x, y = str->y;
+  int x = str->element.x, y = str->element.y;
   font_desc_t *font;
   mpui_color_t *color;
   int f;
@@ -305,40 +305,28 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
   if (!element)
     return;
 
-  switch (element->type)
+  if (element->when_focused == MPUI_DISPLAY_ALWAYS
+      || (element->focus && element->when_focused == MPUI_DISPLAY_FOCUSED)
+      || (!element->focus && element->when_focused == MPUI_DISPLAY_NORMAL))
     {
-    case MPUI_IMG:
-      if (element->img->when_focused == MPUI_DISPLAY_ALWAYS
-          || (element->focus 
-              && element->img->when_focused == MPUI_DISPLAY_FOCUSED)
-          || (!element->focus 
-              && element->img->when_focused == MPUI_DISPLAY_NORMAL))
-        mpui_render_image (element->img->image, mpi);
-      break;
-    case MPUI_OBJ:
-      if (element->obj->when_focused == MPUI_DISPLAY_ALWAYS
-          || (element->focus 
-              && element->obj->when_focused == MPUI_DISPLAY_FOCUSED)
-          || (!element->focus 
-              && element->obj->when_focused == MPUI_DISPLAY_NORMAL))
-        mpui_render_object (element->obj->object, mpi);
-      break;
-    case MPUI_STR:
-      if (element->str->when_focused == MPUI_DISPLAY_ALWAYS
-          || (element->focus 
-              && element->str->when_focused == MPUI_DISPLAY_FOCUSED)
-          || (!element->focus 
-              && element->str->when_focused == MPUI_DISPLAY_NORMAL))
-        mpui_render_string (element->str, mpi);
-      break;
-    case MPUI_MNU:
-      mpui_render_menu (element->mnu->menu, mpi);
-      break;
-    case MPUI_MENUITEM:
-      mpui_render_menuitem (element->menuitem, mpi, element->focus);
-      break;
-    default:
-      break;
+      switch (element->type)
+        {
+        case MPUI_IMG:
+          mpui_render_image (((mpui_img_t *) element)->image, mpi);
+          break;
+        case MPUI_OBJ:
+          mpui_render_object (((mpui_obj_t *) element)->object, mpi);
+          break;
+        case MPUI_STR:
+          mpui_render_string (((mpui_str_t *) element), mpi);
+          break;
+        case MPUI_MNU:
+          mpui_render_menu (((mpui_mnu_t *) element)->menu, mpi);
+          break;
+        case MPUI_MENUITEM:
+          mpui_render_menuitem (((mpui_menuitem_t *) element), mpi);
+          break;
+        }
     }
 }
 
@@ -369,13 +357,13 @@ mpui_render_menu (mpui_menu_t *menu, mp_image_t *mpi)
 }
 
 void
-mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi, int focus)
+mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi)
 {
   mpui_element_t **elements;
 
   for (elements=menuitem->elements; *elements; elements++)
     {
-      if (focus)
+      if (menuitem->element.focus)
         (*elements)->focus = 1;
       mpui_render_element (*elements, mpi);
     }

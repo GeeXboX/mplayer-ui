@@ -74,15 +74,11 @@ enum mpui_type {
 
 struct mpui_element {
   mpui_type_t type;
+  mpui_flags_t flags;
+  mpui_size_t x, y;
+  mpui_size_t w, h;
+  mpui_when_focused_t when_focused;
   int focus;
-  union {
-    void *ptr;
-    mpui_str_t *str;
-    mpui_img_t *img;
-    mpui_obj_t *obj;
-    mpui_mnu_t *mnu;
-    mpui_menuitem_t *menuitem;
-  };
 };
 
 struct mpui_color {
@@ -102,15 +98,12 @@ struct mpui_string {
 };
 
 struct mpui_str {
+  mpui_element_t element;
   mpui_string_t *string;
-  mpui_size_t x, y;
-  mpui_size_t w, h;
-  mpui_flags_t flags;
   mpui_font_t *font;
   int size;
   mpui_color_t *color;
   mpui_color_t *focused_color;
-  mpui_when_focused_t when_focused;
 };
 
 struct mpui_images {
@@ -131,10 +124,8 @@ struct mpui_image {
 };
 
 struct mpui_img {
+  mpui_element_t element;
   mpui_image_t *image;
-  mpui_size_t x, y, w, h;
-  mpui_flags_t flags;
-  mpui_when_focused_t when_focused;
 };
 
 struct mpui_fonts {
@@ -162,20 +153,21 @@ struct mpui_objects {
 
 struct mpui_object {
   char *id;
-  mpui_flags_t flags;
+  mpui_size_t x, y;
   mpui_element_t **elements;
   mpui_action_t **actions;
 };
 
 struct mpui_obj {
+  mpui_element_t element;
   mpui_object_t *object;
-  mpui_when_focused_t when_focused;
 };
 
 #define MPUI_MENU_ORIENTATION_H ((mpui_menu_orientation_t) 1)
 #define MPUI_MENU_ORIENTATION_V ((mpui_menu_orientation_t) 2)
 
 struct mpui_menuitem {
+  mpui_element_t element;
   mpui_element_t **elements;
   mpui_action_t **actions;
 };
@@ -199,6 +191,7 @@ struct mpui_menu {
 };
 
 struct mpui_mnu {
+  mpui_element_t element;
   mpui_menu_t *menu;
 };
 
@@ -252,7 +245,7 @@ mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
 mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-                          mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
+                          mpui_flags_t flags,
                           mpui_when_focused_t when_focused);
 void mpui_img_free (mpui_img_t *img);
 
@@ -269,12 +262,12 @@ mpui_fonts_t *mpui_fonts_new (void);
 #define mpui_fonts_add(a,b) a->fonts = mpui_list_add(a->fonts, b)
 void mpui_fonts_free (mpui_fonts_t *fonts);
 
-mpui_object_t *mpui_object_new (char *id, mpui_flags_t flags);
+mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
 void mpui_object_free (mpui_object_t *object);
 
-mpui_obj_t *mpui_obj_new (mpui_object_t *object,
-                          mpui_when_focused_t when_focused);
+mpui_obj_t *mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
+                          mpui_flags_t flags,mpui_when_focused_t when_focused);
 void mpui_obj_free (mpui_obj_t *obj);
 
 mpui_objects_t *mpui_objects_new (void);
@@ -287,7 +280,8 @@ mpui_menu_t *mpui_menu_new (char * id, mpui_menu_orientation_t orientation,
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 
-mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu);
+mpui_mnu_t *mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
+                          mpui_flags_t flags);
 void mpui_mnu_free (mpui_mnu_t *mnu);
 
 mpui_menus_t *mpui_menus_new (void);
@@ -304,8 +298,10 @@ mpui_action_t *mpui_action_new (char *cmd);
 #define mpui_actions_add(a,b) a->actions = mpui_list_add(a->actions, b)
 void mpui_action_free (mpui_action_t *action);
 
-mpui_element_t *mpui_element_new (mpui_type_t type, void *elem);
 void mpui_element_free (mpui_element_t *element);
+void mpui_elements_get_size (mpui_element_t *element,
+                             mpui_element_t **elements,
+                             mpui_element_t **elements2);
 
 mpui_screen_t *mpui_screen_new (char *id);
 mpui_screen_t *mpui_screen_get (mpui_screens_t *screens, char *id);
