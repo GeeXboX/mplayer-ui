@@ -20,6 +20,8 @@
     <string id="tv_screen_title" text="TV Center"/>
     <string id="tv_analog" text="Analog TV"/>
     <string id="tv_digital" text="Digital TV"/>
+    <string id="tv_analog_channel" text="Analog Channels"/>
+    <string id="tv_digital_channel" text="Digital Channels"/>
     <string id="tv_video_in" text="Video In"/>
 
     <string id="playlist_screen_title" text="Playlist Editor"/>
