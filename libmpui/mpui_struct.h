@@ -313,7 +313,7 @@ struct mpui_browser {
 };
 
 struct mpui_infos {
-  mpui_info_t **info;
+  mpui_info_t **infos;
 };
 
 struct mpui_info {
@@ -525,7 +525,7 @@ mpui_inf_t *mpui_inf_new (mpui_info_t *info,
 void mpui_inf_free (mpui_inf_t *inf);
 
 mpui_infos_t *mpui_infos_new (void);
-#define mpui_infos_add(a,b) (a)->info = mpui_list_add((a)->info, (b))
+#define mpui_infos_add(a,b) (a)->infos = mpui_list_add((a)->infos, (b))
 void mpui_infos_free (mpui_infos_t *infos);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);

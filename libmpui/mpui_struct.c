@@ -1362,7 +1362,7 @@ mpui_info_get (mpui_t *mpui, char *id)
 {
   mpui_info_t **info;
 
-  for (info = mpui->infos->info; *info; info++)
+  for (info = mpui->infos->infos; *info; info++)
     if (!strcmp ((*info)->id, id))
       return *info;
   return NULL;
@@ -1409,18 +1409,18 @@ mpui_infos_new (void)
   mpui_infos_t *infos;
 
   infos = (mpui_infos_t *) malloc (sizeof (*infos));
-  infos->info = mpui_list_new ();
+  infos->infos = mpui_list_new ();
   return infos;
 }
 
 void
 mpui_infos_free (mpui_infos_t *infos)
 {
-  mpui_info_t **p = infos->info;
+  mpui_info_t **p = infos->infos;
 
   while (*p)
     mpui_info_free (*p++);
-  free (infos->info);
+  free (infos->infos);
   free (infos);
 }
 
