@@ -231,6 +231,12 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
               && element->str->when_focused == MPUI_DISPLAY_NORMAL))
         mpui_render_string (element->str, mpi);
       break;
+    case MPUI_MNU:
+      mpui_render_menu (element->mnu->menu, mpi);
+      break;
+    case MPUI_MENUITEM:
+      mpui_render_menuitem (element->menuitem, mpi, element->focus);
+      break;
     default:
       break;
     }
@@ -243,6 +249,36 @@ mpui_render_object (mpui_object_t *object, mp_image_t *mpi)
 
   for (elements=object->elements; *elements; elements++)
     mpui_render_element (*elements, mpi);
+}
+
+void
+mpui_render_menu (mpui_menu_t *menu, mp_image_t *mpi)
+{
+  mpui_element_t **elements;
+  int first = 0; /* Only set focus to first menuitem */
+
+  for (elements=menu->elements; *elements; elements++)
+    {
+      if ((*elements)->type == MPUI_MENUITEM && !first)
+        {
+          (*elements)->focus = 1;
+          first++;
+        }
+      mpui_render_element (*elements, mpi);
+    }
+}
+
+void
+mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi, int focus)
+{
+  mpui_element_t **elements;
+
+  for (elements=menuitem->elements; *elements; elements++)
+    {
+      if (focus)
+        (*elements)->focus = 1;
+      mpui_render_element (*elements, mpi);
+    }
 }
 
 int

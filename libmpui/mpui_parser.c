@@ -592,8 +592,8 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
         }
       else if (!strcmp (element, "str"))
         {
-/*           mpui_str_t *str = mpui_parse_node_str (mpui, attribs); */
-/*           elt = mpui_element_new (MPUI_STR, str); */
+          mpui_str_t *str = mpui_parse_node_str (mpui, attribs);
+          elt = mpui_element_new (MPUI_STR, str);
         }
       else if (!strcmp (element, "action"))
         {
