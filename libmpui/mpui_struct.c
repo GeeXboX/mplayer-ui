@@ -251,7 +251,7 @@ mpui_string_get_next_char_real (const int sanity, unsigned char **txt,
       break;
     case MPUI_ENCODING_UTF8:
     {
-      size_t ulen;
+      size_t ulen = 0;
       if ((c & 0x80) == 0x00)
         break;
 

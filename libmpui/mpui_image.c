@@ -260,7 +260,7 @@ mpui_image_load_png (mpui_raw_image_t *raw, FILE *fp)
 static jmp_buf jmp_env;
 
 static void
-mpui_image_jpeg_error (j_common_ptr cinfo)
+mpui_image_jpeg_error (j_common_ptr cinfo __attribute__((unused)))
 {
   longjmp (jmp_env, 1);
 }
@@ -270,9 +270,9 @@ mpui_image_load_jpeg (mpui_raw_image_t *raw, FILE *fp)
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
-  JSAMPLE **row = NULL;
+  static JSAMPLE **row = NULL;
   unsigned int i;
-  int ret = 1;
+  volatile int ret = 1;
 
   cinfo.err = jpeg_std_error (&jerr);
   cinfo.err->error_exit = mpui_image_jpeg_error;

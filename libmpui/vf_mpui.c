@@ -62,7 +62,8 @@ static struct vf_priv_s *st_priv = NULL;
 
 
 static int
-query_format (struct vf_instance_s* vf, unsigned int fmt)
+query_format (struct vf_instance_s* vf __attribute__((unused)),
+              unsigned int fmt)
 {
   switch (fmt)
     {
@@ -97,7 +98,8 @@ copy_mpi(mp_image_t *dmpi, mp_image_t *mpi)
 }
 
 static int
-cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
+cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
+            struct vf_priv_s *priv)
 {
   switch (cmd->id)
     {
@@ -262,7 +264,7 @@ config (struct vf_instance_s* vf, int width, int height,
 }
 
 static int
-vf_open (vf_instance_t *vf, char* args)
+vf_open (vf_instance_t *vf, char* args __attribute__((unused)))
 {
   vf->query_format = query_format;
   vf->config = config;
