@@ -32,7 +32,7 @@
 #include "mpui_image.h"
 #include "mpui_parser.h"
 
-int
+static int
 mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
                         char **element, char **body, char ***attribs)
 {
@@ -52,7 +52,7 @@ mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
   return r;
 }
 
-mpui_size_t
+static mpui_size_t
 mpui_parse_size (char *size, int total, mpui_size_t deflt)
 {
   mpui_size_t val = deflt;
@@ -172,7 +172,7 @@ mpui_set_nocoord (mpui_element_t *element, char *x, char *y, char *w, char *h)
     element->sh = strdup (h);
 }
 
-mpui_color_t *
+static mpui_color_t *
 mpui_parse_color (char *color)
 {
   if (color && color[0] == '#' && strlen (color) == 7)
@@ -188,7 +188,7 @@ mpui_parse_color (char *color)
   return NULL;
 }
 
-mpui_string_t *
+static mpui_string_t *
 mpui_parse_node_string (char **attribs)
 {
   char *id, *text;
@@ -204,7 +204,7 @@ mpui_parse_node_string (char **attribs)
   return string;
 }
 
-mpui_str_t *
+static mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *relative;
@@ -259,7 +259,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       col = mpui_parse_color (color);
       fcol = mpui_parse_color (focused_color);
 
-      if (string)
+      if (string && font)
         {
           str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
           mpui_set_nocoord ((mpui_element_t *) str, x, y, NULL, NULL);
@@ -269,7 +269,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   return str;
 }
 
-mpui_strings_t *
+static mpui_strings_t *
 mpui_parse_node_strings (char **attribs, char *body)
 {
   ASX_Parser_t* parser;
@@ -303,7 +303,7 @@ mpui_parse_node_strings (char **attribs, char *body)
   return strings;
 }
 
-mpui_image_t *
+static mpui_image_t *
 mpui_parse_node_image (mpui_t *mpui, char **attribs)
 {
   char *id, *file, *f, *x, *y, *w, *h;
@@ -333,7 +333,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   return image;
 }
 
-mpui_img_t *
+static mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *w, *h, *relative, *when_focused;
@@ -384,7 +384,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   return img;
 }
 
-mpui_images_t *
+static mpui_images_t *
 mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
@@ -414,7 +414,7 @@ mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
   return images;
 }
 
-mpui_font_t *
+static mpui_font_t *
 mpui_parse_node_font (mpui_t *mpui, char **attribs)
 {
   char *id, *file, *f, *size, *col, *focused_col;
@@ -450,7 +450,7 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
   return font;
 }
 
-mpui_fonts_t *
+static mpui_fonts_t *
 mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 {
   char *dflt, *element;
@@ -492,7 +492,7 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 }
 
 
-mpui_action_t *
+static mpui_action_t *
 mpui_parse_node_action (char **attribs)
 {
   char *cmd;
@@ -507,7 +507,7 @@ mpui_parse_node_action (char **attribs)
   return action;
 }
 
-mpui_obj_t *
+static mpui_obj_t *
 mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *relative, *when_focused;
@@ -552,7 +552,7 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
   return obj;
 }
 
-mpui_object_t *
+static mpui_object_t *
 mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
 {
   char *id, *x, *y, *element;
@@ -603,7 +603,7 @@ mpui_parse_node_object (mpui_t *mpui, char **attribs, char *body)
   return object;
 }
 
-mpui_objects_t *
+static mpui_objects_t *
 mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
 {
   char *element;
@@ -634,7 +634,7 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
   return objects;
 }
 
-mpui_allmenuitem_t *
+static mpui_allmenuitem_t *
 mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
 {
   mpui_allmenuitem_t *allmenuitem = NULL;
@@ -675,7 +675,7 @@ mpui_parse_node_menu_all_items (mpui_t *mpui, char **attribs, char *body)
   return allmenuitem;
 }
 
-mpui_menuitem_t *
+static mpui_menuitem_t *
 mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
                            mpui_allmenuitem_t *allmenuitem)
 {
@@ -723,7 +723,7 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
   return menuitem;
 }
 
-mpui_menu_t *
+static mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
   char *id, *orientation, *font, *x, *y, *w, *h, *element;
@@ -742,8 +742,8 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
 
-/*   if (!strcmp (orientation, "horizontal")) */
-/*     morientation = MPUI_MENU_ORIENTATION_H; */
+  if (orientation && !strcmp (orientation, "horizontal"))
+    morientation = MPUI_MENU_ORIENTATION_H;
 
   if (font)
     mfont = mpui_font_get (mpui, font);
@@ -798,7 +798,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   return menu;
 }
 
-mpui_mnu_t *
+static mpui_mnu_t *
 mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *relative;
@@ -831,7 +831,7 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
   return mnu;
 }
 
-mpui_menus_t *
+static mpui_menus_t *
 mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
@@ -862,7 +862,7 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
   return menus;
 }
 
-mpui_screen_t *
+static mpui_screen_t *
 mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
 {
   char *id, *element;
@@ -904,7 +904,7 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
   return screen;
 }
 
-mpui_screens_t *
+static mpui_screens_t *
 mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
 {
   char *menu, *control, *element;
