@@ -45,7 +45,7 @@ typedef unsigned int mpui_flags_t;
 typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
 typedef struct mpui_obj mpui_obj_t;
-typedef unsigned int mpui_orientation_t;
+typedef enum mpui_orientation mpui_orientation_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
 typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
@@ -67,6 +67,11 @@ enum mpui_when_focused {
   MPUI_DISPLAY_FOCUSED,
   MPUI_DISPLAY_REALLY_FOCUSED,
   MPUI_DISPLAY_ALWAYS,
+};
+
+enum mpui_orientation {
+  MPUI_ORIENTATION_H,
+  MPUI_ORIENTATION_V,
 };
 
 enum mpui_type {
@@ -176,9 +181,6 @@ struct mpui_obj {
   mpui_element_t element;
   mpui_object_t *object;
 };
-
-#define MPUI_ORIENTATION_H ((mpui_orientation_t) 1)
-#define MPUI_ORIENTATION_V ((mpui_orientation_t) 2)
 
 struct mpui_menuitem {
   mpui_element_t element;

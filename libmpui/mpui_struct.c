@@ -133,9 +133,9 @@ mpui_str_get_size (mpui_str_t *str)
   while (*s)
     {
       render_one_glyph (font, *s);
-      f = font->font[*s];
+      f = font->font[(int)*s];
 
-      w += font->width[*s] + font->charspace;
+      w += font->width[(int)*s] + font->charspace;
       if (f >= 0 && font->pic_a[f]->h > h)
         h = font->pic_a[f]->h;
 

@@ -750,7 +750,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_orientation_t orientation = MPUI_ORIENTATION_V;
-  mpui_font_t *default_font, *font = NULL;
+  mpui_font_t *default_font = NULL, *font = NULL;
   mpui_size_t mx, my, mw, mh;
   mpui_size_t item_x = 0, item_y = 0;
 
