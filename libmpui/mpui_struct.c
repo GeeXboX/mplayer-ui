@@ -260,6 +260,7 @@ mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
       }
     mpui_string_put_next_char (&dst, &dlen, c, encoding);
   } while (c);
+  string->len -= dlen;
 
   return string;
 }
