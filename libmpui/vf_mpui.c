@@ -116,6 +116,10 @@ static void
 read_keycode (int code)
 {
   mpui_focus_box_t *fb;
+
+  if (!st_priv->mpui->current_screen)
+    return;
+
   fb = (mpui_focus_box_t *) st_priv->mpui->current_screen->focus_box[0];
 
   if (mpui_list_empty (st_priv->mpui->current_screen->popup_stack))

@@ -60,6 +60,9 @@ mpui_cmd_popup (mpui_t *mpui, char *popup_id)
 {
   mpui_popup_t *popup;
 
+  if (!mpui->current_screen)
+    return;
+
   popup = mpui_popup_get (mpui->popups, popup_id);
   mpui_popup_add (mpui->current_screen, popup);
 }
@@ -67,7 +70,8 @@ mpui_cmd_popup (mpui_t *mpui, char *popup_id)
 void
 mpui_cmd_popup_close (mpui_t *mpui)
 {
-  mpui_popup_remove (mpui->current_screen);
+  if (mpui->current_screen)
+    mpui_popup_remove (mpui->current_screen);
 }
 
 
@@ -80,8 +84,9 @@ mpui_cmd_hide_func (mpui_element_t *element, void *data)
 void
 mpui_cmd_hide (mpui_t *mpui, char *element_id)
 {
-  mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
-                             mpui_cmd_hide_func, NULL);
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
+                               mpui_cmd_hide_func, NULL);
 }
 
 
@@ -94,6 +99,7 @@ mpui_cmd_show_func (mpui_element_t *element, void *data)
 void
 mpui_cmd_show (mpui_t *mpui, char *element_id)
 {
-  mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
-                             mpui_cmd_show_func, NULL);
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
+                               mpui_cmd_show_func, NULL);
 }
