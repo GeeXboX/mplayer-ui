@@ -163,6 +163,12 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
     case MP_CMD_MPUI_PLAYLIST_ADD:
       mpui_cmd_playlist_add (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
       return 1;
+    case MP_CMD_MPUI_PLAYLIST_MOVE_UP:
+      mpui_cmd_playlist_move_up (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_PLAYLIST_MOVE_DOWN:
+      mpui_cmd_playlist_move_down (priv->mpui, cmd->args[0].v.s);
+      return 1;
     case MP_CMD_MPUI_PLAYLIST_REMOVE:
       mpui_cmd_playlist_remove (priv->mpui, cmd->args[0].v.s,cmd->args[1].v.s);
       return 1;

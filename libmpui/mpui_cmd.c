@@ -381,6 +381,62 @@ mpui_cmd_playlist_add (mpui_t *mpui, char *playlist_id, char *filename)
 }
 
 static void
+mpui_cmd_playlist_move_up_func (mpui_t *mpui __attribute__((unused)),
+                                mpui_element_t *element,
+                                void *data __attribute__((unused)))
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  mpui_element_t **item = ((mpui_focus_box_t *) element)->focus;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_move_up (playlist, item);
+}
+
+void
+mpui_cmd_playlist_move_up (mpui_t *mpui, char *playlist_id)
+{
+  if (mpui->current_screen)
+    {
+      mpui_element_t **fb = mpui->current_screen->focus_box;
+
+      if (playlist_id)
+        mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                                   playlist_id, MPUI_MNU, 0,
+                                   mpui_cmd_playlist_move_up_func, NULL);
+      else if (fb && *fb && (*fb)->type == MPUI_MNU
+               && ((mpui_mnu_t *) *fb)->menu->is_playlist)
+        mpui_cmd_playlist_move_up_func (NULL, *fb, NULL);
+    }
+}
+
+static void
+mpui_cmd_playlist_move_down_func (mpui_t *mpui __attribute__((unused)),
+                                  mpui_element_t *element,
+                                  void *data __attribute__((unused)))
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  mpui_element_t **item = ((mpui_focus_box_t *) element)->focus;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_move_down (playlist, item);
+}
+
+void
+mpui_cmd_playlist_move_down (mpui_t *mpui, char *playlist_id)
+{
+  if (mpui->current_screen)
+    {
+      mpui_element_t **fb = mpui->current_screen->focus_box;
+
+      if (playlist_id)
+        mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                                   playlist_id, MPUI_MNU, 0,
+                                   mpui_cmd_playlist_move_down_func, NULL);
+      else if (fb && *fb && (*fb)->type == MPUI_MNU
+               && ((mpui_mnu_t *) *fb)->menu->is_playlist)
+        mpui_cmd_playlist_move_down_func (NULL, *fb, NULL);
+    }
+}
+
+static void
 mpui_cmd_playlist_remove_func (mpui_t *mpui __attribute__((unused)),
                                mpui_element_t *element, void *data)
 {

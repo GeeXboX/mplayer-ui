@@ -45,6 +45,8 @@ void mpui_cmd_slideshow_prev (mpui_t *mpui, char *slideshow_id);
 void mpui_cmd_slideshow_next (mpui_t *mpui, char *slideshow_id);
 void mpui_cmd_slideshow_mode (mpui_t *mpui, char *slideshow_id, char *mode);
 void mpui_cmd_playlist_add (mpui_t *mpui, char *playlist_id, char *filename);
+void mpui_cmd_playlist_move_up (mpui_t *mpui, char *playlist_id);
+void mpui_cmd_playlist_move_down (mpui_t *mpui, char *playlist_id);
 void mpui_cmd_playlist_remove(mpui_t *mpui, char *playlist_id, char *filename);
 void mpui_cmd_playlist_empty (mpui_t *mpui, char *playlist_id);
 void mpui_cmd_playlist_load (mpui_t *mpui, char *playlist_id, char *filename);

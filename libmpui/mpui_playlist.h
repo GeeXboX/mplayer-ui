@@ -25,6 +25,10 @@
 void mpui_playlist_generate (mpui_playlist_t *playlist);
 void mpui_playlist_update (mpui_mnu_t *mnu);
 void mpui_playlist_add (mpui_playlist_t *playlist, char *filename);
+void mpui_playlist_move_up (mpui_playlist_t *playlist,
+                            mpui_element_t **element);
+void mpui_playlist_move_down (mpui_playlist_t *playlist,
+                              mpui_element_t **element);
 void mpui_playlist_remove (mpui_playlist_t *playlist, char *filename);
 void mpui_playlist_empty (mpui_playlist_t *playlist);
 void mpui_playlist_load (mpui_playlist_t *playlist, char *filename);

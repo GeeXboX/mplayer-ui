@@ -202,6 +202,47 @@ mpui_playlist_add (mpui_playlist_t *playlist, char *filename)
     }
 }
 
+static int
+mpui_playlist_elem_pos (mpui_playlist_t *playlist, mpui_element_t **element)
+{
+  mpui_element_t **e;
+  int n = 0;
+
+  for (e = element; e >= ((mpui_menu_t *) playlist)->elements; e--)
+    if (*e != (mpui_element_t *) playlist->border
+        && *e != (mpui_element_t *) playlist->item_border)
+      n++;
+  return n;
+}
+
+void
+mpui_playlist_move_up (mpui_playlist_t *playlist, mpui_element_t **element)
+{
+  int n = mpui_playlist_elem_pos (playlist, element) - 1;
+
+  if (n > 0)
+    {
+      char *tmp = playlist->items[n-1];
+      playlist->items[n-1] = playlist->items[n];
+      playlist->items[n] = tmp;
+      playlist->need_generate = 1;
+    }
+}
+
+void
+mpui_playlist_move_down (mpui_playlist_t *playlist, mpui_element_t **element)
+{
+  int n = mpui_playlist_elem_pos (playlist, element);
+
+  if (n < mpui_list_length (playlist->items))
+    {
+      char *tmp = playlist->items[n];
+      playlist->items[n] = playlist->items[n-1];
+      playlist->items[n-1] = tmp;
+      playlist->need_generate = 1;
+    }
+}
+
 void
 mpui_playlist_empty (mpui_playlist_t *playlist)
 {

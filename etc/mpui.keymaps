@@ -54,6 +54,8 @@
       <keymap key="ENTER" cmd="mpui_focus_action_exec"/>
       <keymap key="UP" cmd="mpui_focus_previous"/>
       <keymap key="DOWN" cmd="mpui_focus_next"/>
+      <keymap key="u" cmd="mpui_playlist_move_up"/>
+      <keymap key="d" cmd="mpui_playlist_move_down"/>
     </keymaps>
   </keymapping>
 </mpui>

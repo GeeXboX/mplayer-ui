@@ -125,6 +125,8 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_MPUI_SLIDESHOW_NEXT, "mpui_slideshow_next", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_SLIDESHOW_MODE, "mpui_slideshow_mode", 1, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_PLAYLIST_ADD, "mpui_playlist_add", 2, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_PLAYLIST_MOVE_UP, "mpui_playlist_move_up", 0, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_PLAYLIST_MOVE_DOWN, "mpui_playlist_move_down", 0, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_PLAYLIST_REMOVE, "mpui_playlist_remove", 2, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_PLAYLIST_EMPTY, "mpui_playlist_empty", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_PLAYLIST_LOAD, "mpui_playlist_load", 2, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
