@@ -1266,9 +1266,6 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
 
   align = mpui_parse_alignment (attribs);
 
-  if (!font_id || !(font = mpui_font_get (mpui, font_id)))
-    font = mpui->fonts->deflt;
-
   mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
   my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
   mw = mpui_parse_size (w, mpui->width, mpui->diag, 0);
@@ -1278,30 +1275,31 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   tmp = orientation == MPUI_ORIENTATION_V ? mpui->height : mpui->width;
   ms = mpui_parse_size (spacing, tmp, mpui->diag, 0);
 
-  if (!i_w && !i_h)
-    mih.val = miw.val = orientation == MPUI_ORIENTATION_V ?
-                        font->font_desc->height : 2 * font->font_desc->height;
-  else if (!i_w)
-    miw.val = mih.val;
-  else if (!i_h)
-    mih.val = miw.val;
-
-  if (orientation & MPUI_ORIENTATION_H)
-    {
-      item_w = font->font_desc->height * 8;
-      item_w = (mw.val / ((mw.val / (item_w + ms.val)) + 1)) - ms.val;
-      if (item_w < miw.val)
-        item_w = (mw.val / (mw.val / (miw.val + ms.val))) - ms.val;
-    }
-  else
-    item_w = mw.val;
-
-  border = mpui_object_get (mpui, border_id);
-  item_border = mpui_object_get (mpui, item_border_id);
-
+  font = mpui_font_get (mpui, font_id);
   filter = mpui_filetypes_get (mpui, filter_id);
-  if (id && filter)
+  if (id && font && filter)
     {
+      if (!i_w && !i_h)
+        mih.val = miw.val = orientation == MPUI_ORIENTATION_V ?
+                        font->font_desc->height : 2 * font->font_desc->height;
+      else if (!i_w)
+        miw.val = mih.val;
+      else if (!i_h)
+        mih.val = miw.val;
+
+      if (orientation & MPUI_ORIENTATION_H)
+        {
+          item_w = font->font_desc->height * 8;
+          item_w = (mw.val / ((mw.val / (item_w + ms.val)) + 1)) - ms.val;
+          if (item_w < miw.val)
+            item_w = (mw.val / (mw.val / (miw.val + ms.val))) - ms.val;
+        }
+      else
+        item_w = mw.val;
+
+      border = mpui_object_get (mpui, border_id);
+      item_border = mpui_object_get (mpui, item_border_id);
+
       filter = mpui_filetypes_dup (filter, miw.val, mih.val);
       browser = mpui_browser_new (id, font, orientation, scrolling, align,
                                   mx.val, my.val, mw.val, mh.val,

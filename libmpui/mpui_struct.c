@@ -240,9 +240,10 @@ mpui_string_get (mpui_t *mpui, char *id)
 {
   mpui_string_t **string;
 
-  for (string=mpui->strings->strings; *string; string++)
-    if (!strcmp ((*string)->id, id))
-      return *string;
+  if (mpui->strings)
+    for (string=mpui->strings->strings; *string; string++)
+      if (!strcmp ((*string)->id, id))
+        return *string;
 
   return NULL;
 }
@@ -547,13 +548,14 @@ mpui_font_get (mpui_t *mpui, char *id)
 
   if (id)
     {
-      for (font=mpui->fonts->fonts; *font; font++)
-        if (!strcmp ((*font)->id, id))
-          return *font;
+      if (mpui->fonts)
+        for (font=mpui->fonts->fonts; *font; font++)
+          if (!strcmp ((*font)->id, id))
+            return *font;
     }
   else
     {
-      if (mpui->fonts->deflt)
+      if (mpui->fonts && mpui->fonts->deflt)
         return mpui->fonts->deflt;
     }
   return NULL;
@@ -1280,8 +1282,11 @@ mpui_free (mpui_t *mpui)
   free (mpui->datadir);
   free (mpui->lang);
 
-  mpui_strings_free (mpui->strings);
-  mpui_fonts_free (mpui->fonts);
+  if (mpui->strings)
+    mpui_strings_free (mpui->strings);
+
+  if (mpui->fonts)
+    mpui_fonts_free (mpui->fonts);
 
   if (mpui->images)
     mpui_images_free (mpui->images);
