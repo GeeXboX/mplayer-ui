@@ -211,60 +211,6 @@ mpui_color_free (mpui_color_t *color)
   free (color);
 }
 
-static size_t
-mpui_string_strlen16bit (const unsigned char *str)
-{
-  const unsigned char *s;
-  for (s = str++; *s++ || *s; s++)
-    ;
-  return (s - str);
-}
-
-mpui_string_t *
-mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
-{
-  mpui_string_t *string;
-  unsigned char *dst;
-  size_t dlen, len;
-  unsigned int c;
-
-  switch (encoding)
-    {
-    case MPUI_ENCODING_ISO_8859_1:
-    case MPUI_ENCODING_UTF8:
-      len = strlen(str);
-      break;
-    case MPUI_ENCODING_UTF16:
-      len = mpui_string_strlen16bit(str);
-      break;
-    }
-
-  string = (mpui_string_t *) malloc (sizeof (*string));
-  string->id = mpui_strdup (id);
-  string->len = dlen = len;
-  string->text = dst = (char *) malloc (dlen);
-  string->encoding = encoding;
-
-  do {
-    c = mpui_string_get_next_char (&str, &len, encoding);
-    while (c == '\\')
-      {
-        c = mpui_string_get_next_char (&str, &len, encoding);
-        if (c == 'n')
-          {
-            mpui_string_put_next_char (&dst, &dlen, '\n', encoding);
-            c = mpui_string_get_next_char (&str, &len, encoding);
-            break;
-          }
-        mpui_string_put_next_char (&dst, &dlen, '\\', encoding);
-      }
-    mpui_string_put_next_char (&dst, &dlen, c, encoding);
-  } while (c);
-  string->len -= dlen;
-
-  return string;
-}
-
 mpui_string_t *
 mpui_string_get (mpui_t *mpui, char *id)
 {
@@ -278,15 +224,19 @@ mpui_string_get (mpui_t *mpui, char *id)
   return NULL;
 }
 
-unsigned int
-mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t encoding)
+static inline unsigned int
+mpui_string_get_next_char_real (const int sanity, unsigned char **txt,
+                                size_t *len, const mpui_encoding_t encoding)
 {
   unsigned int c;
 
-  if (!*len)
-    return 0;
+  if (sanity)
+    {
+      if (!*len)
+        return 0;
+      (*len)--;
+    }
   c = *(*txt)++;
-  (*len)--;
 
   switch (encoding)
     {
@@ -303,36 +253,58 @@ mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t enc
       else if ((c & 0xF8) == 0xF0)  { ulen = 3; c &= 0x07; } /* c = 11110xxx */
       else if ((c & 0xFC) == 0xF8)  { ulen = 4; c &= 0x02; } /* c = 111110xx */
       else if ((c & 0xFE) == 0xFC)  { ulen = 5; c &= 0x01; } /* c = 1111110x */
-      else                          { return 0; }
+      else if (sanity)              { return 0; }
 
-      if (*len < ulen)
-        return 0;
-      (*len) -= ulen;
+      if (sanity)
+        {
+          if (*len < ulen)
+            return 0;
+          (*len) -= ulen;
+        }
 
       while (ulen--)
         c = (c << 6) | (*(*txt)++ & 0x3F); /* **txt = 10xxxxxx */
       break;
     }
     case MPUI_ENCODING_UTF16:
-      if (*len == 0)
-        return 0;
+      if (sanity)
+        {
+          if (*len == 0)
+            return 0;
+          (*len)--;
+        }
       c = (c<<8) + *(*txt)++;
-      (*len)--;
       if (c >= 0xD800 && c <= 0xDFFF)  
         {
-          if (c > 0xDBFF || /* c = 110110yyyyyyyyyy  */
-              *len < 2 ||   /* there's another 16bit */
-              **txt < 0xDC || 0xDF < **txt) /* **txt = 110111xx */
-            return 0;
+          if (sanity)
+            {
+              if (c > 0xDBFF || /* c = 110110yyyyyyyyyy  */
+                  *len < 2 ||   /* there's another 16bit */
+                  **txt < 0xDC || 0xDF < **txt) /* **txt = 110111xx */
+                return 0;
+              (*len) -= 2;
+            }
           c = (c & 0x3FF) << 10;       /* c = yyyyyyyyyy0000000000 */
           c |= (*(*txt)++ & 0x3) << 8; /* c = yyyyyyyyyyxx00000000 */
           c |= (*(*txt)++);            /* c = yyyyyyyyyyxxxxxxxxxx */
           c += 0x10000;                /* 0x10000 <= c <= 0x10FFFF */
-          (*len) -= 2;
         }
       break;
     }
   return c;
+}
+
+unsigned int
+mpui_string_get_next_char (unsigned char **txt, mpui_encoding_t encoding)
+{
+  return mpui_string_get_next_char_real(0, txt, NULL, encoding);
+}
+
+static unsigned int
+mpui_string_get_next_char_sanity (unsigned char **txt, size_t *len,
+                                  mpui_encoding_t encoding)
+{
+  return mpui_string_get_next_char_real(1, txt, len, encoding);
 }
 
 void
@@ -403,6 +375,60 @@ mpui_string_put_next_char (unsigned char **txt, size_t *len,
     }
 }
 
+static size_t
+mpui_string_strlen16bit (const unsigned char *str)
+{
+  const unsigned char *s;
+  for (s = str++; *s++ || *s; s++)
+    ;
+  return (s - str);
+}
+
+mpui_string_t *
+mpui_string_new (char *id, unsigned char *str, mpui_encoding_t encoding)
+{
+  mpui_string_t *string;
+  unsigned char *dst;
+  size_t dlen, len;
+  unsigned int c;
+
+  /* find length in bytes (including the terminating '\0' character) */
+  switch (encoding)
+    {
+    case MPUI_ENCODING_ISO_8859_1:
+    case MPUI_ENCODING_UTF8:
+      len = strlen(str) + 1;
+      break;
+    case MPUI_ENCODING_UTF16:
+      len = mpui_string_strlen16bit(str) + 2;
+      break;
+    }
+
+  string = (mpui_string_t *) malloc (sizeof (*string));
+  string->id = mpui_strdup (id);
+  string->len = dlen = len;
+  string->text = dst = (char *) malloc (dlen);
+  string->encoding = encoding;
+
+  do {
+    c = mpui_string_get_next_char_sanity (&str, &len, encoding);
+    while (c == '\\')
+      {
+        c = mpui_string_get_next_char_sanity (&str, &len, encoding);
+        if (c == 'n')
+          {
+            mpui_string_put_next_char (&dst, &dlen, '\n', encoding);
+            c = mpui_string_get_next_char_sanity (&str, &len, encoding);
+            break;
+          }
+        mpui_string_put_next_char (&dst, &dlen, '\\', encoding);
+      }
+    mpui_string_put_next_char (&dst, &dlen, c, encoding);
+  } while (c);
+
+  return string;
+}
+
 void
 mpui_string_free (mpui_string_t *string)
 {
@@ -419,9 +445,8 @@ mpui_str_get_size (mpui_str_t *str)
   unsigned int c;
   int w = 0, wmax = 0, htot = 0;
   unsigned char *txt = str->string->text;
-  size_t len = str->string->len;
 
-  while ((c = mpui_string_get_next_char (&txt, &len, str->string->encoding)))
+  while ((c = mpui_string_get_next_char (&txt, str->string->encoding)))
     {
       if (c == '\n')
         {

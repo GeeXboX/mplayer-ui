@@ -394,7 +394,7 @@ void mpui_color_free (mpui_color_t *color);
 mpui_string_t *mpui_string_new (char *id, unsigned char *str,
                                 mpui_encoding_t encoding);
 mpui_string_t *mpui_string_get (mpui_t *mpui, char *id);
-unsigned int mpui_string_get_next_char (unsigned char **txt, size_t *len,
+unsigned int mpui_string_get_next_char (unsigned char **txt,
                                         mpui_encoding_t encoding);
 void mpui_string_put_next_char (unsigned char **txt, size_t *len, 
                                 unsigned int c, mpui_encoding_t encoding);

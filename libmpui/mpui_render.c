@@ -357,7 +357,6 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
                     mpui_render_context_t *context)
 {
   unsigned char *txt = str->string->text;
-  size_t len = str->string->len;
   font_desc_t *font;
   mpui_color_t *color;
   unsigned int c;
@@ -393,7 +392,7 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   else if (str->color)
     color = str->color;
 
-  while ((c = mpui_string_get_next_char (&txt, &len, str->string->encoding)))
+  while ((c = mpui_string_get_next_char (&txt, str->string->encoding)))
     {
       if (c == '\n')
         {
