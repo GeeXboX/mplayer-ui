@@ -990,6 +990,8 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu = (mpui_menu_t *) malloc (sizeof (*menu));
   menu->id = mpui_strdup (id);
   menu->is_browser = 0;
+  menu->is_playlist = 0;
+  menu->need_refresh = 0;
   menu->orientation = orientation;
   menu->scrolling = 0;
   menu->x = x;
@@ -1228,6 +1230,8 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   browser = (mpui_browser_t *) malloc (sizeof (*browser));
   browser->menu.id = mpui_strdup (id);
   browser->menu.is_browser = 1;
+  browser->menu.is_playlist = 0;
+  browser->menu.need_refresh = 0;
   browser->menu.orientation = orientation;
   browser->menu.scrolling = scrolling;
   browser->menu.x = x;
@@ -1274,6 +1278,68 @@ mpui_browser_free (mpui_browser_t *browser)
 {
   mpui_filetypes_free (browser->filter);
   mpui_menu_free (&browser->menu);
+}
+
+mpui_playlist_t *
+mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
+                   mpui_orientation_t scrolling, mpui_alignment_t align,
+                   mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h,
+                   mpui_size_t item_w, mpui_size_t spacing,
+                   mpui_object_t *border, mpui_object_t *item_border)
+{
+  mpui_playlist_t *playlist;
+  mpui_coord_t tx, ty;
+
+  playlist = (mpui_playlist_t *) malloc (sizeof (*playlist));
+  playlist->menu.id = mpui_strdup (id);
+  playlist->menu.is_browser = 0;
+  playlist->menu.is_playlist = 1;
+  playlist->menu.need_refresh = 0;
+  playlist->menu.orientation = orientation;
+  playlist->menu.scrolling = scrolling;
+  playlist->menu.x = x;
+  playlist->menu.y = y;
+  playlist->menu.w = w;
+  playlist->menu.h = h;
+  playlist->menu.font = font;
+  playlist->menu.elements = mpui_list_new ();
+  playlist->item_w = item_w;
+  playlist->spacing = spacing;
+  playlist->align = align;
+
+  if (border)
+    {
+      tx.val = border->x;
+      tx.str = NULL;
+      ty.val = border->y;
+      ty.str = NULL;
+      playlist->border = mpui_obj_new (border, tx, ty, 0, MPUI_DISPLAY_ALWAYS);
+    }
+  else
+    playlist->border = NULL;
+
+  if (item_border)
+    {
+      mpui_obj_t *obj;
+      tx.val = item_border->x;
+      tx.str = NULL;
+      ty.val = item_border->y;
+      ty.str = NULL;
+      obj = mpui_obj_new (item_border, tx, ty, 0, MPUI_DISPLAY_ALWAYS);
+      playlist->item_border = mpui_allmenuitem_new ((mpui_menu_t *) playlist);
+      mpui_container_elements_add ((mpui_container_t *) playlist->item_border,
+                                   (mpui_element_t *) obj);
+    }
+  else
+    playlist->item_border = NULL;
+
+  return playlist;
+}
+
+void
+mpui_playlist_free (mpui_playlist_t *playlist)
+{
+  mpui_menu_free (&playlist->menu);
 }
 
 mpui_tag_t *

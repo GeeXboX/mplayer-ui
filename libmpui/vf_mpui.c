@@ -41,6 +41,7 @@
 
 #include "mpui_focus.h"
 #include "mpui_browser.h"
+#include "mpui_playlist.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
 #include "mpui_cmd.h"
@@ -138,6 +139,12 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
       return 1;
     case MP_CMD_MPUI_SLIDESHOW_MODE:
       mpui_cmd_slideshow_mode (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
+      return 1;
+    case MP_CMD_MPUI_PLAYLIST_ADD:
+      mpui_playlist_add_entry (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_PLAYLIST_REMOVE:
+      mpui_playlist_remove_entry (priv->mpui, cmd->args[0].v.s);
       return 1;
     }
   return 0;

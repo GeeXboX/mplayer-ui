@@ -191,4 +191,50 @@
       <icon id="i-file"/>
     </file-type>
   </file-types>
+
+  <file-types id="all-types-list">
+    <file-type match="ext">
+      <icon id="i-film"/>
+      <action cmd="mpui_playlist_add '%s'"/>
+      <ext>avi</ext>
+      <ext>mpeg</ext>
+      <ext>mpg</ext>
+      <ext>mpe</ext>
+      <ext>vob</ext>
+      <ext>m1v</ext>
+      <ext>m2v</ext>
+      <ext>m4v</ext>
+      <ext>ts</ext>
+      <ext>divx</ext>
+      <ext>asf</ext>
+      <ext>wmv</ext>
+      <ext>ogm</ext>
+      <ext>mkv</ext>
+      <ext>rm</ext>
+      <ext>rmvb</ext>
+      <ext>mov</ext>
+      <ext>qt</ext>
+      <ext>y4m</ext>
+      <ext>iso</ext>
+      <ext>bin</ext>
+      <ext>dat</ext>
+    </file-type>
+    <file-type match="ext">
+      <icon id="i-music"/>
+      <action cmd="mpui_playlist_add '%s'"/>
+      <ext>mp3</ext>
+      <ext>mp2</ext>
+      <ext>ogg</ext>
+      <ext>wav</ext>
+      <ext>wma</ext>
+      <ext>m4a</ext>
+      <ext>mka</ext>
+      <ext>ra</ext>
+      <ext>ram</ext>
+    </file-type>
+    <file-type match="dir">
+      <icon id="i-folder"/>
+      <action cmd="mpui_cd '%s'"/>
+    </file-type>
+  </file-types>
 </mpui>

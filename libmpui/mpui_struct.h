@@ -65,6 +65,7 @@ typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
 typedef struct mpui_mnu mpui_mnu_t;
 typedef struct mpui_browser mpui_browser_t;
+typedef struct mpui_playlist mpui_playlist_t;
 typedef struct mpui_infos mpui_infos_t;
 typedef struct mpui_info mpui_info_t;
 typedef struct mpui_inf mpui_inf_t;
@@ -303,6 +304,8 @@ struct mpui_menus {
 struct mpui_menu {
   char *id;
   int is_browser;
+  int is_playlist;
+  int need_refresh;
   mpui_orientation_t orientation, scrolling;
   mpui_size_t x, y, w, h;
   mpui_font_t *font;
@@ -324,6 +327,15 @@ struct mpui_browser {
   mpui_size_t item_w;
   mpui_size_t spacing;
   int cwd_id;
+};
+
+struct mpui_playlist {
+  mpui_menu_t menu;
+  mpui_obj_t *border;
+  mpui_allmenuitem_t *item_border;
+  mpui_alignment_t align;
+  mpui_size_t item_w;
+  mpui_size_t spacing;
 };
 
 struct mpui_infos {
@@ -614,6 +626,17 @@ mpui_browser_t *mpui_browser_new (char * id, mpui_font_t *font,
                                   mpui_object_t *item_border,
                                   mpui_filetypes_t *filter);
 void mpui_browser_free (mpui_browser_t *browser);
+
+mpui_playlist_t *mpui_playlist_new (char * id, mpui_font_t *font,
+                                    mpui_orientation_t orientation,
+                                    mpui_orientation_t scrolling,
+                                    mpui_alignment_t align,
+                                    mpui_size_t x, mpui_size_t y,
+                                    mpui_size_t w, mpui_size_t h,
+                                    mpui_size_t item_w, mpui_size_t spacing,
+                                    mpui_object_t *border,
+                                    mpui_object_t *item_border);
+void mpui_playlist_free (mpui_playlist_t *playlist);
 
 mpui_tag_t *mpui_tag_new (char *id, char *caption, char *type,
                           mpui_coord_t x, mpui_coord_t y);

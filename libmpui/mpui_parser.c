@@ -32,6 +32,7 @@
 
 #include "mpui_struct.h"
 #include "mpui_browser.h"
+#include "mpui_playlist.h"
 #include "mpui_focus.h"
 #include "mpui_image.h"
 #include "mpui_tv.h"
@@ -1358,6 +1359,92 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
   return browser;
 }
 
+static mpui_playlist_t *
+mpui_parse_node_playlist (mpui_t *mpui, char **attribs)
+{
+  char *id, *orient, *scroll, *spacing, *font_id, *x, *y, *w, *h;
+  char *border_id, *item_border_id;
+  mpui_playlist_t *playlist = NULL;
+  mpui_orientation_t orientation = MPUI_ORIENTATION_V, scrolling;
+  mpui_alignment_t align;
+  mpui_font_t *font;
+  mpui_object_t *border, *item_border;
+  mpui_coord_t mx, my, mw, mh, ms;
+  mpui_size_t item_w, tmp;
+
+  id = asx_get_attrib ("id", attribs);
+  orient = asx_get_attrib ("orientation", attribs);
+  scroll = asx_get_attrib ("scrolling", attribs);
+  spacing = asx_get_attrib ("spacing", attribs);
+  font_id = asx_get_attrib ("font", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
+  border_id = asx_get_attrib ("border", attribs);
+  item_border_id = asx_get_attrib ("item-border", attribs);
+
+  if (orient && !strcmp (orient, "both"))
+    orientation = MPUI_ORIENTATION_H | MPUI_ORIENTATION_V;
+  else if (orient && !strcmp (orient, "horizontal"))
+    orientation = MPUI_ORIENTATION_H;
+
+  scrolling = orientation;
+  if (scroll)
+    {
+      if (!strcmp (scroll, "vertical"))
+        scrolling = MPUI_ORIENTATION_V;
+      else if (!strcmp (scroll, "horizontal"))
+        scrolling = MPUI_ORIENTATION_H;
+    }
+  if (scrolling == (MPUI_ORIENTATION_H | MPUI_ORIENTATION_V))
+    scrolling = MPUI_ORIENTATION_V;
+
+  align = mpui_parse_alignment (attribs);
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+  mw = mpui_parse_size (w, mpui->width, mpui->diag, 0);
+  mh = mpui_parse_size (h, mpui->height, mpui->diag, 0);
+  tmp = orientation == MPUI_ORIENTATION_V ? mpui->height : mpui->width;
+  ms = mpui_parse_size (spacing, tmp, mpui->diag, 0);
+  font = mpui_font_get (mpui, font_id);
+
+  if (id && font)
+    {
+      if (orientation & MPUI_ORIENTATION_H)
+        {
+          item_w = font->font_desc->height * 8;
+          item_w = (mw.val / ((mw.val / (item_w + ms.val)) + 1)) - ms.val;
+        }
+      else
+        item_w = mw.val;
+
+      border = mpui_object_get (mpui, border_id);
+      item_border = mpui_object_get (mpui, item_border_id);
+
+      playlist = mpui_playlist_new (id, font, orientation, scrolling, align,
+                                    mx.val, my.val, mw.val, mh.val,
+                                    item_w, ms.val, border, item_border);
+      mpui_playlist_generate (playlist);
+    }
+
+  asx_free_attribs (attribs);
+  free (id);
+  free (orient);
+  free (scroll);
+  free (spacing);
+  free (font_id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+  free (border_id);
+  free (item_border_id);
+
+  return playlist;
+}
+
 static mpui_slideshow_t *
 mpui_parse_node_slideshow (mpui_t *mpui, char **attribs)
 {
@@ -1695,6 +1782,11 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
         {
           mpui_browser_t *browser = mpui_parse_node_browser (mpui, attribs);
           mpui_menus_add (mpui->menus, (mpui_menu_t *) browser);
+        }
+      else if (!strcmp (element, "playlist"))
+        {
+          mpui_playlist_t *playlist = mpui_parse_node_playlist (mpui, attribs);
+          mpui_menus_add (mpui->menus, (mpui_menu_t *) playlist);
         }
       free (parser);
     }

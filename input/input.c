@@ -116,6 +116,8 @@ static mp_cmd_t mp_cmds[] = {
   { MP_CMD_MPUI_SLIDESHOW_PREV, "mpui_slideshow_prev", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_SLIDESHOW_NEXT, "mpui_slideshow_next", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
   { MP_CMD_MPUI_SLIDESHOW_MODE, "mpui_slideshow_mode", 1, { {MP_CMD_ARG_STRING, {0}}, {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_PLAYLIST_ADD, "mpui_playlist_add", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
+  { MP_CMD_MPUI_PLAYLIST_REMOVE, "mpui_playlist_remove", 1, { {MP_CMD_ARG_STRING, {0}}, {-1,{0}} } },
 
   { MP_CMD_VO_FULLSCREEN, "vo_fullscreen", 0, { {-1,{0}} } },
   { MP_CMD_VO_ONTOP, "vo_ontop", 0, { {-1,{0}} } },
