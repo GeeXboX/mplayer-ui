@@ -29,6 +29,7 @@
 #include "../config.h"
 
 #include "mpui_struct.h"
+#include "mpui_focus.h"
 #include "mpui_image.h"
 #include "mpui_parser.h"
 
@@ -50,6 +51,29 @@ mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
     }
 
   return r;
+}
+
+static mpui_when_focused_t
+mpui_parse_when_focused (char **attribs)
+{
+  mpui_when_focused_t wf = MPUI_DISPLAY_ALWAYS;
+  char *when_focused;
+
+  when_focused = asx_get_attrib ("when-focused", attribs);
+
+  if (when_focused)
+    {
+      if (!strcmp (when_focused, "yes"))
+        wf = MPUI_DISPLAY_FOCUSED;
+      else if (!strcmp (when_focused, "no"))
+        wf = MPUI_DISPLAY_NORMAL;
+      if (!strcmp (when_focused, "really-yes"))
+        wf = MPUI_DISPLAY_REALLY_FOCUSED;
+      if (!strcmp (when_focused, "really-no"))
+        wf = MPUI_DISPLAY_REALLY_NORMAL;
+    }
+
+  return wf;
 }
 
 static mpui_size_t
@@ -208,7 +232,7 @@ static mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
   char *id, *x, *y, *absolute;
-  char *font_id, *size, *color, *focused_color, *when_focused;
+  char *font_id, *size, *color, *focused_color;
   mpui_str_t *str = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -219,7 +243,6 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
   focused_color = asx_get_attrib ("focused-color", attribs);
-  when_focused = asx_get_attrib ("when-focused", attribs);
   asx_free_attribs (attribs);
 
   if (id)
@@ -230,18 +253,12 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       mpui_font_t *font = NULL;
       long s = MPUI_FONT_SIZE_DEFAULT;
       mpui_color_t *col, *fcol;
-      int wf = MPUI_DISPLAY_ALWAYS;
+      mpui_when_focused_t wf;
       string = mpui_string_get (mpui, id);
       font = mpui_font_get (mpui, font_id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
-      if (when_focused)
-        {
-          if (!strcmp (when_focused, "yes"))
-            wf = MPUI_DISPLAY_FOCUSED;
-          else if (!strcmp (when_focused, "no"))
-            wf = MPUI_DISPLAY_NORMAL;
-        }
+      wf = mpui_parse_when_focused (attribs);
       if (size && *size)
         {
           char *endptr;
@@ -331,7 +348,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 static mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *w, *h, *absolute, *when_focused;
+  char *id, *x, *y, *w, *h, *absolute;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -340,24 +357,17 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
-  when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_image_t *image;
       mpui_flags_t flags = 0;
-      int wf = MPUI_DISPLAY_ALWAYS;
+      mpui_when_focused_t wf;
 
       image = mpui_image_get (mpui, id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
-      if (when_focused)
-        {
-          if (!strcmp (when_focused, "yes"))
-            wf = MPUI_DISPLAY_FOCUSED;
-          else if (!strcmp (when_focused, "no"))
-            wf = MPUI_DISPLAY_NORMAL;
-        }
+      wf = mpui_parse_when_focused (attribs);
       if (image)
         {
           mpui_size_t sx, sy, sw, sh;
@@ -500,37 +510,32 @@ mpui_parse_node_action (char **attribs)
 static mpui_obj_t *
 mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *absolute, *when_focused;
+  char *id, *x, *y, *absolute;
   mpui_obj_t *obj = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
-  when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_object_t *object;
       mpui_flags_t flags = 0;
       mpui_size_t sx, sy;
-      int wf = MPUI_DISPLAY_ALWAYS;
+      mpui_when_focused_t wf = MPUI_DISPLAY_ALWAYS;
 
       object = mpui_object_get (mpui, id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
-      if (when_focused)
-        {
-          if (!strcmp (when_focused, "yes"))
-            wf = MPUI_DISPLAY_FOCUSED;
-          else if (!strcmp (when_focused, "no"))
-            wf = MPUI_DISPLAY_NORMAL;
-        }
-      sx = mpui_parse_size (x, mpui->width, object->x);
-      sy = mpui_parse_size (y, mpui->height, object->y);
+      wf = mpui_parse_when_focused (attribs);
 
       if (object)
-        obj = mpui_obj_new (object, sx, sy, flags, wf);
+        {
+          sx = mpui_parse_size (x, mpui->width, object->x);
+          sy = mpui_parse_size (y, mpui->height, object->y);
+          obj = mpui_obj_new (object, sx, sy, flags, wf);
+        }
     }
   asx_free_attribs (attribs);
 
@@ -596,6 +601,7 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
   mpui_objects_t *objects;
 
   objects = mpui_objects_new ();
+  mpui_objects_add (mpui, objects);
 
   while (1)
     {
@@ -711,24 +717,24 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body,
 static mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *orientation, *font_id, *x, *y, *w, *h, *element;
+  char *id, *orient, *font_id, *x, *y, *w, *h, *element;
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
-  mpui_menu_orientation_t morientation = MPUI_MENU_ORIENTATION_V;
+  mpui_orientation_t orientation = MPUI_ORIENTATION_V;
   mpui_font_t *default_font, *font = NULL;
   mpui_size_t mx, my, mw, mh;
   mpui_size_t item_x = 0, item_y = 0;
 
   id = asx_get_attrib ("id", attribs);
-  orientation = asx_get_attrib ("orientation", attribs);
+  orient = asx_get_attrib ("orientation", attribs);
   font_id = asx_get_attrib ("font", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
 
-  if (orientation && !strcmp (orientation, "horizontal"))
-    morientation = MPUI_MENU_ORIENTATION_H;
+  if (orient && !strcmp (orient, "horizontal"))
+    orientation = MPUI_ORIENTATION_H;
 
   if (font_id && (font = mpui_font_get (mpui, font_id)))
     {
@@ -742,7 +748,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   mh = mpui_parse_size (h, mpui->height, 0);
 
   if (id)
-    menu = mpui_menu_new (id, morientation, mx, my, mw, mh);
+    menu = mpui_menu_new (id, orientation, mx, my, mw, mh);
   asx_free_attribs (attribs);
 
   while (1)
@@ -768,7 +774,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
                                                     sbody, menu->allmenuitem);
           elt->x = item_x;
           elt->y = item_y;
-          if (morientation == MPUI_MENU_ORIENTATION_V)
+          if (orientation == MPUI_ORIENTATION_V)
             item_y += elt->h;
           else
             item_x += elt->w;
@@ -808,10 +814,12 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
       mpui_size_t sx, sy;
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
-      sx = mpui_parse_size (x, mpui->width, menu->x);
-      sy = mpui_parse_size (y, mpui->height, menu->y);
       if (menu)
-        mnu = mpui_mnu_new (menu, sx, sy, flags);
+        {
+          sx = mpui_parse_size (x, mpui->width, menu->x);
+          sy = mpui_parse_size (y, mpui->height, menu->y);
+          mnu = mpui_mnu_new (menu, sx, sy, flags);
+        }
     }
 
   return mnu;
@@ -886,7 +894,9 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
       free (parser);
     }
   asx_free_attribs (attribs);
-  
+
+  mpui_focus_box_first (screen);
+
   return screen;
 }
 
@@ -1020,9 +1030,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
         }
       else if (!strcmp (element, "objects"))
         {
-          mpui_objects_t *objects;
-          objects = mpui_parse_node_objects (mpui, attribs, sbody);
-          mpui_objects_add (mpui, objects);
+          mpui_parse_node_objects (mpui, attribs, sbody);
         }
       else if (!strcmp (element, "menus"))
         {

@@ -35,6 +35,7 @@
 #include "../osdep/keycodes.h"
 #include "../mplayer.h"
 
+#include "mpui_focus.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
 
@@ -43,6 +44,8 @@ struct vf_priv_s {
   mpui_t *mpui;
   int show;
 };
+
+static struct vf_priv_s *st_priv = NULL;
 
 
 static int
@@ -83,8 +86,30 @@ copy_mpi(mp_image_t *dmpi, mp_image_t *mpi)
 static void
 read_keycode (int code)
 {
+  mpui_focus_box_t *fb;
+  fb = (mpui_focus_box_t *) st_priv->mpui->screens->menu->focus_box[0];
+
   switch (code)
     {
+    case KEY_UP:
+      if (fb->orientation == MPUI_ORIENTATION_V)
+        mpui_focus_previous (fb);
+      break;
+    case KEY_DOWN:
+      if (fb->orientation == MPUI_ORIENTATION_V)
+        mpui_focus_next (fb);
+      break;
+    case KEY_LEFT:
+      if (fb->orientation == MPUI_ORIENTATION_H)
+        mpui_focus_previous (fb);
+      break;
+    case KEY_RIGHT:
+      if (fb->orientation == MPUI_ORIENTATION_H)
+        mpui_focus_next (fb);
+      break;
+    case KEY_TAB:
+      mpui_focus_box_next (st_priv->mpui->screens->menu);
+      break;
     case KEY_ESC:
       exit_player ("mpui");
     }
@@ -151,6 +176,7 @@ vf_open (vf_instance_t *vf, char* args)
   vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
   vf->priv->mpui = NULL;
   vf->priv->show = 1;
+  st_priv = vf->priv;
 
   return 1;
 }

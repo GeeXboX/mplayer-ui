@@ -27,6 +27,7 @@
 typedef enum mpui_when_focused mpui_when_focused_t;
 typedef enum mpui_type mpui_type_t;
 typedef struct mpui_element mpui_element_t;
+typedef struct mpui_focus_box mpui_focus_box_t;
 typedef int mpui_size_t;
 typedef struct mpui_color mpui_color_t;
 typedef struct mpui_ids mpui_ids_t;
@@ -44,7 +45,7 @@ typedef unsigned int mpui_flags_t;
 typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
 typedef struct mpui_obj mpui_obj_t;
-typedef unsigned int mpui_menu_orientation_t;
+typedef unsigned int mpui_orientation_t;
 typedef struct mpui_menuitem mpui_menuitem_t;
 typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
@@ -54,14 +55,17 @@ typedef struct mpui_screens mpui_screens_t;
 typedef struct mpui_screen mpui_screen_t;
 typedef struct mpui mpui_t;
 
-#define MPUI_FLAG_ABSOLUTE ((mpui_flags_t) 0x01)
-#define MPUI_FLAG_DYNAMIC  ((mpui_flags_t) 0x02)
-#define MPUI_FLAG_FOCUS    ((mpui_flags_t) 0x04)
-#define MPUI_FLAG_NOCOORD  ((mpui_flags_t) 0x08)
+#define MPUI_FLAG_ABSOLUTE  ((mpui_flags_t) 0x01)
+#define MPUI_FLAG_DYNAMIC   ((mpui_flags_t) 0x02)
+#define MPUI_FLAG_NOCOORD   ((mpui_flags_t) 0x04)
+#define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x08)
+#define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x10)
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
+  MPUI_DISPLAY_REALLY_NORMAL,
   MPUI_DISPLAY_FOCUSED,
+  MPUI_DISPLAY_REALLY_FOCUSED,
   MPUI_DISPLAY_ALWAYS,
 };
 
@@ -79,9 +83,15 @@ struct mpui_element {
   mpui_size_t x, y;
   mpui_size_t w, h;
   mpui_when_focused_t when_focused;
-  int focus;
   char *sx, *sy;
   char *sw, *sh;
+};
+
+struct mpui_focus_box {
+  mpui_element_t element;
+  mpui_element_t **elements;
+  mpui_element_t **focus;
+  mpui_orientation_t orientation;
 };
 
 struct mpui_color {
@@ -167,8 +177,8 @@ struct mpui_obj {
   mpui_object_t *object;
 };
 
-#define MPUI_MENU_ORIENTATION_H ((mpui_menu_orientation_t) 1)
-#define MPUI_MENU_ORIENTATION_V ((mpui_menu_orientation_t) 2)
+#define MPUI_ORIENTATION_H ((mpui_orientation_t) 1)
+#define MPUI_ORIENTATION_V ((mpui_orientation_t) 2)
 
 struct mpui_menuitem {
   mpui_element_t element;
@@ -187,14 +197,14 @@ struct mpui_menus {
 
 struct mpui_menu {
   char *id;
-  mpui_menu_orientation_t orientation;
+  mpui_orientation_t orientation;
   mpui_size_t x, y, w, h;
   mpui_allmenuitem_t *allmenuitem;
   mpui_element_t **elements;
 };
 
 struct mpui_mnu {
-  mpui_element_t element;
+  mpui_focus_box_t fb;
   mpui_menu_t *menu;
 };
 
@@ -207,6 +217,7 @@ struct mpui_screens {
 struct mpui_screen {
   char *id;
   mpui_element_t **elements;
+  mpui_element_t **focus_box;
 };
 
 struct mpui {
@@ -279,7 +290,7 @@ mpui_objects_t *mpui_objects_new (void);
 #define mpui_objects_add(a,b) a->objects = mpui_list_add(a->objects, b)
 void mpui_objects_free (mpui_objects_t *objects);
 
-mpui_menu_t *mpui_menu_new (char * id, mpui_menu_orientation_t orientation,
+mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
                             mpui_size_t x, mpui_size_t y,
                             mpui_size_t w, mpui_size_t h);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);

@@ -20,6 +20,8 @@
 #include <string.h>
 
 #include "mpui_struct.h"
+#include "mpui_focus.h"
+#include "mpui_image.h"
 
 
 static inline char *
@@ -433,6 +435,7 @@ mpui_obj_t *
 mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
               mpui_flags_t flags, mpui_when_focused_t when_focused)
 {
+  mpui_element_t **e;
   mpui_obj_t *obj;
 
   obj = (mpui_obj_t *) malloc (sizeof (*obj));
@@ -443,6 +446,17 @@ mpui_obj_new (mpui_object_t *object, mpui_size_t x, mpui_size_t y,
   obj->element.when_focused = when_focused;
   obj->object = object;
   mpui_elements_get_size (&obj->element, object->elements, NULL);
+
+  if (*object->actions)
+    obj->element.flags |= MPUI_FLAG_FOCUSABLE;
+  else
+    for (e=object->elements; *e; e++)
+      if ((*e)->when_focused != MPUI_DISPLAY_ALWAYS)
+        {
+          obj->element.flags |= MPUI_FLAG_FOCUSABLE ;
+          break;
+        }
+
   return obj;
 }
 
@@ -475,7 +489,7 @@ mpui_objects_free (mpui_objects_t *objects)
 
 
 mpui_menu_t *
-mpui_menu_new (char *id, mpui_menu_orientation_t orientation,
+mpui_menu_new (char *id, mpui_orientation_t orientation,
                mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h)
 {
   mpui_menu_t *menu;
@@ -525,13 +539,17 @@ mpui_mnu_new (mpui_menu_t *menu, mpui_size_t x, mpui_size_t y,
   mpui_mnu_t *mnu;
 
   mnu = (mpui_mnu_t *) malloc (sizeof (*mnu));
-  mnu->element.type = MPUI_MNU;
-  mnu->element.flags = flags;
-  mnu->element.x = x;
-  mnu->element.y = y;
-  mnu->element.when_focused = MPUI_DISPLAY_ALWAYS;
+  mnu->fb.element.type = MPUI_MNU;
+  mnu->fb.element.flags = flags;
+  mnu->fb.element.x = x;
+  mnu->fb.element.y = y;
+  mnu->fb.element.when_focused = MPUI_DISPLAY_ALWAYS;
+  mnu->fb.elements = menu->elements;
+  mnu->fb.orientation = menu->orientation;
+  if (mpui_focus_first (&mnu->fb))
+    mnu->fb.element.flags |= MPUI_FLAG_FOCUS_BOX;
   mnu->menu = menu;
-  mpui_elements_get_size (&mnu->element, menu->elements, NULL);
+  mpui_elements_get_size (&mnu->fb.element, menu->elements, NULL);
   return mnu;
 }
 
@@ -570,7 +588,7 @@ mpui_menuitem_new (void)
 
   menuitem = (mpui_menuitem_t *) malloc (sizeof (*menuitem));
   menuitem->element.type = MPUI_MENUITEM;
-  menuitem->element.flags = 0;
+  menuitem->element.flags = MPUI_FLAG_FOCUSABLE;
   menuitem->element.when_focused = MPUI_DISPLAY_ALWAYS;
   menuitem->elements = mpui_list_new ();
   menuitem->actions = mpui_list_new ();

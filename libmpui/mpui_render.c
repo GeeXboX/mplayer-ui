@@ -17,6 +17,7 @@
  */
 
 #include "mpui_struct.h"
+#include "mpui_focus.h"
 #include "mpui_render.h"
 
 #include "../libmpcodecs/img_format.h"
@@ -29,6 +30,8 @@
 typedef struct mpui_render_context mpui_render_context_t;
 
 struct mpui_render_context {
+  mpui_screen_t *screen;
+  int focus, really_focus;
   mpui_size_t x, y;
 };
 
@@ -340,9 +343,22 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
   if (!element)
     return;
 
+  if (element->flags & MPUI_FLAG_FOCUSABLE)
+    {
+      if (mpui_is_focused (context.screen, element))
+        {
+          context.focus = 1;
+          if (mpui_is_really_focused (context.screen, element))
+            context.really_focus = 1;
+        }
+    }
+
   if (element->when_focused == MPUI_DISPLAY_ALWAYS
-      || (element->focus && element->when_focused == MPUI_DISPLAY_FOCUSED)
-      || (!element->focus && element->when_focused == MPUI_DISPLAY_NORMAL))
+      || (context.focus && element->when_focused == MPUI_DISPLAY_FOCUSED)
+      || (!context.really_focus && element->when_focused==MPUI_DISPLAY_NORMAL)
+      || (!context.focus && element->when_focused==MPUI_DISPLAY_REALLY_NORMAL)
+      || (context.really_focus
+          && element->when_focused == MPUI_DISPLAY_REALLY_FOCUSED))
     {
       mpui_render_context_update (element, &context);
 
@@ -382,17 +398,9 @@ mpui_render_menu (mpui_mnu_t *mnu, mp_image_t *mpi,
                   mpui_render_context_t *context)
 {
   mpui_element_t **elements;
-  int first = 0; /* Only set focus to first menuitem */
 
   for (elements=mnu->menu->elements; *elements; elements++)
-    {
-      if ((*elements)->type == MPUI_MENUITEM && !first)
-        {
-          (*elements)->focus = 1;
-          first++;
-        }
-      mpui_render_element (*elements, mpi, *context);
-    }
+    mpui_render_element (*elements, mpi, *context);
 }
 
 static void
@@ -402,11 +410,7 @@ mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi,
   mpui_element_t **elements;
 
   for (elements=menuitem->elements; *elements; elements++)
-    {
-      if (menuitem->element.focus)
-        (*elements)->focus = 1;
-      mpui_render_element (*elements, mpi, *context);
-    }
+    mpui_render_element (*elements, mpi, *context);
 }
 
 int
@@ -415,6 +419,9 @@ mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi)
   mpui_render_context_t context;
   mpui_element_t **elements;
 
+  context.screen = screen;
+  context.focus = 0;
+  context.really_focus = 0;
   context.x = 0;
   context.y = 0;
 
