@@ -137,23 +137,25 @@ mpui_info_get_picture_file (mpui_t *mpui, mpui_pic_t *pic, char *filename)
       case MPUI_MATCH_EXT:
         for (exts = (*filetypes)->exts; *exts; exts++)
           {
-            int i;
-            char *file;
-
-            file = (char *) malloc (strlen (filename) + strlen (*exts) + 2);
-            sprintf (file, "%s.%s", filename, *exts);
+            int i, l, len;
+            
+            l = strlen (mpui->cwd) + 1;
+            len = strlen (filename) - l;
 
             for (i = 0; i < n; i++)
               {
-                int l = strlen (mpui->cwd) + 1;
-                if (strcasecmp (&file[l], namelist[i]->d_name) == 0)
+                int pos = strlen (namelist[i]->d_name) - strlen (*exts);
+
+                if (strncasecmp (&filename[l], namelist[i]->d_name, len) == 0
+                    && strcasecmp (namelist[i]->d_name + pos, *exts) == 0)
                   {
-                    res = strdup (file);
+                    res = (char *) malloc (strlen (mpui->cwd)
+                                           + strlen (namelist[i]->d_name) + 2);
+                    sprintf (res, "%s/%s", mpui->cwd, namelist[i]->d_name);
                     break;
                   }
               }
 
-            free (file);
             if (res)
               break;
           }
