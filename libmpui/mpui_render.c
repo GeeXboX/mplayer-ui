@@ -17,6 +17,7 @@
  */
 
 #include "mpui_struct.h"
+#include "mpui_browser.h"
 #include "mpui_focus.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
@@ -56,6 +57,22 @@ mpui_render_context_update (mpui_element_t *element,
     {
       context->x += element->x.val;
       context->y += element->y.val;
+    }
+}
+
+static void
+mpui_render_context_update_offset (mpui_focus_box_t *focus_box,
+                                   mpui_render_context_t *context, int remove)
+{
+  if (remove)
+    {
+      context->x += focus_box->xoffset;
+      context->y += focus_box->yoffset;
+    }
+  else
+    {
+      context->x -= focus_box->xoffset;
+      context->y -= focus_box->yoffset;
     }
 }
 
@@ -475,9 +492,43 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
 
       if (element->flags & MPUI_FLAG_CONTAINER)
         {
-          mpui_element_t **elements = ((mpui_container_t *) element)->elements;
-          for (; *elements; elements++)
-            mpui_render_element (*elements, mpi, context);
+          mpui_element_t **elements;
+          if (element->type == MPUI_MNU
+              && ((mpui_mnu_t *) element)->menu->is_browser)
+            mpui_browser_update (context.mpui, (mpui_mnu_t *) element);
+          for (elements = ((mpui_container_t *) element)->elements;
+               *elements; elements++)
+            {
+              if ((*elements)->type == MPUI_MENUITEM
+                  || (*elements)->type == MPUI_ALLMENUITEM)
+                {
+                  mpui_focus_box_t *focus_box = (mpui_focus_box_t *) element;
+                  if ((*elements)->type == MPUI_MENUITEM)
+                    {
+                      if (focus_box->orientation & MPUI_ORIENTATION_V)
+                        {
+                          if ((*elements)->y.val - focus_box->yoffset < 0)
+                            continue;
+                          if ((*elements)->y.val + (*elements)->h.val
+                              - focus_box->yoffset > element->h.val)
+                            continue;
+                        }
+                      if (focus_box->orientation & MPUI_ORIENTATION_H)
+                        {
+                          if ((*elements)->x.val - focus_box->xoffset < 0)
+                            continue;
+                          if ((*elements)->x.val + (*elements)->w.val
+                              - focus_box->xoffset > element->w.val)
+                            continue;
+                        }
+                    }
+                  mpui_render_context_update_offset (focus_box, &context, 0);
+                  mpui_render_element (*elements, mpi, context);
+                  mpui_render_context_update_offset (focus_box, &context, 1);
+                }
+              else
+                mpui_render_element (*elements, mpi, context);
+            }
         }
       else
         switch (element->type)

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "mpui_struct.h"
 #include "mpui_focus.h"
@@ -154,13 +155,17 @@ static void
 mpui_foxus_box_init (mpui_focus_box_t *focus_box,
                      mpui_type_t type, mpui_flags_t flags,
                      mpui_element_t **elements, mpui_action_t **actions,
-                     mpui_orientation_t orientation)
+                     mpui_orientation_t orientation,
+                     mpui_orientation_t scrolling)
 {
   mpui_container_init ((mpui_container_t *) focus_box, type,
                        flags, elements, actions);
   if (mpui_focus_first (focus_box))
     focus_box->container.element.flags |= MPUI_FLAG_FOCUS_BOX;
   focus_box->orientation = orientation;
+  focus_box->scrolling = scrolling;
+  focus_box->xoffset = 0;
+  focus_box->yoffset = 0;
 }
 
 static void
@@ -373,6 +378,18 @@ mpui_image_new (char *id, char *file,
 }
 
 mpui_image_t *
+mpui_image_dup (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
+                mpui_size_t w, mpui_size_t h)
+{
+  mpui_image_t *dup;
+
+  dup = mpui_image_new ("", image->file, x, y, w, h);
+  memcpy (&dup->raw, &image->raw, sizeof (dup->raw));
+  dup->dup = 1;
+  return dup;
+}
+
+mpui_image_t *
 mpui_image_get (mpui_t *mpui, char *id)
 {
   mpui_image_t **image;
@@ -388,7 +405,8 @@ mpui_image_free (mpui_image_t *image)
 {
   free (image->id);
   free (image->file);
-  free (image->raw.data);
+  if (!image->dup)
+    free (image->raw.data);
   if (image->num_planes > 0)
     free (image->planes[0]);
   free (image);
@@ -455,17 +473,12 @@ mpui_img_load (mpui_t *mpui, mpui_img_t *img)
     }
   else
     {
-      image = mpui_image_new ("", image->file,
-                              img->element.x.val, img->element.y.val,
+      image = mpui_image_dup (image, img->element.x.val, img->element.y.val,
                               img->element.w.val, img->element.h.val);
-      memcpy (&image->raw, &img->image->raw, sizeof (image->raw));
-      if (img->image->raw.data)
+      if (image->raw.data)
         mpui_image_convert (image, &image->raw, mpui->format);
       if (img->dup)
-        {
-          img->image->raw.data = NULL;
-          mpui_image_free (img->image);
-        }
+        mpui_image_free (img->image);
       img->image = image;
       img->dup = 1;
     }
@@ -582,6 +595,101 @@ mpui_fonts_free (mpui_fonts_t *fonts)
 }
 
 
+mpui_filetype_t *
+mpui_filetype_new (mpui_match_t match)
+{
+  mpui_filetype_t *filetype;
+
+  filetype = (mpui_filetype_t *) malloc (sizeof (*filetype));
+  filetype->match = match;
+  filetype->icon = NULL;
+  filetype->actions = mpui_list_new ();
+  filetype->exts = mpui_list_new ();
+  filetype->dup = 0;
+  return filetype;
+}
+
+mpui_filetype_t *
+mpui_filetype_dup (mpui_filetype_t *filetype,
+                   mpui_size_t icon_w, mpui_size_t icon_h)
+{
+  mpui_filetype_t *dup;
+
+  dup = (mpui_filetype_t *) malloc (sizeof (*dup));
+  dup->match = filetype->match;
+  dup->icon = mpui_image_dup (filetype->icon, 0, 0, icon_w, icon_h);
+  dup->actions = filetype->actions;
+  dup->exts = filetype->exts;
+  dup->dup = 1;
+  return dup;
+}
+
+void
+mpui_filetype_free (mpui_filetype_t *filetype)
+{
+  mpui_action_t **actions = filetype->actions;
+  char **exts = filetype->exts;
+
+  if (!filetype->dup)
+    {
+      while (*actions)
+        mpui_action_free (*actions++);
+      while (*exts)
+        free (*exts++);
+      free (filetype->actions);
+      free (filetype->exts);
+    }
+  free (filetype);
+}
+
+mpui_filetypes_t *
+mpui_filetypes_new (char *id)
+{
+  mpui_filetypes_t *filetypes;
+
+  filetypes = (mpui_filetypes_t *) malloc (sizeof (*filetypes));
+  filetypes->id = mpui_strdup (id);
+  filetypes->filetypes = mpui_list_new ();
+  return filetypes;
+}
+
+mpui_filetypes_t *
+mpui_filetypes_get (mpui_t *mpui, char *id)
+{
+  mpui_filetypes_t **filetypes;
+
+  for (filetypes=mpui->filetypes; *filetypes; filetypes++)
+    if (!strcmp ((*filetypes)->id, id))
+      return *filetypes;
+  return NULL;
+}
+
+mpui_filetypes_t *
+mpui_filetypes_dup (mpui_filetypes_t *filetypes,
+                    mpui_size_t icon_w, mpui_size_t icon_h)
+{
+  mpui_filetype_t **filetype;
+  mpui_filetypes_t *dup;
+
+  dup = mpui_filetypes_new ("");
+  for (filetype=filetypes->filetypes; *filetype; filetype++)
+    mpui_filetypes_add (dup, mpui_filetype_dup (*filetype, icon_w, icon_h));
+  return dup;
+}
+
+void
+mpui_filetypes_free (mpui_filetypes_t *filetypes)
+{
+  mpui_filetype_t **filetype = filetypes->filetypes;
+
+  while (*filetype)
+    mpui_filetype_free (*filetype++);
+  free (filetypes->id);
+  free (filetypes->filetypes);
+  free (filetypes);
+}
+
+
 mpui_object_t *
 mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
 {
@@ -590,6 +698,7 @@ mpui_object_new (char *id, mpui_size_t x, mpui_size_t y)
   object = (mpui_object_t *) malloc (sizeof (*object));
   object->id = mpui_strdup (id);
   object->need_dup = 0;
+  object->dup = 0;
   object->x = x;
   object->y = y;
   object->elements = mpui_list_new ();
@@ -617,6 +726,7 @@ mpui_object_dup (mpui_object_t *object)
   dup = mpui_object_new ("", object->x, object->y);
   for (e=object->elements; *e; e++)
     mpui_add_element (dup, mpui_element_dup (*e));
+  dup->dup = 1;
 
   return dup;
 }
@@ -643,6 +753,9 @@ mpui_obj_new (mpui_object_t *object, mpui_coord_t x, mpui_coord_t y,
 {
   mpui_element_t **e;
   mpui_obj_t *obj;
+
+  if (object->need_dup)
+    object = mpui_object_dup (object);
 
   if (*object->actions)
     flags |= MPUI_FLAG_FOCUSABLE;
@@ -684,6 +797,8 @@ mpui_obj_dup (mpui_obj_t *obj)
 void
 mpui_obj_free (mpui_obj_t *obj)
 {
+  if (obj->object->dup)
+    mpui_object_free (obj->object);
   mpui_container_uninit ((mpui_container_t *) obj);
   free (obj);
 }
@@ -718,7 +833,9 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
 
   menu = (mpui_menu_t *) malloc (sizeof (*menu));
   menu->id = mpui_strdup (id);
+  menu->is_browser = 0;
   menu->orientation = orientation;
+  menu->scrolling = 0;
   menu->x = x;
   menu->y = y;
   menu->elements = mpui_list_new ();
@@ -755,7 +872,8 @@ mpui_mnu_new (mpui_menu_t *menu, mpui_coord_t x, mpui_coord_t y,
 
   mnu = (mpui_mnu_t *) malloc (sizeof (*mnu));
   mpui_foxus_box_init ((mpui_focus_box_t *) mnu, MPUI_MNU, flags,
-                       menu->elements, NULL, menu->orientation);
+                       menu->elements, NULL,
+                       menu->orientation, menu->scrolling);
   mnu->fb.container.element.x = x;
   mnu->fb.container.element.y = y;
   mnu->fb.container.element.w.val = menu->w;
@@ -945,6 +1063,69 @@ mpui_elements_free (mpui_element_t **elements)
 }
 
 
+mpui_browser_t *
+mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
+                  mpui_orientation_t scrolling, mpui_alignment_t align,
+                  mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h,
+                  mpui_size_t icon_w, mpui_size_t icon_h,
+                  mpui_size_t item_w, mpui_size_t spacing,
+                  mpui_object_t *border, mpui_object_t *item_border,
+                  mpui_filetypes_t *filter)
+{
+  mpui_browser_t *browser;
+  mpui_coord_t tx, ty;
+
+  browser = (mpui_browser_t *) malloc (sizeof (*browser));
+  browser->menu.id = mpui_strdup (id);
+  browser->menu.is_browser = 1;
+  browser->menu.orientation = orientation;
+  browser->menu.scrolling = scrolling;
+  browser->menu.x = x;
+  browser->menu.y = y;
+  browser->menu.w = w;
+  browser->menu.h = h;
+  browser->menu.elements = mpui_list_new ();
+  browser->font = font;
+  browser->icon_w = icon_w;
+  browser->icon_h = icon_h;
+  browser->item_w = item_w;
+  browser->spacing = spacing;
+  browser->align = align;
+  browser->filter = filter;
+  if (border)
+    {
+      tx.val = border->x;
+      tx.str = NULL;
+      ty.val = border->y;
+      ty.str = NULL;
+      browser->border = mpui_obj_new (border, tx, ty, 0, MPUI_DISPLAY_ALWAYS);
+    }
+  else
+    browser->border = NULL;
+  if (item_border)
+    {
+      mpui_obj_t *obj;
+      tx.val = item_border->x;
+      tx.str = NULL;
+      ty.val = item_border->y;
+      ty.str = NULL;
+      obj = mpui_obj_new (item_border, tx, ty, 0, MPUI_DISPLAY_ALWAYS);
+      browser->item_border = mpui_allmenuitem_new ((mpui_menu_t *) browser);
+      mpui_add_element ((mpui_container_t *) browser->item_border, obj);
+    }
+  else
+    browser->item_border = NULL;
+  return browser;
+}
+
+void
+mpui_browser_free (mpui_browser_t *browser)
+{
+  mpui_filetypes_free (browser->filter);
+  mpui_menu_free (&browser->menu);
+}
+
+
 mpui_popup_t *
 mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y)
 {
@@ -1073,12 +1254,16 @@ mpui_new (int width, int height, int format)
   mpui->strings = mpui_list_new ();
   mpui->fonts = mpui_list_new ();
   mpui->images = mpui_images_new ();
+  mpui->filetypes = mpui_list_new ();
   mpui->objects = mpui_objects_new ();
   mpui->menus = mpui_menus_new ();
   mpui->popups = mpui_popups_new ();
   mpui->screens = NULL;
   mpui->current_screen = NULL;
   mpui->previous_screen = NULL;
+  getcwd (mpui->cwd, sizeof (mpui->cwd));
+  mpui->cwd[NAME_MAX] = '\0';
+  mpui->cwd_id = 0;
   return mpui;
 }
 
@@ -1087,6 +1272,7 @@ mpui_free (mpui_t *mpui)
 {
   mpui_strings_t **strings = mpui->strings;
   mpui_fonts_t **fonts = mpui->fonts;
+  mpui_filetypes_t **filetypes = mpui->filetypes;
 
   while (*strings)
     mpui_strings_free (*strings++);
@@ -1098,6 +1284,10 @@ mpui_free (mpui_t *mpui)
 
   if (mpui->images)
     mpui_images_free (mpui->images);
+
+  while (*filetypes)
+    mpui_filetypes_free (*filetypes++);
+  free (mpui->filetypes);
 
   if (mpui->objects)
     mpui_objects_free (mpui->objects);

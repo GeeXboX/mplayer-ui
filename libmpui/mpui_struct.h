@@ -44,6 +44,9 @@ typedef struct mpui_img mpui_img_t;
 typedef struct mpui_fonts mpui_fonts_t;
 typedef struct mpui_font mpui_font_t;
 typedef struct mpui_action mpui_action_t;
+typedef struct mpui_filetype mpui_filetype_t;
+typedef struct mpui_filetypes mpui_filetypes_t;
+typedef enum mpui_match mpui_match_t;
 typedef unsigned int mpui_flags_t;
 typedef struct mpui_objects mpui_objects_t;
 typedef struct mpui_object mpui_object_t;
@@ -55,6 +58,7 @@ typedef struct mpui_allmenuitem mpui_allmenuitem_t;
 typedef struct mpui_menus mpui_menus_t;
 typedef struct mpui_menu mpui_menu_t;
 typedef struct mpui_mnu mpui_mnu_t;
+typedef struct mpui_browser mpui_browser_t;
 typedef struct mpui_popup mpui_popup_t;
 typedef struct mpui_popups mpui_popups_t;
 typedef struct mpui_screens mpui_screens_t;
@@ -78,8 +82,8 @@ enum mpui_when_focused {
 };
 
 enum mpui_orientation {
-  MPUI_ORIENTATION_H,
-  MPUI_ORIENTATION_V,
+  MPUI_ORIENTATION_H = 0x01,
+  MPUI_ORIENTATION_V = 0x02,
 };
 
 enum mpui_alignment {
@@ -88,6 +92,12 @@ enum mpui_alignment {
   MPUI_ALIGNMENT_CENTER,
   MPUI_ALIGNMENT_RIGHT,
   MPUI_ALIGNMENT_BOTTOM,
+};
+
+enum mpui_match {
+  MPUI_MATCH_ALL,
+  MPUI_MATCH_DIR,
+  MPUI_MATCH_EXT,
 };
 
 enum mpui_type {
@@ -122,7 +132,8 @@ struct mpui_container {
 struct mpui_focus_box {
   mpui_container_t container;
   mpui_element_t **focus;
-  mpui_orientation_t orientation;
+  mpui_orientation_t orientation, scrolling;
+  mpui_size_t xoffset, yoffset;
 };
 
 struct mpui_color {
@@ -176,6 +187,7 @@ struct mpui_image {
   unsigned char *planes[5];
   unsigned int stride[5];
   int chroma_width, chroma_height;  /* only for planar formats */
+  int dup;
 };
 
 struct mpui_img {
@@ -206,13 +218,26 @@ struct mpui_action {
   char *cmd;
 };
 
+struct mpui_filetype {
+  mpui_match_t match;
+  mpui_image_t *icon;
+  mpui_action_t **actions;
+  char **exts;
+  int dup;
+};
+
+struct mpui_filetypes {
+  char *id;
+  mpui_filetype_t **filetypes;
+};
+
 struct mpui_objects {
   mpui_object_t **objects;
 };
 
 struct mpui_object {
   char *id;
-  int need_dup;
+  int need_dup, dup;
   mpui_size_t x, y;
   mpui_element_t **elements;
   mpui_action_t **actions;
@@ -238,7 +263,8 @@ struct mpui_menus {
 
 struct mpui_menu {
   char *id;
-  mpui_orientation_t orientation;
+  int is_browser;
+  mpui_orientation_t orientation, scrolling;
   mpui_size_t x, y, w, h;
   mpui_element_t **elements;
 };
@@ -246,6 +272,19 @@ struct mpui_menu {
 struct mpui_mnu {
   mpui_focus_box_t fb;
   mpui_menu_t *menu;
+};
+
+struct mpui_browser {
+  mpui_menu_t menu;
+  mpui_font_t *font;
+  mpui_obj_t *border;
+  mpui_allmenuitem_t *item_border;
+  mpui_filetypes_t *filter;
+  mpui_alignment_t align;
+  mpui_size_t icon_w, icon_h;
+  mpui_size_t item_w;
+  mpui_size_t spacing;
+  int cwd_id;
 };
 
 struct mpui_popups {
@@ -276,12 +315,15 @@ struct mpui {
   mpui_strings_t **strings;
   mpui_fonts_t **fonts;
   mpui_images_t *images;
+  mpui_filetypes_t **filetypes;
   mpui_objects_t *objects;
   mpui_menus_t *menus;
   mpui_popups_t *popups;
   mpui_screens_t *screens;
   mpui_screen_t *current_screen;
   mpui_screen_t *previous_screen;
+  char cwd[NAME_MAX+1];
+  int cwd_id;
 };
 
 
@@ -315,6 +357,8 @@ mpui_image_t *mpui_image_new (char *id, char *file,
                               mpui_size_t x, mpui_size_t y,
                               mpui_size_t w, mpui_size_t h);
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
+mpui_image_t *mpui_image_dup (mpui_image_t *image, mpui_size_t x,mpui_size_t y,
+                              mpui_size_t w, mpui_size_t h);
 void mpui_image_free (mpui_image_t *image);
 
 mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
@@ -337,6 +381,18 @@ void mpui_font_free (mpui_font_t *font);
 mpui_fonts_t *mpui_fonts_new (void);
 #define mpui_fonts_add(a,b) (a)->fonts = mpui_list_add((a)->fonts, (b))
 void mpui_fonts_free (mpui_fonts_t *fonts);
+
+mpui_filetype_t *mpui_filetype_new (mpui_match_t match);
+#define mpui_ext_add(a,b) (a)->exts = mpui_list_add((a)->exts, (b))
+mpui_filetype_t *mpui_filetype_dup (mpui_filetype_t *filetype,
+                                    mpui_size_t icon_w, mpui_size_t icon_h);
+void mpui_filetype_free (mpui_filetype_t *filetype);
+mpui_filetypes_t *mpui_filetypes_new (char *id);
+#define mpui_filetypes_add(a,b) (a)->filetypes = mpui_list_add((a)->filetypes, (b))
+mpui_filetypes_t *mpui_filetypes_get (mpui_t *mpui, char *id);
+mpui_filetypes_t *mpui_filetypes_dup (mpui_filetypes_t *filetypes,
+                                      mpui_size_t icon_w, mpui_size_t icon_h);
+void mpui_filetypes_free (mpui_filetypes_t *filetypes);
 
 mpui_object_t *mpui_object_new (char *id, mpui_size_t x, mpui_size_t y);
 mpui_object_t *mpui_object_get (mpui_t *mpui, char *id);
@@ -382,6 +438,19 @@ void mpui_element_free (mpui_element_t *element);
 void mpui_elements_get_size (mpui_element_t *element,
                              mpui_element_t **elements);
 void mpui_elements_free (mpui_element_t **elements);
+
+mpui_browser_t *mpui_browser_new (char * id, mpui_font_t *font,
+                                  mpui_orientation_t orientation,
+                                  mpui_orientation_t scrolling,
+                                  mpui_alignment_t align,
+                                  mpui_size_t x, mpui_size_t y,
+                                  mpui_size_t w, mpui_size_t h,
+                                  mpui_size_t icon_w, mpui_size_t icon_h,
+                                  mpui_size_t item_w, mpui_size_t spacing,
+                                  mpui_object_t *border,
+                                  mpui_object_t *item_border,
+                                  mpui_filetypes_t *filter);
+void mpui_browser_free (mpui_browser_t *browser);
 
 mpui_popup_t *mpui_popup_new (char *id, mpui_coord_t x, mpui_coord_t y);
 mpui_popup_t *mpui_popup_get (mpui_popups_t *popups, char *id);

@@ -29,6 +29,7 @@
 #include "../config.h"
 
 #include "mpui_struct.h"
+#include "mpui_browser.h"
 #include "mpui_focus.h"
 #include "mpui_image.h"
 #include "mpui_parser.h"
@@ -259,7 +260,10 @@ mpui_clip (mpui_t *mpui, mpui_element_t *element,
       mpui_element_t **elements = NULL;
       for (elements=((mpui_container_t *) element)->elements;
            *elements; elements++)
-        mpui_clip (mpui, *elements, x, y, dynamic);
+        if (element->type != MPUI_MNU
+            || !((mpui_mnu_t *) element)->menu->is_browser
+            || (*elements)->type != MPUI_MENUITEM)
+          mpui_clip (mpui, *elements, x, y, dynamic);
     }
   else if (element->type == MPUI_IMG)
     {
@@ -664,6 +668,95 @@ mpui_parse_node_action (char **attribs)
   return action;
 }
 
+
+static mpui_filetype_t *
+mpui_parse_node_filetype (mpui_t *mpui, char **attribs, char *body)
+{
+  mpui_filetype_t *filetype;
+  mpui_match_t match = MPUI_MATCH_EXT;
+  char *s_match;
+
+  s_match = asx_get_attrib ("match", attribs);
+  asx_free_attribs (attribs);
+
+  if (s_match)
+    {
+      if (!strcmp (s_match, "all"))
+        match = MPUI_MATCH_ALL;
+      else if (!strcmp (s_match, "dir"))
+        match = MPUI_MATCH_DIR;
+    }
+
+  filetype = mpui_filetype_new (match);
+
+  while (1)
+    {
+      ASX_Parser_t* parser = asx_parser_new();
+      char *element, *sbody;
+      int res;
+
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+
+      if (!strcmp (element, "action"))
+        {
+          mpui_action_t *action = mpui_parse_node_action (attribs);
+          mpui_actions_add (filetype, action);
+        }
+      else if (!strcmp (element, "icon"))
+        {
+          char *id = asx_get_attrib ("id", attribs);
+          filetype->icon = mpui_image_get (mpui, id);
+          free (id);
+        }
+      else if (!strcmp (element, "ext") && sbody)
+        mpui_ext_add (filetype, strdup (sbody));
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+
+  free (s_match);
+
+  return filetype;
+}
+
+static mpui_filetypes_t *
+mpui_parse_node_filetypes (mpui_t *mpui, char **attribs, char *body)
+{
+  mpui_filetypes_t *filetypes;
+  char *id;
+
+  id = asx_get_attrib ("id", attribs);
+  asx_free_attribs (attribs);
+  filetypes = mpui_filetypes_new (id);
+
+  while (1)
+    {
+      ASX_Parser_t* parser = asx_parser_new();
+      char *element, *sbody;
+      int res;
+
+      res = mpui_parse_get_element (parser, &body, &element, &sbody, &attribs);
+      if (res <= 0)
+        break;
+
+      if (!strcmp (element, "file-type"))
+        {
+          mpui_filetype_t *ft = mpui_parse_node_filetype (mpui, attribs,sbody);
+          mpui_filetypes_add (filetypes, ft);
+        }
+      free (parser);
+    }
+  asx_free_attribs (attribs);
+
+
+  free (id);
+
+  return filetypes;
+}
+
+
 static mpui_obj_t *
 mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 {
@@ -689,12 +782,6 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 
       if (object)
         {
-          if (object->need_dup)
-            {
-              object = mpui_object_dup (object);
-              mpui_objects_add (mpui->objects, object);
-            }
-
           sx = mpui_parse_size (x, mpui->width, mpui->diag, object->x);
           sy = mpui_parse_size (y, mpui->height, mpui->diag, object->y);
           obj = mpui_obj_new (object, sx, sy, flags, wf);
@@ -1031,6 +1118,116 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   return menu;
 }
 
+static mpui_browser_t *
+mpui_parse_node_browser (mpui_t *mpui, char **attribs)
+{
+  char *id, *orient, *scroll, *spacing, *font_id, *x, *y, *w, *h, *i_w, *i_h;
+  char *border_id, *item_border_id, *filter_id;
+  mpui_browser_t *browser = NULL;
+  mpui_orientation_t orientation = MPUI_ORIENTATION_V, scrolling;
+  mpui_alignment_t align;
+  mpui_font_t *font;
+  mpui_object_t *border, *item_border;
+  mpui_filetypes_t *filter;
+  mpui_coord_t mx, my, mw, mh, miw, mih, ms;
+  mpui_size_t item_w, tmp;
+
+  id = asx_get_attrib ("id", attribs);
+  orient = asx_get_attrib ("orientation", attribs);
+  scroll = asx_get_attrib ("scrolling", attribs);
+  spacing = asx_get_attrib ("spacing", attribs);
+  font_id = asx_get_attrib ("font", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
+  i_w = asx_get_attrib ("icon-w", attribs);
+  i_h = asx_get_attrib ("icon-h", attribs);
+  border_id = asx_get_attrib ("border", attribs);
+  item_border_id = asx_get_attrib ("item-border", attribs);
+  filter_id = asx_get_attrib ("filter", attribs);
+
+  if (orient && !strcmp (orient, "both"))
+    orientation = MPUI_ORIENTATION_H | MPUI_ORIENTATION_V;
+  else if (orient && !strcmp (orient, "horizontal"))
+    orientation = MPUI_ORIENTATION_H;
+
+  scrolling = orientation;
+  if (scroll)
+    {
+      if (!strcmp (scroll, "vertical"))
+        scrolling = MPUI_ORIENTATION_V;
+      else if (!strcmp (scroll, "horizontal"))
+        scrolling = MPUI_ORIENTATION_H;
+    }
+  if (scrolling == (MPUI_ORIENTATION_H | MPUI_ORIENTATION_V))
+    scrolling = MPUI_ORIENTATION_V;
+
+  align = mpui_parse_alignment (attribs);
+
+  if (!font_id || !(font = mpui_font_get (mpui, font_id)))
+    font = mpui->fonts[0]->deflt;
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+  mw = mpui_parse_size (w, mpui->width, mpui->diag, 0);
+  mh = mpui_parse_size (h, mpui->height, mpui->diag, 0);
+  miw = mpui_parse_size (i_w, mpui->width, mpui->diag, 0);
+  mih = mpui_parse_size (i_h, mpui->height, mpui->diag, 0);
+  tmp = orientation == MPUI_ORIENTATION_V ? mpui->height : mpui->width;
+  ms = mpui_parse_size (spacing, tmp, mpui->diag, 0);
+
+  if (!i_w && !i_h)
+    mih.val = miw.val = orientation == MPUI_ORIENTATION_V ?
+                        font->font_desc->height : 2 * font->font_desc->height;
+  else if (!i_w)
+    miw.val = mih.val;
+  else if (!i_h)
+    mih.val = miw.val;
+
+  if (orientation & MPUI_ORIENTATION_H)
+    {
+      item_w = font->font_desc->height * 8;
+      item_w = (mw.val / ((mw.val / (item_w + ms.val)) + 1)) - ms.val;
+      if (item_w < miw.val)
+        item_w = (mw.val / (mw.val / (miw.val + ms.val))) - ms.val;
+    }
+  else
+    item_w = mw.val;
+
+  border = mpui_object_get (mpui, border_id);
+  item_border = mpui_object_get (mpui, item_border_id);
+
+  filter = mpui_filetypes_get (mpui, filter_id);
+  if (id && filter)
+    {
+      filter = mpui_filetypes_dup (filter, miw.val, mih.val);
+      browser = mpui_browser_new (id, font, orientation, scrolling, align,
+                                  mx.val, my.val, mw.val, mh.val,
+                                  miw.val, mih.val, item_w, ms.val,
+                                  border, item_border, filter);
+      mpui_browser_generate (mpui, browser);
+    }
+
+  asx_free_attribs (attribs);
+  free (id);
+  free (orient);
+  free (scroll);
+  free (spacing);
+  free (font_id);
+  free (x);
+  free (y);
+  free (w);
+  free (h);
+  free (i_w);
+  free (i_h);
+  free (border_id);
+  free (item_border_id);
+  free (filter_id);
+
+  return browser;
+}
+
 static mpui_mnu_t *
 mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
 {
@@ -1085,6 +1282,11 @@ mpui_parse_node_menus (mpui_t *mpui, char **attribs, char *body)
         {
           mpui_menu_t *menu = mpui_parse_node_menu (mpui, attribs, sbody);
           mpui_menus_add (mpui->menus, menu);
+        }
+      else if (!strcmp (element, "browser"))
+        {
+          mpui_browser_t *browser = mpui_parse_node_browser (mpui, attribs);
+          mpui_menus_add (mpui->menus, browser);
         }
       free (parser);
     }
@@ -1346,6 +1548,11 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
         {
           mpui_fonts_t *fonts = mpui_parse_node_fonts (mpui, attribs, sbody);
           mpui_fonts_add (mpui, fonts);
+        }
+      else if (!strcmp (element, "file-types"))
+        {
+          mpui_filetypes_t *ft = mpui_parse_node_filetypes(mpui,attribs,sbody);
+          mpui_filetypes_add (mpui, ft);
         }
       else if (!strcmp (element, "objects"))
         {

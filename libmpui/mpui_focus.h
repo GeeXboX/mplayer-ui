@@ -29,6 +29,8 @@ void mpui_focus_box_previous (mpui_screen_t *screen);
 int mpui_focus_first (mpui_focus_box_t *focus_box);
 void mpui_focus_next (mpui_focus_box_t *focus_box);
 void mpui_focus_previous (mpui_focus_box_t *focus_box);
+void mpui_focus_next_line (mpui_focus_box_t *focus_box);
+void mpui_focus_previous_line (mpui_focus_box_t *focus_box);
 
 void mpui_focus_action_exec (mpui_focus_box_t *focus_box);
 void mpui_focus_popup (mpui_t *mpui, char *id);

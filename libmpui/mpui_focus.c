@@ -77,6 +77,8 @@ mpui_focus_first (mpui_focus_box_t *focus_box)
 {
   focus_box->focus = focus_box->container.elements - 1;
   mpui_focus_next (focus_box);
+  focus_box->xoffset = 0;
+  focus_box->yoffset = 0;
   if (focus_box->focus >= focus_box->container.elements)
     return 1;
   focus_box->focus = NULL;
@@ -91,12 +93,34 @@ mpui_focus_next (mpui_focus_box_t *focus_box)
   for (elements=focus_box->focus+1; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = (*elements)->y.val + (*elements)->h.val
+                         - focus_box->yoffset
+                         - ((mpui_element_t *) focus_box)->h.val;
+                if (offset > 0)
+                  focus_box->yoffset += offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = (*elements)->x.val + (*elements)->w.val
+                         - focus_box->xoffset
+                         - ((mpui_element_t *) focus_box)->w.val;
+                if (offset > 0)
+                  focus_box->xoffset += offset;
+              }
+          }
         focus_box->focus = elements;
         return;
       }
   for (elements=focus_box->container.elements; *elements; elements++)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
+        focus_box->xoffset = 0;
+        focus_box->yoffset = 0;
         focus_box->focus = elements;
         return;
       }
@@ -111,6 +135,22 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
        elements--)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = focus_box->yoffset - (*elements)->y.val;
+                if (offset > 0)
+                  focus_box->yoffset -= offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = focus_box->xoffset - (*elements)->x.val;
+                if (offset > 0)
+                  focus_box->xoffset -= offset;
+              }
+          }
         focus_box->focus = elements;
         return;
       }
@@ -118,6 +158,146 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
   for (elements--; elements > focus_box->focus; elements--)
     if ((*elements)->flags & MPUI_FLAG_FOCUSABLE)
       {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = (*elements)->y.val + (*elements)->h.val
+                         - focus_box->yoffset
+                         - ((mpui_element_t *) focus_box)->h.val;
+                if (offset > 0)
+                  focus_box->yoffset += offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = (*elements)->x.val + (*elements)->w.val
+                         - focus_box->xoffset
+                         - ((mpui_element_t *) focus_box)->w.val;
+                if (offset > 0)
+                  focus_box->xoffset += offset;
+              }
+          }
+        focus_box->focus = elements;
+        return;
+      }
+}
+
+void
+mpui_focus_next_line (mpui_focus_box_t *focus_box)
+{
+  mpui_element_t **elements;
+
+  for (elements=focus_box->focus+1; *elements; elements++)
+    if ((*elements)->flags & MPUI_FLAG_FOCUSABLE
+        && ((focus_box->scrolling == MPUI_ORIENTATION_V
+             && (*elements)->y.val > (*focus_box->focus)->y.val + 3
+             && (*elements)->x.val >= (*focus_box->focus)->x.val - 3)
+            || (focus_box->scrolling == MPUI_ORIENTATION_H
+                && (*elements)->x.val > (*focus_box->focus)->x.val + 3
+                && (*elements)->y.val >= (*focus_box->focus)->y.val - 3)))
+      {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = (*elements)->y.val + (*elements)->h.val
+                         - focus_box->yoffset
+                         - ((mpui_element_t *) focus_box)->h.val;
+                if (offset > 0)
+                  focus_box->yoffset += offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = (*elements)->x.val + (*elements)->w.val
+                         - focus_box->xoffset
+                         - ((mpui_element_t *) focus_box)->w.val;
+                if (offset > 0)
+                  focus_box->xoffset += offset;
+              }
+          }
+        focus_box->focus = elements;
+        return;
+      }
+  for (elements=focus_box->container.elements; *elements; elements++)
+    if ((*elements)->flags & MPUI_FLAG_FOCUSABLE
+        && ((focus_box->scrolling == MPUI_ORIENTATION_V
+             && (*elements)->x.val >= (*focus_box->focus)->x.val - 3)
+            || (focus_box->scrolling == MPUI_ORIENTATION_H
+                && (*elements)->y.val >= (*focus_box->focus)->y.val - 3)))
+      {
+        focus_box->xoffset = 0;
+        focus_box->yoffset = 0;
+        focus_box->focus = elements;
+        return;
+      }
+}
+
+void
+mpui_focus_previous_line (mpui_focus_box_t *focus_box)
+{
+  mpui_element_t **elements;
+
+  for (elements=focus_box->focus-1; elements>=focus_box->container.elements;
+       elements--)
+    if ((*elements)->flags & MPUI_FLAG_FOCUSABLE
+        && ((focus_box->scrolling == MPUI_ORIENTATION_V
+             && (*elements)->y.val < (*focus_box->focus)->y.val - 3
+             && (*elements)->x.val <= (*focus_box->focus)->x.val + 3)
+            || (focus_box->scrolling == MPUI_ORIENTATION_H
+                && (*elements)->x.val < (*focus_box->focus)->x.val - 3
+                && (*elements)->y.val <= (*focus_box->focus)->y.val + 3)))
+      {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = focus_box->yoffset - (*elements)->y.val;
+                if (offset > 0)
+                  focus_box->yoffset -= offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = focus_box->xoffset - (*elements)->x.val;
+                if (offset > 0)
+                  focus_box->xoffset -= offset;
+              }
+          }
+        focus_box->focus = elements;
+        return;
+      }
+  for (elements=focus_box->focus+1; *elements; elements++);
+  for (elements--; elements > focus_box->focus; elements--)
+    if ((*elements)->flags & MPUI_FLAG_FOCUSABLE
+        && ((focus_box->scrolling == MPUI_ORIENTATION_V
+             && (*elements)->x.val >= (*focus_box->focus)->x.val - 3
+             && (*elements)->x.val <= (*focus_box->focus)->x.val + 3)
+            || (focus_box->scrolling == MPUI_ORIENTATION_H
+                && (*elements)->y.val >= (*focus_box->focus)->y.val - 3
+                && (*elements)->y.val <= (*focus_box->focus)->y.val + 3)))
+      {
+        if ((*elements)->type == MPUI_MENUITEM)
+          {
+            mpui_size_t offset;
+            if (focus_box->scrolling & MPUI_ORIENTATION_V)
+              {
+                offset = (*elements)->y.val + (*elements)->h.val
+                         - focus_box->yoffset
+                         - ((mpui_element_t *) focus_box)->h.val;
+                if (offset > 0)
+                  focus_box->yoffset += offset;
+              }
+            if (focus_box->scrolling & MPUI_ORIENTATION_H)
+              {
+                offset = (*elements)->x.val + (*elements)->w.val
+                         - focus_box->xoffset
+                         - ((mpui_element_t *) focus_box)->w.val;
+                if (offset > 0)
+                  focus_box->xoffset += offset;
+              }
+          }
         focus_box->focus = elements;
         return;
       }

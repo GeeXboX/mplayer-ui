@@ -36,6 +36,7 @@
 #include "../mplayer.h"
 
 #include "mpui_focus.h"
+#include "mpui_browser.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
 
@@ -95,6 +96,9 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
       mpui_switch_screen (priv->mpui, cmd->args[0].v.s);
       mpui_focus_box_first (priv->mpui->current_screen);
       return 1;
+    case MP_CMD_MPUI_CD:
+      mpui_browser_cd (priv->mpui, cmd->args[0].v.s);
+      return 1;
     }
   return 0;
 }
@@ -109,20 +113,40 @@ read_keycode (int code)
     switch (code)
       {
       case KEY_UP:
-        if (fb->orientation == MPUI_ORIENTATION_V)
+        if (fb->orientation == MPUI_ORIENTATION_V
+            || (fb->orientation & MPUI_ORIENTATION_V
+                && fb->scrolling == MPUI_ORIENTATION_H))
           mpui_focus_previous (fb);
+        else if (fb->orientation & MPUI_ORIENTATION_V
+                 && fb->scrolling == MPUI_ORIENTATION_V)
+          mpui_focus_previous_line (fb);
         break;
       case KEY_DOWN:
-        if (fb->orientation == MPUI_ORIENTATION_V)
+        if (fb->orientation == MPUI_ORIENTATION_V
+            || (fb->orientation & MPUI_ORIENTATION_V
+                && fb->scrolling == MPUI_ORIENTATION_H))
           mpui_focus_next (fb);
+        else if (fb->orientation & MPUI_ORIENTATION_V
+                 && fb->scrolling == MPUI_ORIENTATION_V)
+          mpui_focus_next_line (fb);
         break;
       case KEY_LEFT:
-        if (fb->orientation == MPUI_ORIENTATION_H)
+        if (fb->orientation == MPUI_ORIENTATION_H
+            || (fb->orientation & MPUI_ORIENTATION_H
+                && fb->scrolling == MPUI_ORIENTATION_V))
           mpui_focus_previous (fb);
+        else if (fb->orientation & MPUI_ORIENTATION_H
+                 && fb->scrolling == MPUI_ORIENTATION_H)
+          mpui_focus_previous_line (fb);
         break;
       case KEY_RIGHT:
-        if (fb->orientation == MPUI_ORIENTATION_H)
+        if (fb->orientation == MPUI_ORIENTATION_H
+            || (fb->orientation & MPUI_ORIENTATION_H
+                && fb->scrolling == MPUI_ORIENTATION_V))
           mpui_focus_next (fb);
+        else if (fb->orientation & MPUI_ORIENTATION_H
+                 && fb->scrolling == MPUI_ORIENTATION_H)
+          mpui_focus_next_line (fb);
         break;
       case KEY_TAB:
       case KEY_SPACE:
