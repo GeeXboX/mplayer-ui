@@ -65,29 +65,45 @@ mpui_render_planar_image (mpui_img_t *img, mp_image_t *mpi,
 {
   unsigned char *end, *y, *u, *v, *yi, *ui, *vi, *aiy, *aiuv;
   mpui_image_t *image = img->image;
-  int i, incr;
+  int i, incr, incri, cx, cy, cw, ch, ccw, cch;
 
-  yi   = image->planes[0];
-  ui   = image->planes[1];
-  vi   = image->planes[2];
-  aiy  = image->planes[3];
-  aiuv = image->planes[4];
+  cx = context->x + img->cx1;
+  cy = context->y + img->cy1;
+  cw = image->w - (img->cx1 + img->cx2);
+  ch = image->h - (img->cy1 + img->cy2);
+  ccw = cw >> mpi->chroma_x_shift;
+  cch = ch >> mpi->chroma_y_shift;
 
-  y = mpi->planes[0] + context->y*mpi->stride[0] + context->x;
-  u = mpi->planes[1] + (context->y>>mpi->chroma_y_shift)*mpi->stride[1]
-                     + (context->x>>mpi->chroma_x_shift);
-  v = mpi->planes[2] + (context->y>>mpi->chroma_y_shift)*mpi->stride[2]
-                     + (context->x>>mpi->chroma_x_shift);
+  if (cw <= 0 || ch <= 0)
+    return;
+
+  yi   = image->planes[0] + img->cy1*image->stride[0] + img->cx1;
+  ui   = image->planes[1] + (img->cy1 >> mpi->chroma_y_shift)*image->stride[1]
+                          + (img->cx1 >> mpi->chroma_x_shift);
+  vi   = image->planes[2] + (img->cy1 >> mpi->chroma_y_shift)*image->stride[2]
+                          + (img->cx1 >> mpi->chroma_x_shift);
+  aiy  = image->planes[3] + img->cy1*image->stride[3] + img->cx1;
+  aiuv = image->planes[4] + (img->cy1 >> mpi->chroma_y_shift)*image->stride[4]
+                          + (img->cx1 >> mpi->chroma_x_shift);
+
+  y = mpi->planes[0] + cy*mpi->stride[0] + cx;
+  u = mpi->planes[1] + (cy>>mpi->chroma_y_shift)*mpi->stride[1]
+                     + (cx>>mpi->chroma_x_shift);
+  v = mpi->planes[2] + (cy>>mpi->chroma_y_shift)*mpi->stride[2]
+                     + (cx>>mpi->chroma_x_shift);
 
   if (image->alpha)
     {
-      incr = mpi->stride[0] - image->w;
-      for (end=yi+image->w*image->h; yi<end; y+=incr)
-        for (i=0; i<image->w; i++, y++, yi++, aiy++)
+      incr = mpi->stride[0] - cw;
+      incri = img->cx1 + img->cx2;
+      for (end=yi+image->w*ch; yi<end; y+=incr, yi+=incri, aiy+=incri)
+        for (i=0; i<cw; i++, y++, yi++, aiy++)
             mpui_render_alpha (y, *yi, *aiy);
-      incr = mpi->stride[1] - image->chroma_width;
-      for (end=ui+image->chroma_width*image->chroma_height; ui<end; u+=incr, v+=incr)
-        for (i=0; i<image->chroma_width; i++, u++, v++, ui++, vi++, aiuv++)
+      incr = mpi->stride[1] - ccw;
+      incri = (img->cx1 + img->cx2) >> mpi->chroma_x_shift;
+      for (end=ui+image->chroma_width*cch; ui<end;
+           u+=incr, v+=incr, ui+=incri, vi+=incri, aiuv+=incri)
+        for (i=0; i<ccw; i++, u++, v++, ui++, vi++, aiuv++)
           {
             mpui_render_alpha (u, *ui, *aiuv);
             mpui_render_alpha (v, *vi, *aiuv);
@@ -95,15 +111,14 @@ mpui_render_planar_image (mpui_img_t *img, mp_image_t *mpi,
     }
   else
     {
-      for (end=yi+image->w*image->h; yi<end;
-           y+=mpi->stride[0], yi+=image->w)
-        memcpy (y, yi, image->w);
-      for (end=ui+image->chroma_width*image->chroma_height; ui<end;
+      for (end=yi+image->w*ch; yi<end; y+=mpi->stride[0], yi+=image->w)
+        memcpy (y, yi, cw);
+      for (end=ui+image->chroma_width*cch; ui<end;
            u+=mpi->stride[1], v+=mpi->stride[2],
            ui+=image->chroma_width, vi+=image->chroma_width)
         {
-          memcpy (u, ui, image->chroma_width);
-          memcpy (v, vi, image->chroma_width);
+          memcpy (u, ui, ccw);
+          memcpy (v, vi, ccw);
         }
     }
 }
@@ -114,28 +129,35 @@ mpui_render_packed_image (mpui_img_t *img, mp_image_t *mpi,
 {
   unsigned char *end, *y, *yi, *aiy;
   mpui_image_t *image = img->image;
-  int i, incr;
+  int i, incr, incri, cx, cy, cw, ch;
 
-  context->x &= ~1;
-  context->y &= ~1;
+  cx = (context->x + img->cx1) & ~1;
+  cy = (context->y + img->cy1) & ~1;
+  cw = image->w - (img->cx1 + img->cx2);
+  ch = image->h - (img->cy1 + img->cy2);
 
-  yi  = image->planes[0];
-  y = mpi->planes[0] + context->y*mpi->stride[0] + context->x*image->bpp;
+  if (cw <= 0 || ch <= 0)
+    return;
+
+  yi = image->planes[0] + img->cy1*image->stride[0] + (img->cx1&~1)*image->bpp;
+  y = mpi->planes[0] + cy*mpi->stride[0] + cx*image->bpp;
 
   if (image->alpha)
     {
-      aiy = image->planes[3];
-      incr = mpi->stride[0] - image->stride[0];
-      for (end=yi+image->bpp*image->w*image->h; yi<end; y+=incr)
+      aiy = image->planes[3] + img->cy1*image->stride[3] + img->cx1;
+      incr = mpi->stride[0] - cw*image->bpp;
+      incri = img->cx1 + img->cx2;
+      for (end=yi+image->bpp*image->w*ch; yi<end;
+           y+=incr, yi+=image->bpp*incri, aiy+=incri)
         {
-          for (i=0; i<(image->w>>1); i++, aiy+=2)
+          for (i=0; i<(cw>>1); i++, aiy+=2)
             {
               mpui_render_alpha (y++, *yi++, *aiy);
               mpui_render_alpha (y++, *yi++, *aiy);
               mpui_render_alpha (y++, *yi++, *(aiy+1));
               mpui_render_alpha (y++, *yi++, *aiy);
             }
-          if (image->w & 1)
+          if (cw & 1)
             {
               mpui_render_alpha (y++, *yi++, *aiy);
               mpui_render_alpha (y++, *yi++, *aiy++);
@@ -144,9 +166,9 @@ mpui_render_packed_image (mpui_img_t *img, mp_image_t *mpi,
     }
   else
     {
-      for (end=yi+image->stride[0]*image->h; yi<end;
+      for (end=yi+image->stride[0]*ch; yi<end;
            y+=mpi->stride[0], yi+=image->stride[0])
-        memcpy (y, yi, image->stride[0]);
+        memcpy (y, yi, cw*image->bpp);
     }
 }
 

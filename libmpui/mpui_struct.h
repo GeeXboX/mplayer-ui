@@ -174,6 +174,8 @@ struct mpui_image {
 struct mpui_img {
   mpui_element_t element;
   mpui_image_t *image;
+  mpui_size_t cx1, cy1;
+  mpui_size_t cx2, cy2;
 };
 
 struct mpui_fonts {

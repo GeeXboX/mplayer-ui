@@ -220,6 +220,39 @@ mpui_set_nocoord (mpui_element_t *element, char *x, char *y, char *w, char *h)
     element->sh = strdup (h);
 }
 
+static void
+mpui_clip (mpui_t *mpui, mpui_element_t *element, mpui_size_t x, mpui_size_t y)
+{
+  if (element->flags & MPUI_FLAG_ABSOLUTE)
+    {
+      x = element->x;
+      y = element->y;
+    }
+  else
+    {
+      x += element->x;
+      y += element->y;
+    }
+
+  if (element->flags & MPUI_FLAG_CONTAINER)
+    {
+      mpui_element_t **elements = NULL;
+      for (elements=((mpui_container_t *) element)->elements;
+           *elements; elements++)
+        mpui_clip (mpui, *elements, x, y);
+    }
+  else if (element->type == MPUI_IMG)
+    {
+      mpui_img_t *img = (mpui_img_t *) element;
+      img->cx1 = x < 0 ? -x : 0;
+      img->cy1 = y < 0 ? -y : 0;
+      img->cx2 = x + img->element.w > mpui->width ?
+                (x + img->element.w) - mpui->width : 0;
+      img->cy2 = y + img->element.h > mpui->height ?
+                (y + img->element.h) - mpui->height : 0;
+    }
+}
+
 static mpui_color_t *
 mpui_parse_color (char *color)
 {
@@ -1253,14 +1286,20 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
       mpui->current_screen = mpui->screens->menu;
       for (screen=mpui->screens->screens; *screen; screen++)
         for (elements=(*screen)->elements; *elements; elements++)
-          mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
+          {
+            mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
+            mpui_clip (mpui, *elements, 0, 0);
+          }
     }
   if (mpui->popups)
     {
       mpui_popup_t **popup;
       for (popup=mpui->popups->popups; *popup; popup++)
-        mpui_recompute_coord (mpui, (mpui_element_t *) *popup,
-                              mpui->width, mpui->height);
+        {
+          mpui_recompute_coord (mpui, (mpui_element_t *) *popup,
+                                mpui->width, mpui->height);
+          mpui_clip (mpui, (mpui_element_t *) *popup, 0, 0);
+        }
     }
 
   return mpui;
