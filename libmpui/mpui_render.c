@@ -463,7 +463,7 @@ static inline void
 mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
                      mpui_render_context_t context)
 {
-  if (!element)
+  if (!element || element->flags & MPUI_FLAG_HIDDEN)
     return;
 
   if (element->flags & MPUI_FLAG_FOCUSABLE)

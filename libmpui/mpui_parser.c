@@ -357,7 +357,7 @@ mpui_parse_node_string (char **attribs)
 static mpui_str_t *
 mpui_parse_node_str (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *absolute;
+  char *id, *x, *y, *absolute, *hidden;
   char *font_id, *size, *color, *focused_color, *really_focused_color;
   mpui_str_t *str = NULL;
 
@@ -365,6 +365,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
   font_id = asx_get_attrib ("font", attribs);
   size = asx_get_attrib ("size", attribs);
   color = asx_get_attrib ("color", attribs);
@@ -385,6 +386,8 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       font = mpui_font_get (mpui, font_id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
       wf = mpui_parse_when_focused (attribs);
       if (size && *size)
         {
@@ -411,6 +414,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
   free (x);
   free (y);
   free (absolute);
+  free (hidden);
   free (font_id);
   free (size);
   free (color);
@@ -498,7 +502,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 static mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *w, *h, *absolute;
+  char *id, *x, *y, *w, *h, *absolute, *hidden;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
@@ -507,6 +511,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   w = asx_get_attrib ("w", attribs);
   h = asx_get_attrib ("h", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
 
   if (id)
     {
@@ -517,6 +522,8 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
       image = mpui_image_get (mpui, id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
       wf = mpui_parse_when_focused (attribs);
       if (image)
         {
@@ -535,6 +542,7 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
   free (y);
   free (w);
   free (h);
+  free (hidden);
   return img;
 }
 
@@ -761,13 +769,14 @@ mpui_parse_node_filetypes (mpui_t *mpui, char **attribs, char *body)
 static mpui_obj_t *
 mpui_parse_node_obj (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *absolute;
+  char *id, *x, *y, *absolute, *hidden;
   mpui_obj_t *obj = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
 
   if (id)
     {
@@ -779,6 +788,8 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
       object = mpui_object_get (mpui, id);
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
       wf = mpui_parse_when_focused (attribs);
 
       if (object)
@@ -793,6 +804,7 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
   free (x);
   free (y);
   free (absolute);
+  free (hidden);
   return obj;
 }
 
@@ -1232,13 +1244,14 @@ mpui_parse_node_browser (mpui_t *mpui, char **attribs)
 static mpui_mnu_t *
 mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *absolute;
+  char *id, *x, *y, *absolute, *hidden;
   mpui_mnu_t *mnu = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
   absolute = asx_get_attrib ("absolute", attribs);
+  hidden = asx_get_attrib ("hidden", attribs);
   asx_free_attribs (attribs);
 
   if (id)
@@ -1248,6 +1261,8 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
       mpui_coord_t sx, sy;
       if (absolute && !strcmp (absolute, "yes"))
         flags |= MPUI_FLAG_ABSOLUTE;
+      if (hidden && !strcmp (hidden, "yes"))
+        flags |= MPUI_FLAG_HIDDEN;
       if (menu)
         {
           sx = mpui_parse_size (x, mpui->width, mpui->diag, menu->x);
@@ -1260,6 +1275,7 @@ mpui_parse_node_mnu (mpui_t *mpui, char **attribs)
   free (x);
   free (y);
   free (absolute);
+  free (hidden);
   return mnu;
 }
 

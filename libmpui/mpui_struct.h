@@ -73,6 +73,7 @@ typedef struct mpui mpui_t;
 #define MPUI_FLAG_FOCUS_BOX ((mpui_flags_t) 0x10)
 #define MPUI_FLAG_FOCUSABLE ((mpui_flags_t) 0x20)
 #define MPUI_FLAG_OWNER     ((mpui_flags_t) 0x40)
+#define MPUI_FLAG_HIDDEN    ((mpui_flags_t) 0x80)
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
