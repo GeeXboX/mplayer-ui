@@ -25,4 +25,9 @@ void mpui_tv_analog_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
                                        mpui_size_t *mw, mpui_size_t *mh,
                                        mpui_coord_t *spacing);
 
+void mpui_tv_dvb_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
+                                    mpui_size_t *mx, mpui_size_t *my,
+                                    mpui_size_t *mw, mpui_size_t *mh,
+                                    mpui_coord_t *spacing);
+
 #endif  /* MPUI_TV_H */
