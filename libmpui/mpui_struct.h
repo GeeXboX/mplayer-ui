@@ -336,6 +336,7 @@ struct mpui {
   char cwd[NAME_MAX+1];
   char *lwd;
   int cwd_id;
+  char *datadir;
 };
 
 

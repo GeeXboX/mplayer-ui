@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #ifdef HAVE_MALLOC_H
 #include <malloc.h>
 #endif
@@ -34,6 +35,7 @@
 #include "libvo/fastmemcpy.h"
 #include "input/input.h"
 #include "osdep/keycodes.h"
+#include "mp_msg.h"
 #include "mplayer.h"
 
 #include "mpui_focus.h"
@@ -45,6 +47,7 @@
 
 struct vf_priv_s {
   mpui_t *mpui;
+  char *theme;
   int show;
 };
 
@@ -218,14 +221,41 @@ config (struct vf_instance_s* vf, int width, int height,
         int d_width, int d_height, unsigned int flags, unsigned int outfmt)
 {
   int fd;
-  char *config = get_path ("mpui.conf");
+  char *config, *path;
 
+  mp_msg (MSGT_VFILTER, MSGL_INFO,
+          "mpui: Using theme '%s'\n", vf->priv->theme);
+
+  path = (char *) malloc (256 * sizeof (char));
+  sprintf (path, "mpui/%s/mpui.conf", vf->priv->theme); 
+  config = get_path (path);
+  free (path);
+
+  /* Try to get theme's config file from home's dir first */
   fd = open (config, O_RDONLY);
   if (fd == -1)
-    config = strdup (MPLAYER_CONFDIR"/mpui.conf");
+    {
+      /* ... then try from global data dir */
+      sprintf (config, "%s/mpui/%s/mpui.conf",
+               MPLAYER_DATADIR, vf->priv->theme);
+      fd = open (config, O_RDONLY);
+      if (fd == -1)
+        {
+          mp_msg (MSGT_VFILTER, MSGL_WARN,
+                  "mpui : No suitable mpui config file can be found\n");
+          config = NULL;
+        }
+    }
+  close (fd);
 
-  vf->priv->mpui = mpui_parse_config_file (config, width, height, outfmt);
+  if (config)
+    {
+      mp_msg (MSGT_VFILTER, MSGL_INFO,
+              "mpui: Using configuration from %s\n", config);  
+      vf->priv->mpui = mpui_parse_config_file (config, width, height, outfmt);
+    }
 
+  free (config);
   return vf_next_config (vf, width, height, d_width, d_height, flags, outfmt);
 }
 
@@ -240,6 +270,13 @@ vf_open (vf_instance_t *vf, char* args)
 
   vf->priv = (struct vf_priv_s *) malloc (sizeof (struct vf_priv_s));
   vf->priv->mpui = NULL;
+
+  vf->priv->theme = (char *) malloc (128 * sizeof (char));
+  if (args)
+    sscanf (args, "%s", vf->priv->theme);
+  else
+    strcpy (vf->priv->theme, "default");
+
   vf->priv->show = 1;
   st_priv = vf->priv;
 

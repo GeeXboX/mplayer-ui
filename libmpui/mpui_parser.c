@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <libgen.h>
 
 #include "asxparser.h"
 #include "config.h"
@@ -295,7 +296,7 @@ mpui_parse_color (char *color)
 }
 
 static mpui_string_t *
-mpui_parse_node_string (char **attribs)
+mpui_parse_node_string (mpui_t *mpui, char **attribs)
 {
   char *id, *text, *file;
   mpui_string_t *string = NULL;
@@ -310,9 +311,9 @@ mpui_parse_node_string (char **attribs)
       struct stat st;
       char *f;
 
-      f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
-      snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
-                "%s%s", MPUI_DATADIR, file);
+      f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
+      snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
+                "%s/%s", mpui->datadir, file);
 
       fd = open (f, O_RDONLY);
       free (f);
@@ -425,7 +426,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
 }
 
 static mpui_strings_t *
-mpui_parse_node_strings (char **attribs, char *body)
+mpui_parse_node_strings (mpui_t *mpui, char **attribs, char *body)
 {
   ASX_Parser_t* parser;
   char *code, *lang, *element;
@@ -451,7 +452,7 @@ mpui_parse_node_strings (char **attribs, char *body)
 
       if (!strcmp (element, "string"))
         {
-          mpui_string_t *string = mpui_parse_node_string (attribs);
+          mpui_string_t *string = mpui_parse_node_string (mpui, attribs);
           mpui_strings_add (strings, string);
         }
       free (parser);
@@ -484,9 +485,9 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   free (w);
   free (h);
 
-  f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
-  snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
-            "%s%s", MPUI_DATADIR, file);
+  f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
+  snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
+            "%s/%s", mpui->datadir, file);
 
   if (id && f)
     image = mpui_image_new (id, f, sx.val, sy.val, sw.val, sh.val);
@@ -601,9 +602,9 @@ mpui_parse_node_font (mpui_t *mpui, char **attribs)
   focused_color = mpui_parse_color (focused_col);
   really_focused_color = mpui_parse_color (really_focused_col);
 
-  f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
-  snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
-            "%s%s", MPUI_DATADIR, file);
+  f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
+  snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
+            "%s/%s", mpui->datadir, file);
 
   if (id && file)
     font = mpui_font_new (mpui, id, f, s, color,
@@ -1493,7 +1494,8 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
 extern char * get_path (char *filename);
 
 mpui_t *
-mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
+mpui_parse_config (mpui_t *ui, char *buffer, char *datadir,
+                   int width, int height, int format)
 {
   char *element, *body, **attribs;
   mpui_element_t **elements;
@@ -1515,6 +1517,9 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
   else
     mpui = mpui_new (width, height, format);
 
+  if (datadir)
+    mpui->datadir = strdup (datadir);
+
   while(1)
     {
       char *sbody;
@@ -1534,18 +1539,12 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
           char *file, *f;
           
           file = asx_get_attrib ("file", attribs);
-          f = get_path (file);
-
+          f = (char *) malloc (strlen (mpui->datadir) + strlen (file) + 2);
+          snprintf (f, strlen (mpui->datadir) + strlen (file) + 2,
+                    "%s/%s", mpui->datadir, file);
           fd = open (f, O_RDONLY);
-          if (fd == -1)
-            {
-              f = (char *) malloc (strlen (MPLAYER_CONFDIR)
-                                   + strlen (file) + 2);
-              snprintf (f, strlen (MPLAYER_CONFDIR) + strlen (file) + 2,
-                        "%s/%s", MPLAYER_CONFDIR, file);
-              fd = open (f, O_RDONLY);
-              free (f);
-            }
+          free (f);
+
           if (fd == -1)
             continue;
           if (fstat (fd, &st) == -1)
@@ -1561,12 +1560,12 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
               free (buffer);
               continue;
             }
-          mpui_parse_config (mpui, buffer, width, height, format);
+          mpui_parse_config (mpui, buffer, NULL, width, height, format);
           free (buffer);
         }
       else if (!strcmp (element, "strings"))
         {
-          mpui_strings_t *strings = mpui_parse_node_strings (attribs, sbody);
+          mpui_strings_t *strings = mpui_parse_node_strings (mpui, attribs, sbody);
           mpui_strings_add (mpui, strings);
         }
       else if (!strcmp (element, "images"))
@@ -1655,7 +1654,8 @@ mpui_parse_config_file (char *filename, int width, int height, int format)
       free (buffer);
       return NULL;
     }
-  mpui = mpui_parse_config (NULL, buffer, width, height, format);
+  mpui = mpui_parse_config (NULL, buffer, dirname (filename),
+                            width, height, format);
   free (buffer);
 
   return mpui;
