@@ -302,7 +302,7 @@ mpui_string_get_next_char (unsigned char **txt, size_t *len, mpui_encoding_t enc
         {
           if (c > 0xDBFF || /* c = 110110yyyyyyyyyy  */
               *len < 2 ||   /* there's another 16bit */
-              **txt < 0xDC || 0xDF < **txt) /* **txt = 110111xxxxxxxxxx */
+              **txt < 0xDC || 0xDF < **txt) /* **txt = 110111xx */
             return 0;
           c = (c & 0x3FF) << 10;       /* c = yyyyyyyyyy0000000000 */
           c |= (*(*txt)++ & 0x3) << 8; /* c = yyyyyyyyyyxx00000000 */
