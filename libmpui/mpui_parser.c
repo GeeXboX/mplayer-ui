@@ -131,8 +131,7 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       mpui_color_t *col, *fcol;
       int wf = MPUI_DISPLAY_ALWAYS;
       string = mpui_string_get (mpui, id);
-      if (font_id)
-        font = mpui_font_get (mpui, font_id);
+      font = mpui_font_get (mpui, font_id);
       if (when_focused)
         {
           if (!strcmp (when_focused, "yes"))
@@ -296,7 +295,7 @@ mpui_parse_node_images (mpui_t *mpui, char **attribs, char *body)
 }
 
 mpui_font_t *
-mpui_parse_node_font (char **attribs)
+mpui_parse_node_font (mpui_t *mpui, char **attribs)
 {
   char *id, *file, *f, *size, *col, *focused_col;
   mpui_font_t *font = NULL;
@@ -326,7 +325,7 @@ mpui_parse_node_font (char **attribs)
             "%s%s", MPUI_DATADIR, file);
 
   if (id && file)
-    font = mpui_font_new (id, f, s, color, focused_color);
+    font = mpui_font_new (mpui, id, f, s, color, focused_color);
 
   return font;
 }
@@ -336,6 +335,7 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 {
   char *dflt, *element;
   mpui_fonts_t *fonts;
+  mpui_font_t **fnts;
 
   dflt = asx_get_attrib ("default", attribs);
   asx_free_attribs (attribs);
@@ -354,14 +354,19 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 
       if (!strcmp (element, "font"))
         {
-          mpui_font_t *font = mpui_parse_node_font (attribs);
+          mpui_font_t *font = mpui_parse_node_font (mpui, attribs);
           mpui_fonts_add (fonts, font);
         }
       free (parser);
     }
   asx_free_attribs (attribs);
 
-  fonts->deflt = mpui_font_get (mpui, dflt);
+  for (fnts=fonts->fonts; *fnts; fnts++)
+    if (!strcmp ((*fnts)->id, dflt))
+      {
+        fonts->deflt = *fnts;
+        break;
+      }
 
   return fonts;
 }

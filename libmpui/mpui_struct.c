@@ -261,18 +261,20 @@ mpui_images_free (mpui_images_t *images)
 
 
 mpui_font_t *
-mpui_font_new (char *id, char *file, int size,
+mpui_font_new (mpui_t *mpui, char *id, char *file, int size,
                mpui_color_t *color, mpui_color_t *focused_color)
 {
   mpui_font_t *font;
 
   font = (mpui_font_t *) malloc (sizeof (*font));
   font->id = mpui_strdup (id);
-  font->file = mpui_strdup (file);
   font->size = size;
   font->color = color;
   font->focused_color = focused_color;
-
+  font->font_desc = read_font_desc (file, 0.75, 0);
+  if (!font->font_desc)
+    font->font_desc = read_font_desc_ft (file, size*mpui->width/40,
+                                         size*mpui->height/40);
   return font;
 }
 
@@ -282,10 +284,19 @@ mpui_font_get (mpui_t *mpui, char *id)
   mpui_fonts_t **fonts;
   mpui_font_t **font;
 
-  for (fonts=mpui->fonts; *fonts; fonts++)
-    for (font=(*fonts)->fonts; *font; font++)
-      if (!strcmp ((*font)->id, id))
-        return *font;
+  if (id)
+    {
+      for (fonts=mpui->fonts; *fonts; fonts++)
+        for (font=(*fonts)->fonts; *font; font++)
+          if (!strcmp ((*font)->id, id))
+            return *font;
+    }
+  else
+    {
+      for (fonts=mpui->fonts; *fonts; fonts++)
+        if ((*fonts)->deflt)
+          return (*fonts)->deflt;
+    }
   return NULL;
 }
 
@@ -293,9 +304,9 @@ void
 mpui_font_free (mpui_font_t *font)
 {
   free (font->id);
-  free (font->file);
   mpui_color_free (font->color);
   mpui_color_free (font->focused_color);
+  free_font_desc (font->font_desc);
   free (font);
 }
 

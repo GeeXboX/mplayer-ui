@@ -129,76 +129,173 @@ mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
     }
 }
 
-typedef void (*draw_alpha_f)
-(int w, int h, unsigned char* src, unsigned char *srca,
- int srcstride, unsigned char* dstbase,int dststride);
-
-inline static draw_alpha_f
-get_draw_alpha (int fmt)
+static inline void
+mpui_render_planar_glyph (font_desc_t *font, unsigned char c,
+                          int pos_x, int pos_y, mpui_color_t *color,
+                          mp_image_t *mpi)
 {
-  switch (fmt)
+  unsigned char *src, *srca, *y, *u, *v, *end;
+  int i, w, h, incr, f = font->font[c];
+
+  w = font->pic_a[f]->w;
+  h = font->pic_a[f]->h;
+  src = font->pic_b[f]->bmp + font->start[c];
+  srca = font->pic_a[f]->bmp + font->start[c];
+
+  pos_x = (pos_x+1) & ~1;
+  pos_y = (pos_y+1) & ~1;
+
+  y = mpi->planes[0] + pos_y*mpi->stride[0] + pos_x;
+  incr = mpi->stride[0] - w;
+
+  if (!color)
     {
-    case IMGFMT_BGR15:
-    case IMGFMT_RGB15:
-      return vo_draw_alpha_rgb15;
-    case IMGFMT_BGR16:
-    case IMGFMT_RGB16:
-      return vo_draw_alpha_rgb16;
-    case IMGFMT_BGR24:
-    case IMGFMT_RGB24:
-      return vo_draw_alpha_rgb24;
-    case IMGFMT_BGR32:
-    case IMGFMT_RGB32:
-      return vo_draw_alpha_rgb32;
+      for (end=src+w*h; src<end; y+=incr)
+        for (i=0; i<w; i++, y++, src++, srca++)
+          if (*srca)
+            *y = ((*y * *srca)>>8) + *src;
+    }
+  else
+    {
+      int x_block = 1 << mpi->chroma_x_shift;
+      int y_block = 1 << mpi->chroma_y_shift;
+
+      for (end=src+w*h; src<end; y+=incr)
+        for (i=0; i<w; i++, y++, src++, srca++)
+          if (*srca)
+            *y = ((*y * *srca) + (*src * color->y)) >> 8;
+
+      u = mpi->planes[1] + (pos_y>>mpi->chroma_y_shift)*mpi->stride[1]
+                         + (pos_x>>mpi->chroma_x_shift);
+      v = mpi->planes[2] + (pos_y>>mpi->chroma_y_shift)*mpi->stride[2]
+                         + (pos_x>>mpi->chroma_x_shift);
+      src = font->pic_b[f]->bmp + font->start[c];
+      incr = mpi->stride[1] - (w>>mpi->chroma_x_shift);
+      for (end=src+w*h; src<end; src+=(y_block-1)*w, u+=incr, v+=incr)
+        for (i=0; i<w; i+=x_block, u++, v++, src+=x_block)
+          {
+            int j, k, s = 0;
+            for (j=0; j<y_block; j++)
+              for (k=0; k<x_block; k++)
+                s += src[j*w + k];
+            if (s > 300)
+              {
+                *u = color->u;
+                *v = color->v;
+              }
+          }
+    }
+}
+
+static inline void
+mpui_render_packed_glyph (font_desc_t *font, unsigned char c,
+                          int pos_x, int pos_y, mpui_color_t *color,
+                          mp_image_t *mpi)
+{
+  unsigned char *src, *srca, *dst, *end;
+  int i, w, h, incr, f = font->font[c];
+  int bpp = mpi->bpp >> 3;
+
+  w = font->pic_a[f]->w;
+  h = font->pic_a[f]->h;
+  src = font->pic_b[f]->bmp + font->start[c];
+  srca = font->pic_a[f]->bmp + font->start[c];
+
+  pos_x = (pos_x+1) & ~1;
+  dst = mpi->planes[0] + pos_y*mpi->stride[0] + bpp*pos_x;
+  incr = mpi->stride[0] - bpp*w;
+
+  if (!color)
+    {
+      if (mpi->imgfmt == IMGFMT_UYVY)
+        dst += 1;
+      for (end=src+w*h; src<end; dst+=incr)
+        for (i=0; i<w; i++, dst+=bpp, src++, srca++)
+          if (*srca)
+            *dst = ((*dst * *srca)>>8) + *src;
+    }
+  else
+    {
+      int l=0, c=1;
+
+      if (mpi->imgfmt == IMGFMT_UYVY)
+        {
+          l = 1;
+          c = 0;
+        }
+
+      for (end=src+w*h; src<end; dst+=incr)
+        for (i=0; i<w; i+=bpp, dst+=bpp, src++, srca++)
+          {
+            int s = *src;
+            if (*srca)
+              *(dst+l) = ((*(dst+l) * *srca) + (*src * color->y)) >> 8;
+            src++;
+            srca++;
+            s += *src;
+            if (s > 150)
+              *(dst+c) = color->u;
+            dst += bpp;
+            if (*srca)
+              *(dst+l) = ((*(dst+l) * *srca) + (*src * color->y)) >> 8;
+            if (s > 150)
+              *(dst+c) = color->v;
+          }
+    }
+}
+
+static inline void
+mpui_render_glyph (font_desc_t *font, unsigned char c,
+                   int pos_x, int pos_y, mpui_color_t *color,
+                   mp_image_t *mpi)
+{
+  switch (mpi->imgfmt)
+    {
+    case IMGFMT_YVU9:
     case IMGFMT_YV12:
     case IMGFMT_I420:
     case IMGFMT_IYUV:
-    case IMGFMT_YVU9:
-    case IMGFMT_IF09:
-    case IMGFMT_Y800:
-    case IMGFMT_Y8:
-      return vo_draw_alpha_yv12;
+      mpui_render_planar_glyph (font, c, pos_x, pos_y, color, mpi);
+      break;
     case IMGFMT_YUY2:
-      return vo_draw_alpha_yuy2;
+    case IMGFMT_UYVY:
+      mpui_render_packed_glyph (font, c, pos_x, pos_y, color, mpi);
+      break;
     }
-
-  return NULL;
 }
-   
+
 static inline void
 mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
 {
-  draw_alpha_f draw_alpha = get_draw_alpha (mpi->imgfmt);
   char *p, *txt = str->string->text;
   int x = str->x, y = str->y;
-  int font;  
+  font_desc_t *font;
+  mpui_color_t *color;
+  int f;
 
-  if (!draw_alpha)
-    {
-      mp_msg (MSGT_OSD, MSGL_ERR, "Unsupported outformat !!!!\n");
-      return;
-    }
-  
+  if (!str->font || !str->font->font_desc)
+    return;
+  font = str->font->font_desc;
+  if (str->color)
+    color = str->color;
+  else
+    color = str->font->color;
+
   if (!vo_font)
     return;
 
   p = txt;
   while (*p)
-    render_one_glyph (vo_font, *p++);
+    render_one_glyph (font, *p++);
 
   while (*txt)
     {
       unsigned char c = *txt++;
-      if ((font = vo_font->font[c]) >= 0
-          && (x + vo_font->width[c] <= mpi->w)
-          && (y + vo_font->pic_a[font]->h <= mpi->h))
-        draw_alpha (vo_font->width[c], vo_font->pic_a[font]->h,
-                    vo_font->pic_b[font]->bmp+vo_font->start[c],
-                    vo_font->pic_a[font]->bmp+vo_font->start[c],
-                    vo_font->pic_a[font]->w,
-                    mpi->planes[0] + y * mpi->stride[0] + x * (mpi->bpp>>3),
-                    mpi->stride[0]);
-      x += vo_font->width[c]+vo_font->charspace;
+      if ((f = font->font[c]) >= 0
+          && (x + font->width[c] <= mpi->w)
+          && (y + font->pic_a[f]->h <= mpi->h))
+        mpui_render_glyph (font, c, x, y, color, mpi);
+      x += font->width[c] + font->charspace;
     }
 }
 
