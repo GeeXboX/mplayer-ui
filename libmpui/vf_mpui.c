@@ -98,6 +98,8 @@ static int
 cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
             struct vf_priv_s *priv)
 {
+  int i;
+
   switch (cmd->id)
     {
     case MP_CMD_MPUI_POPUP:
@@ -159,6 +161,10 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
       return 1;
     case MP_CMD_MPUI_SLIDESHOW_MODE:
       mpui_cmd_slideshow_mode (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
+      return 1;
+    case MP_CMD_MPUI_SLIDESHOW_ROTATE:
+      i = cmd->nargs > 1 ? cmd->args[1].v.i : 1;
+      mpui_cmd_slideshow_rotate (priv->mpui, cmd->args[0].v.s, i);
       return 1;
     case MP_CMD_MPUI_PLAYLIST_ADD:
       mpui_cmd_playlist_add (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);

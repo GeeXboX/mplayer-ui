@@ -47,6 +47,7 @@
       <keymap key="LEFT" cmd="mpui_slideshow_prev image_viewer"/>
       <keymap key="RIGHT" cmd="mpui_slideshow_next image_viewer"/>
       <keymap key="f" cmd="mpui_slideshow_mode image_viewer"/>
+      <keymap key="r" cmd="mpui_slideshow_rotate image_viewer"/>
       <keymap key="ESC" cmd="mpui_screen media_screen_picture_files"/>
     </keymaps>
 

@@ -27,6 +27,7 @@ void mpui_slideshow_pause (mpui_slideshow_t *slideshow);
 void mpui_slideshow_prev (mpui_slideshow_t *slideshow);
 void mpui_slideshow_next (mpui_slideshow_t *slideshow);
 void mpui_slideshow_mode (mpui_slideshow_t *slideshow, char *mode);
+void mpui_slideshow_rotate (mpui_slideshow_t *slideshow, int rotate);
 void mpui_slideshow_update (mpui_t *mpui, mpui_slideshow_t *slideshow,
                             mpui_size_t context_x, mpui_size_t context_y);
 void mpui_slideshow_cleanup (mpui_slideshow_t *slideshow);

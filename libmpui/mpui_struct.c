@@ -704,7 +704,7 @@ mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
   img->image = image;
   img->dup = 0;
   if (!image->raw.data)
-    mpui_image_load (image);
+    mpui_image_load (image, 0);
 
   if (img->element.w.val == 0 && img->element.h.val == 0)
     {
@@ -1591,6 +1591,7 @@ mpui_slideshow_new (char *id, mpui_coord_t x, mpui_coord_t y,
   slideshow->filter = filter;
   slideshow->mode = -1;
   mpui_slideshow_mode (slideshow, mode);
+  slideshow->rotation = 0;
   slideshow->play = timer;
   slideshow->timer = timer;
   slideshow->next_timer = 0;

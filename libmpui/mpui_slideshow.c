@@ -43,7 +43,7 @@ mpui_slideshow_generate (mpui_t *mpui, mpui_slideshow_t *slideshow,
   name = slideshow->dirent[slideshow->dirent_cur]->d_name;
   snprintf (filename, sizeof (filename), "%s/%s", slideshow->path, name);
   image = mpui_image_new (NULL, filename, 0, 0, 0, 0);
-  mpui_image_load (image);
+  mpui_image_load (image, slideshow->rotation);
 
   if (image->h > ((mpui_element_t *) slideshow)->h.val
       || slideshow->mode == MPUI_SLIDESHOW_MODE_ZOOM)
@@ -191,6 +191,7 @@ mpui_slideshow_find_name (mpui_slideshow_t *slideshow)
                                              slideshow->dirent[i]->d_name))
         {
           slideshow->dirent_cur = i;
+          slideshow->rotation = 0;
           slideshow->need_generate = 1;
           return 0;
         }
@@ -218,6 +219,7 @@ mpui_slideshow_prev (mpui_slideshow_t *slideshow)
     }
 
   slideshow->dirent_cur = i;
+  slideshow->rotation = 0;
   slideshow->need_generate = 1;
 }
 
@@ -241,6 +243,7 @@ mpui_slideshow_next (mpui_slideshow_t *slideshow)
     }
 
   slideshow->dirent_cur = i;
+  slideshow->rotation = 0;
   slideshow->need_generate = 1;
 }
 
@@ -262,6 +265,13 @@ mpui_slideshow_mode (mpui_slideshow_t *slideshow, char *mode)
         slideshow->mode = MPUI_SLIDESHOW_MODE_1_1;
     }
 
+  slideshow->need_generate = 1;
+}
+
+void
+mpui_slideshow_rotate (mpui_slideshow_t *slideshow, int rotate)
+{
+  slideshow->rotation = (slideshow->rotation + rotate + 256) % 4;
   slideshow->need_generate = 1;
 }
 

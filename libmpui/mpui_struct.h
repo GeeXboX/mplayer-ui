@@ -398,6 +398,7 @@ struct mpui_slideshow {
   int last_path_id;
   mpui_filetypes_t *filter;
   mpui_slideshow_mode_t mode;
+  int rotation;
   int play;
   unsigned int timer;
   unsigned int next_timer;

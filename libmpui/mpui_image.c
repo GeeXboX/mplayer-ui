@@ -208,6 +208,81 @@ mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw, int format)
 }
 
 
+static void
+mpui_image_rotate (mpui_raw_image_t *raw, int rotation)
+{
+  unsigned char *data, *src, *dst;
+  int x, y, a, b, dst_stride;
+
+  src = raw->data;
+  if (rotation != 2)
+    dst_stride = raw->h * raw->bpp;
+  else
+    dst_stride = raw->stride;
+  dst = data = (unsigned char *) malloc (raw->h * raw->stride);
+  switch ((rotation << 8) | raw->bpp)
+    {
+    case 0x103:
+      for (y=0; y<raw->w; y++, dst+=dst_stride)
+        for (x=0; x<raw->h; x++)
+          {
+            a = 3*x;
+            b = (raw->h-x-1)*raw->stride + 3*y;
+            dst[a+0] = src[b+0];
+            dst[a+1] = src[b+1];
+            dst[a+2] = src[b+2];
+          }
+      break;
+    case 0x104:
+      for (y=0; y<raw->w; y++, dst+=dst_stride)
+        for (x=0; x<raw->h; x++)
+          ((uint32_t *) dst)[x] = *(uint32_t *) (src + (raw->h-x-1)*raw->stride + 4*y);
+      break;
+    case 0x203:
+      for (y=0; y<raw->h; y++, dst+=dst_stride)
+        for (x=0; x<raw->w; x++)
+          {
+            a = 3*x;
+            b = (raw->h-y-1)*raw->stride + 3*(raw->w-x-1);
+            dst[a+0] = src[b+0];
+            dst[a+1] = src[b+1];
+            dst[a+2] = src[b+2];
+          }
+      break;
+    case 0x204:
+      for (y=0; y<raw->h; y++, dst+=dst_stride)
+        for (x=0; x<raw->w; x++)
+          ((uint32_t *) dst)[x] = *(uint32_t *) (src + (raw->h-y-1)*raw->stride + 4*(raw->w-x-1));
+      break;
+    case 0x303:
+      for (y=0; y<raw->w; y++, dst+=dst_stride)
+        for (x=0; x<raw->h; x++)
+          {
+            a = 3*x;
+            b = x*raw->stride + 3*(raw->w-y-1);
+            dst[a+0] = src[b+0];
+            dst[a+1] = src[b+1];
+            dst[a+2] = src[b+2];
+          }
+      break;
+    case 0x304:
+      for (y=0; y<raw->w; y++, dst+=dst_stride)
+        for (x=0; x<raw->h; x++)
+          ((uint32_t *) dst)[x] = *(uint32_t *) (src + x*raw->stride + 4*(raw->w-y-1));
+      break;
+    }
+  free (raw->data);
+  raw->data = data;
+  if (rotation != 2)
+    {
+      raw->stride = dst_stride;
+      y = raw->w;
+      raw->w = raw->h;
+      raw->h = y;
+    }
+}
+
+
 static int
 mpui_image_load_png (mpui_raw_image_t *raw, FILE *fp)
 {
@@ -311,7 +386,7 @@ mpui_image_load_jpeg (mpui_raw_image_t *raw, FILE *fp)
 }
 
 int
-mpui_image_load (mpui_image_t *image)
+mpui_image_load (mpui_image_t *image, int rotation)
 {
   png_byte header[8];
   int ret = 1;
@@ -327,6 +402,9 @@ mpui_image_load (mpui_image_t *image)
   else if (!memcmp(header, "\xFF\xD8\xFF", 3))
     ret = mpui_image_load_jpeg (&image->raw, fp);
   fclose (fp);
+
+  if (rotation)
+    mpui_image_rotate (&image->raw, rotation);
 
   if (!ret)
     {

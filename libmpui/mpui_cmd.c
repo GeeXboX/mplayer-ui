@@ -361,6 +361,22 @@ mpui_cmd_slideshow_mode (mpui_t *mpui, char *slideshow_id, char *mode)
                                mpui_cmd_slideshow_mode_func, mode);
 }
 
+static void
+mpui_cmd_slideshow_rotate_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element, void *data)
+{
+  mpui_slideshow_rotate ((mpui_slideshow_t *) element, (int) data);
+}
+
+void
+mpui_cmd_slideshow_rotate (mpui_t *mpui, char *slideshow_id, int rotate)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               slideshow_id, MPUI_SLIDESHOW, 0,
+                               mpui_cmd_slideshow_rotate_func, (void *)rotate);
+}
+
 
 static void
 mpui_cmd_playlist_add_func (mpui_t *mpui __attribute__((unused)),

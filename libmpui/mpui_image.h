@@ -22,7 +22,7 @@
 
 #include "mpui_struct.h"
 
-int mpui_image_load (mpui_image_t *image);
+int mpui_image_load (mpui_image_t *image, int rotation);
 void mpui_image_convert (mpui_image_t *image, mpui_raw_image_t *raw,
                          int format);
 
