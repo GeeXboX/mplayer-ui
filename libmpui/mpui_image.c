@@ -270,7 +270,7 @@ mpui_image_load_jpeg (mpui_raw_image_t *raw, FILE *fp)
 {
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
-  static JSAMPLE **row = NULL;
+  JSAMPLE ** volatile row = NULL;
   unsigned int i;
   volatile int ret = 1;
 
