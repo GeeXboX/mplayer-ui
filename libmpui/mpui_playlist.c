@@ -17,62 +17,11 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "playtree.h"
-
 #include "mpui_struct.h"
 #include "mpui_focus.h"
 #include "mpui_parser.h"
 #include "mpui_playlist.h"
 
-static void
-mpui_playlist_force_refresh (mpui_t *mpui)
-{
-  mpui_element_t **elements;
-
-  if (mpui->current_screen)
-    for (elements = mpui->current_screen->elements; *elements; elements++)
-      if ((*elements)->type == MPUI_MNU
-          && ((mpui_mnu_t *) *elements)->menu->is_playlist)
-        ((mpui_mnu_t *) *elements)->menu->need_refresh = 1;
-}
-
-void
-mpui_playlist_remove_entry (mpui_t *mpui, char *filename)
-{
-  extern play_tree_iter_t* playtree_iter;
-  play_tree_t *pt;
-
-  for (pt = playtree_iter->tree ; pt->prev != NULL ; pt = pt->prev)
-    /* NOP */;
-
-  for (; pt != NULL ; pt = pt->next )
-    {
-      char *tmp;
-
-      if (!pt->files)
-        continue;
-
-      tmp = strrchr (pt->files[0], '/');
-      if (!tmp)
-        continue;
-
-      if (!strcmp (tmp + 1, filename))
-        {
-          play_tree_free (pt, 1);
-          mpui_playlist_force_refresh (mpui);
-          break;
-        }
-    }
-}
-
-void
-mpui_playlist_add_entry (mpui_t *mpui, char *filename)
-{
-  extern play_tree_iter_t* playtree_iter;
-
-  pt_iter_add_file (playtree_iter, filename);
-  mpui_playlist_force_refresh (mpui);
-}
 
 static void
 mpui_playlist_add_item (mpui_playlist_t *playlist, char *filename,
@@ -84,7 +33,9 @@ mpui_playlist_add_item (mpui_playlist_t *playlist, char *filename,
   mpui_str_t *str;
   mpui_coord_t x, y, w, h;
   mpui_size_t offset;
-  char *command;
+  char *name, *command, *id = ((mpui_menu_t *) playlist)->id;
+
+  name = (name=strrchr (filename, '/')) ? name+1 : filename;
 
   menuitem = mpui_menuitem_new ();
   ((mpui_element_t *) menuitem)->x.val = *cx;
@@ -97,7 +48,7 @@ mpui_playlist_add_item (mpui_playlist_t *playlist, char *filename,
   w.str = NULL;
   h.str = NULL;
 
-  string = mpui_string_new (NULL, filename, MPUI_ENCODING_UTF8);
+  string = mpui_string_new (NULL, name, MPUI_ENCODING_UTF8);
   str = mpui_str_new (string, x, y, 0, playlist->menu.font,
                       MPUI_FONT_SIZE_DEFAULT,
                       NULL, NULL, NULL, MPUI_DISPLAY_ALWAYS);
@@ -120,8 +71,18 @@ mpui_playlist_add_item (mpui_playlist_t *playlist, char *filename,
   mpui_container_elements_add ((mpui_container_t *) menuitem, 
                                (mpui_element_t *) str);
 
-  command = (char *) malloc (strlen (filename) + 24);
-  sprintf (command, "mpui_playlist_remove '%s'", filename);
+  command = (char *) malloc (2*strlen (filename) + strlen (id) + 25);
+  sprintf (command, "mpui_playlist_remove %s '", id);
+  name = command + strlen (command);
+  while (*filename)
+    {
+      /* escape ' and \ with \ */
+      if (*filename == '\\' || *filename == '\'')
+        *name++ = '\\';
+      *name++ = *filename++;
+    }
+  *name++ = '\'';
+  *name = '\0';
   action = mpui_action_new (command, MPUI_WHEN_VALIDATE);
   free (command);
   mpui_container_actions_add ((mpui_container_t *) menuitem, action);
@@ -151,9 +112,8 @@ mpui_playlist_add_item (mpui_playlist_t *playlist, char *filename,
 void
 mpui_playlist_generate (mpui_playlist_t *playlist)
 {
-  extern play_tree_iter_t* playtree_iter;
   mpui_size_t x, y, val, max = 0;
-  play_tree_t* pt;
+  char **item;
 
   if (playlist->border)
     mpui_menu_elements_add ((mpui_menu_t *) playlist,
@@ -164,21 +124,9 @@ mpui_playlist_generate (mpui_playlist_t *playlist)
 
   x = y = playlist->spacing / 2;
 
-  for (pt = playtree_iter->tree ; pt->prev != NULL ; pt = pt->prev)
-    /* NOP */;
-
-  for (; pt != NULL ; pt = pt->next )
+  for (item=playlist->items; *item; item++)
     {
-      char *tmp;
-
-      if (!pt->files)
-        continue;
-
-      tmp = strrchr (pt->files[0], '/');
-      if (!tmp)
-        continue;
-      
-      mpui_playlist_add_item (playlist, tmp + 1, &x, &y, &val);
+      mpui_playlist_add_item (playlist, *item, &x, &y, &val);
 
       if (val > max)
         max = val;
@@ -226,18 +174,91 @@ mpui_playlist_clean (mpui_playlist_t *playlist)
   *((mpui_menu_t *) playlist)->elements = NULL;
 }
 
+
 void
-mpui_playlist_update (mpui_t *mpui, mpui_mnu_t *mnu)
+mpui_playlist_remove (mpui_playlist_t *playlist, char *filename)
+{
+  char **item;
+
+  for (item=playlist->items; *item; item++)
+    if (!strcmp (*item, filename))
+      {
+        free (*item);
+        do {
+          *item = *(item+1);
+        } while (*item++);
+        playlist->need_generate = 1;
+        break;
+      }
+}
+
+void
+mpui_playlist_add (mpui_playlist_t *playlist, char *filename)
+{
+  if (filename)
+    {
+      playlist->items = mpui_list_add (playlist->items, strdup (filename));
+      playlist->need_generate = 1;
+    }
+}
+
+void
+mpui_playlist_empty (mpui_playlist_t *playlist)
+{
+  char **item;
+
+  for (item=playlist->items; *item; item++)
+    free (*item);
+  *playlist->items = NULL;
+  playlist->need_generate = 1;
+}
+
+void
+mpui_playlist_load (mpui_playlist_t *playlist, char *filename)
+{
+  char line[NAME_MAX], buff[NAME_MAX], *name;
+  FILE *fp;
+  int l, len;
+
+  mpui_playlist_empty (playlist);
+
+  strncpy (buff, filename, sizeof (buff));
+  buff[NAME_MAX-1] = '\0';
+  name = strrchr (buff, '/');
+  if (!name++)
+    name = buff;
+  len = buff+NAME_MAX - name - 1;
+
+  if (!(fp = fopen (filename, "r")))
+    return;
+
+  while (fgets (line, sizeof (line), fp))
+    if (*line != '#')
+      {
+        l = strlen (line) - 1;
+        if (line[l] == '\n')
+          line[l--] = '\0';
+        if (line[l] == '\r')
+          line[l] = '\0';
+        strncpy (name, line, len);
+        mpui_playlist_add (playlist, buff);
+      }
+
+  fclose (fp);
+}
+
+void
+mpui_playlist_update (mpui_mnu_t *mnu)
 {
   mpui_playlist_t *playlist = (mpui_playlist_t *) mnu->menu;
 
-  if (mnu->menu->need_refresh)
+  if (playlist->need_generate)
     {
       mpui_focus_unfocus ((mpui_focus_box_t *) mnu);
       mpui_playlist_clean (playlist);
       mpui_playlist_generate (playlist);
       ((mpui_container_t *) mnu)->elements = mnu->menu->elements;
       mpui_focus_first ((mpui_focus_box_t *) mnu);
-      mnu->menu->need_refresh = 0;
+      playlist->need_generate = 0;
     }
 }

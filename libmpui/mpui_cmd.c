@@ -20,6 +20,7 @@
 #include "mpui_struct.h"
 #include "mpui_focus.h"
 #include "mpui_slideshow.h"
+#include "mpui_playlist.h"
 #include "mpui_cmd.h"
 #include "mpui_info.h"
 
@@ -239,4 +240,78 @@ mpui_cmd_slideshow_mode (mpui_t *mpui, char *slideshow_id, char *mode)
     mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
                                slideshow_id, MPUI_SLIDESHOW,
                                mpui_cmd_slideshow_mode_func, mode);
+}
+
+
+static void
+mpui_cmd_playlist_add_func (mpui_t *mpui __attribute__((unused)),
+                            mpui_element_t *element, void *data)
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_add (playlist, (char *) data);
+}
+
+void
+mpui_cmd_playlist_add (mpui_t *mpui, char *playlist_id, char *filename)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               playlist_id, MPUI_MNU,
+                               mpui_cmd_playlist_add_func, filename);
+}
+
+static void
+mpui_cmd_playlist_remove_func (mpui_t *mpui __attribute__((unused)),
+                               mpui_element_t *element, void *data)
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_remove (playlist, (char *) data);
+}
+
+void
+mpui_cmd_playlist_remove (mpui_t *mpui, char *playlist_id, char *filename)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               playlist_id, MPUI_MNU,
+                               mpui_cmd_playlist_remove_func, filename);
+}
+
+static void
+mpui_cmd_playlist_empty_func (mpui_t *mpui __attribute__((unused)),
+                              mpui_element_t *element,
+                              void *data __attribute__((unused)))
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_empty (playlist);
+}
+
+void
+mpui_cmd_playlist_empty (mpui_t *mpui, char *playlist_id)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               playlist_id, MPUI_MNU,
+                               mpui_cmd_playlist_empty_func, NULL);
+}
+
+static void
+mpui_cmd_playlist_load_func (mpui_t *mpui __attribute__((unused)),
+                             mpui_element_t *element, void *data)
+{
+  mpui_playlist_t *playlist = (mpui_playlist_t*) ((mpui_mnu_t*) element)->menu;
+  if (((mpui_mnu_t*) element)->menu->is_playlist)
+    mpui_playlist_load (playlist, (char *) data);
+}
+
+void
+mpui_cmd_playlist_load (mpui_t *mpui, char *playlist_id, char *filename)
+{
+  if (mpui->current_screen)
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               playlist_id, MPUI_MNU,
+                               mpui_cmd_playlist_load_func, filename);
 }

@@ -497,7 +497,7 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
             mpui_browser_update (context.mpui, (mpui_mnu_t *) element);
           else if (element->type == MPUI_MNU
               && ((mpui_mnu_t *) element)->menu->is_playlist)
-            mpui_playlist_update (context.mpui, (mpui_mnu_t *) element);
+            mpui_playlist_update ((mpui_mnu_t *) element);
           else if (element->type == MPUI_INF)
             mpui_info_update (context.mpui, (mpui_inf_t *) element);
           else if (element->type == MPUI_SLIDESHOW)

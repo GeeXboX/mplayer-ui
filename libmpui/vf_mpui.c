@@ -141,10 +141,16 @@ cmd_filter (mp_cmd_t *cmd, int paused __attribute__((unused)),
       mpui_cmd_slideshow_mode (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
       return 1;
     case MP_CMD_MPUI_PLAYLIST_ADD:
-      mpui_playlist_add_entry (priv->mpui, cmd->args[0].v.s);
+      mpui_cmd_playlist_add (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
       return 1;
     case MP_CMD_MPUI_PLAYLIST_REMOVE:
-      mpui_playlist_remove_entry (priv->mpui, cmd->args[0].v.s);
+      mpui_cmd_playlist_remove (priv->mpui, cmd->args[0].v.s,cmd->args[1].v.s);
+      return 1;
+    case MP_CMD_MPUI_PLAYLIST_EMPTY:
+      mpui_cmd_playlist_empty (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_PLAYLIST_LOAD:
+      mpui_cmd_playlist_load (priv->mpui, cmd->args[0].v.s, cmd->args[1].v.s);
       return 1;
     }
   return 0;

@@ -305,7 +305,6 @@ struct mpui_menu {
   char *id;
   int is_browser;
   int is_playlist;
-  int need_refresh;
   mpui_orientation_t orientation, scrolling;
   mpui_size_t x, y, w, h;
   mpui_font_t *font;
@@ -336,6 +335,8 @@ struct mpui_playlist {
   mpui_alignment_t align;
   mpui_size_t item_w;
   mpui_size_t spacing;
+  char **items;
+  int need_generate;
 };
 
 struct mpui_infos {

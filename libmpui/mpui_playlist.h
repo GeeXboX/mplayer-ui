@@ -23,8 +23,10 @@
 #include "mpui_struct.h"
 
 void mpui_playlist_generate (mpui_playlist_t *playlist);
-void mpui_playlist_update (mpui_t *mpui, mpui_mnu_t *mnu);
-void mpui_playlist_add_entry (mpui_t *mpui, char *filename);
-void mpui_playlist_remove_entry (mpui_t *mpui, char *filename);
+void mpui_playlist_update (mpui_mnu_t *mnu);
+void mpui_playlist_add (mpui_playlist_t *playlist, char *filename);
+void mpui_playlist_remove (mpui_playlist_t *playlist, char *filename);
+void mpui_playlist_empty (mpui_playlist_t *playlist);
+void mpui_playlist_load (mpui_playlist_t *playlist, char *filename);
 
 #endif  /* MPUI_PLAYLIST_H */

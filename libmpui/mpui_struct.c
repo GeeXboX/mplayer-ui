@@ -991,7 +991,6 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu->id = mpui_strdup (id);
   menu->is_browser = 0;
   menu->is_playlist = 0;
-  menu->need_refresh = 0;
   menu->orientation = orientation;
   menu->scrolling = 0;
   menu->x = x;
@@ -1231,7 +1230,6 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   browser->menu.id = mpui_strdup (id);
   browser->menu.is_browser = 1;
   browser->menu.is_playlist = 0;
-  browser->menu.need_refresh = 0;
   browser->menu.orientation = orientation;
   browser->menu.scrolling = scrolling;
   browser->menu.x = x;
@@ -1294,7 +1292,6 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   playlist->menu.id = mpui_strdup (id);
   playlist->menu.is_browser = 0;
   playlist->menu.is_playlist = 1;
-  playlist->menu.need_refresh = 0;
   playlist->menu.orientation = orientation;
   playlist->menu.scrolling = scrolling;
   playlist->menu.x = x;
@@ -1306,6 +1303,8 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   playlist->item_w = item_w;
   playlist->spacing = spacing;
   playlist->align = align;
+  playlist->need_generate = 0;
+  playlist->items = mpui_list_new ();
 
   if (border)
     {
@@ -1339,6 +1338,7 @@ mpui_playlist_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
 void
 mpui_playlist_free (mpui_playlist_t *playlist)
 {
+  mpui_list_free (playlist->items, free);
   mpui_menu_free (&playlist->menu);
 }
 

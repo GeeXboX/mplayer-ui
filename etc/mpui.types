@@ -195,7 +195,7 @@
   <file-types id="all-types-list">
     <file-type match="ext">
       <icon id="i-film"/>
-      <action cmd="mpui_playlist_add '%s'"/>
+      <action cmd="mpui_playlist_add media_playlist '%s'"/>
       <ext>avi</ext>
       <ext>mpeg</ext>
       <ext>mpg</ext>
@@ -221,7 +221,7 @@
     </file-type>
     <file-type match="ext">
       <icon id="i-music"/>
-      <action cmd="mpui_playlist_add '%s'"/>
+      <action cmd="mpui_playlist_add media_playlist '%s'"/>
       <ext>mp3</ext>
       <ext>mp2</ext>
       <ext>ogg</ext>
@@ -231,6 +231,12 @@
       <ext>mka</ext>
       <ext>ra</ext>
       <ext>ram</ext>
+    </file-type>
+    <file-type match="ext">
+      <icon id="i-playlist"/>
+      <action cmd="mpui_playlist_load media_playlist '%s'"/>
+      <ext>m3u</ext>
+      <ext>pls</ext>
     </file-type>
     <file-type match="dir">
       <icon id="i-folder"/>
