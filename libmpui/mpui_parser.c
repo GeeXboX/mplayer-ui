@@ -26,6 +26,7 @@
 #include <ctype.h>
 
 #include "../asxparser.h"
+#include "../config.h"
 
 #include "mpui_struct.h"
 #include "mpui_image.h"
@@ -831,8 +832,10 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
   return screens;
 }
 
+extern char * get_path (char *filename);
+
 mpui_t *
-mpui_parse_config (char *buffer, int width, int height, int format)
+mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
 {
   char *element, *body, **attribs;
   mpui_t* mpui;
@@ -848,7 +851,10 @@ mpui_parse_config (char *buffer, int width, int height, int format)
       return NULL;
     }
 
-  mpui = mpui_new (width, height, format);
+  if (ui)
+    mpui = ui;
+  else
+    mpui = mpui_new (width, height, format);
 
   while(1)
     {
@@ -861,7 +867,45 @@ mpui_parse_config (char *buffer, int width, int height, int format)
       else if (r == 0)
         return mpui;
 
-      if (!strcmp (element, "strings"))
+      if (!strcmp (element, "include"))
+        {
+          int fd, r;
+          struct stat st;
+          char *buffer;
+          char *file, *f;
+          
+          file = asx_get_attrib ("file", attribs);
+          f = get_path (file);
+
+          fd = open (f, O_RDONLY);
+          if (fd == -1)
+            {
+              f = (char *) malloc (strlen (MPLAYER_CONFDIR)
+                                   + strlen (file) + 2);
+              snprintf (f, strlen (MPLAYER_CONFDIR) + strlen (file) + 2,
+                        "%s/%s", MPLAYER_CONFDIR, file);
+            }
+
+          fd = open (f, O_RDONLY);
+          if (fd == -1)
+            continue;
+          if (fstat (fd, &st) == -1)
+            {
+              close (fd);
+              continue;
+            }
+          buffer = (char *) malloc (st.st_size);
+          r = read (fd, buffer, st.st_size);
+          close (fd);
+          if (r != st.st_size)
+            {
+              free (buffer);
+              continue;
+            }
+          mpui_parse_config (mpui, buffer, width, height, format);
+          free (buffer);
+        }
+      else if (!strcmp (element, "strings"))
         {
           mpui_strings_t *strings = mpui_parse_node_strings (attribs, sbody);
           mpui_strings_add (mpui, strings);
@@ -924,7 +968,7 @@ mpui_parse_config_file (char *filename, int width, int height, int format)
       free (buffer);
       return NULL;
     }
-  mpui = mpui_parse_config (buffer, width, height, format);
+  mpui = mpui_parse_config (NULL, buffer, width, height, format);
   free (buffer);
 
   return mpui;

@@ -24,7 +24,7 @@
 
 #define MPUI_DATADIR MPLAYER_DATADIR"/mpui/"
 
-mpui_t *mpui_parse_config (char *buffer, int width, int height, int format);
+mpui_t *mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format);
 mpui_t *mpui_parse_config_file (char *filename, int width, int height, int format);
 
 #endif /* MPUI_PARSER_H */
