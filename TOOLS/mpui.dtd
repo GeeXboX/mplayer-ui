@@ -1,0 +1,84 @@
+<!ELEMENT mpui (include | strings | images | fonts | objects | menus
+              | screens)*>
+
+<!ELEMENT include EMPTY>
+<!ELEMENT strings (string)*>
+<!ELEMENT images (image)*>
+<!ELEMENT fonts (font)*>
+<!ELEMENT objects (object)*>
+<!ELEMENT menus (menu)*>
+<!ELEMENT screens (screen)*>
+
+<!ELEMENT menu (obj | str | img | all-menu-items | menu-item)*>
+<!ELEMENT screen (obj | str | img | mnu)*>
+
+<!ELEMENT string EMPTY>
+<!ELEMENT image EMPTY>
+<!ELEMENT str EMPTY>
+<!ELEMENT img EMPTY>
+<!ELEMENT obj EMPTY>
+<!ELEMENT mnu EMPTY>
+<!ELEMENT font EMPTY>
+<!ELEMENT object (obj | str | img | action)*>
+<!ELEMENT all-menu-items (obj | str | img | action)*>
+<!ELEMENT menu-item (obj | str | img | action)*>
+<!ELEMENT action EMPTY>
+
+<!ATTLIST include file CDATA #REQUIRED>
+<!ATTLIST strings encoding NMTOKEN #IMPLIED
+                  lang NMTOKEN #IMPLIED>
+<!ATTLIST fonts default NMTOKEN #REQUIRED>
+<!ATTLIST menu id NMTOKEN #REQUIRED
+               orientation NMTOKEN "vertical"
+               font NMTOKEN #REQUIRED
+               x CDATA #REQUIRED
+               y CDATA #REQUIRED
+               h CDATA #REQUIRED
+               w CDATA #REQUIRED>
+<!ATTLIST mnu id NMTOKEN #REQUIRED
+              font NMTOKEN #IMPLIED
+              x CDATA #IMPLIED
+              y CDATA #IMPLIED
+              h CDATA #IMPLIED
+              w CDATA #IMPLIED>
+<!ATTLIST screens menu NMTOKEN #IMPLIED
+                  control NMTOKEN #IMPLIED>
+<!ATTLIST screen id NMTOKEN #REQUIRED>
+
+<!ATTLIST string id NMTOKEN #REQUIRED
+                 text CDATA #REQUIRED>
+<!ATTLIST str id NMTOKEN #REQUIRED
+              x CDATA #IMPLIED
+              y CDATA #IMPLIED
+              font NMTOKEN #IMPLIED
+              size CDATA #IMPLIED
+              color CDATA #IMPLIED
+              focused-color CDATA #IMPLIED
+              when-focused NMTOKEN #IMPLIED>
+
+<!ATTLIST image id NMTOKEN #REQUIRED
+                file CDATA #REQUIRED
+                x CDATA #IMPLIED
+                y CDATA #IMPLIED
+                h CDATA #IMPLIED
+                w CDATA #IMPLIED>
+<!ATTLIST img id NMTOKEN #REQUIRED
+              x CDATA #IMPLIED
+              y CDATA #IMPLIED
+              h CDATA #IMPLIED
+              w CDATA #IMPLIED
+              when-focused NMTOKEN #IMPLIED>
+
+<!ATTLIST font id NMTOKEN #REQUIRED
+               file CDATA #REQUIRED
+               size CDATA "12"
+               color CDATA "#000000"
+               focused-color CDATA "#000000">
+
+<!ATTLIST object id NMTOKEN #REQUIRED
+                 relative NMTOKEN "no"
+                 dynamic NMTOKEN "no">      
+<!ATTLIST obj id NMTOKEN #REQUIRED
+              when-focused NMTOKEN #IMPLIED>
+
+<!ATTLIST action cmd CDATA #REQUIRED>
