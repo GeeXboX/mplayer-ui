@@ -290,8 +290,6 @@ mpui_str_new (mpui_string_t *string, mpui_coord_t x, mpui_coord_t y,
   mpui_element_init ((mpui_element_t *) str, MPUI_STR, flags);
   str->element.x = x;
   str->element.y = y;
-  str->element.sx = NULL;
-  str->element.sy = NULL;
   str->element.when_focused = when_focused;
   str->string = string;
   str->font = font;
@@ -410,10 +408,6 @@ mpui_img_new (mpui_image_t *image, mpui_coord_t x, mpui_coord_t y,
   img->element.y = y;
   img->element.w = w;
   img->element.h = h;
-  img->element.sx = NULL;
-  img->element.sy = NULL;
-  img->element.sw = NULL;
-  img->element.sh = NULL;
   img->element.when_focused = when_focused;
   img->image = image;
   if (!image->raw.data)
