@@ -130,7 +130,7 @@ mpui_recompute_one_coord (mpui_size_t c, char *sc,
     { "bottom", h },
     { "width",  w },
     { "height", h },
-    { NULL }
+    { NULL, 0 }
   };
 
   if (c == -1)

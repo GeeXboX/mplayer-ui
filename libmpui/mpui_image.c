@@ -195,7 +195,7 @@ mpui_image_load_png (mpui_raw_image_t *raw, FILE *fp)
   png_uint_32 width, height;
   png_bytep *row;
   int depth, color;
-  int i;
+  unsigned int i;
 
   png = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   info = png_create_info_struct (png);
@@ -250,7 +250,8 @@ mpui_image_load_jpeg (mpui_raw_image_t *raw, FILE *fp)
   struct jpeg_decompress_struct cinfo;
   struct jpeg_error_mgr jerr;
   JSAMPLE **row = NULL;
-  int i, ret = 1;
+  unsigned int i;
+  int ret = 1;
 
   cinfo.err = jpeg_std_error (&jerr);
   cinfo.err->error_exit = mpui_image_jpeg_error;
