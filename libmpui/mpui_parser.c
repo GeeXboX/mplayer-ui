@@ -1744,6 +1744,8 @@ mpui_parse_node_popup (mpui_t *mpui, char **attribs, char *body)
             elt = (mpui_element_t *) mpui_parse_node_str (mpui, attribs);
           else if (!strcmp (element, "mnu"))
             elt = (mpui_element_t *) mpui_parse_node_mnu (mpui, attribs);
+          else if (!strcmp (element, "inf"))
+            elt = (mpui_element_t *) mpui_parse_node_inf (mpui, attribs);
           else if (!strcmp (element, "slideshow"))
             elt = (mpui_element_t *) mpui_parse_node_slideshow (mpui, attribs);
 
