@@ -344,7 +344,7 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   font_desc_t *font;
   mpui_color_t *color;
   int f;
-  int x_init = context->x;
+  int x_init = context->x, x_end = context->x + ((mpui_element_t *)str)->w.val;
 
   if (!str->font || !str->font->font_desc)
     return;
@@ -390,6 +390,7 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
         }
       if ((f = font->font[c]) >= 0
           && (context->x + font->width[c] <= mpi->w)
+          && (context->x + font->width[c] + font->charspace <= x_end)
           && (context->y + font->pic_a[f]->h <= mpi->h))
         mpui_render_glyph (font, c, context->x, context->y, color, mpi);
       context->x += font->width[c] + font->charspace;

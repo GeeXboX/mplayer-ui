@@ -253,8 +253,8 @@ static void
 mpui_str_get_size (mpui_str_t *str)
 {
   font_desc_t *font = str->font->font_desc;
-  int f, w = 0, wmax = 0, htot = 0;
-  char *s;
+  int w = 0, wmax = 0, htot = 0;
+  unsigned char *s;
 
   for (s=str->string->text; *s; s++)
     {
@@ -266,9 +266,7 @@ mpui_str_get_size (mpui_str_t *str)
         }
 
       render_one_glyph (font, *s);
-      f = font->font[(int)*s];
-
-      w += font->width[(int)*s] + font->charspace;
+      w += font->width[(unsigned int)*s] + font->charspace;
       if (w > wmax)
         wmax = w;
     }
