@@ -25,10 +25,9 @@
 #include "mpui_tv.h"
 
 static void
-mpui_tv_add_channel (mpui_t *mpui, mpui_menu_t *menu,
-                     mpui_size_t *mx, mpui_size_t *my,
-                     mpui_size_t *mw, mpui_size_t *mh,
-                     mpui_coord_t *spacing, char *channel, char *command)
+mpui_tv_add_channel (mpui_menu_t *menu, mpui_size_t *mx, mpui_size_t *my,
+                     mpui_size_t *mw, mpui_size_t *mh, mpui_coord_t *spacing,
+                     char *channel, char *command)
 {
   mpui_coord_t x = {0, NULL}, y = {0, NULL};
   mpui_menuitem_t *menuitem = NULL;
@@ -42,9 +41,8 @@ mpui_tv_add_channel (mpui_t *mpui, mpui_menu_t *menu,
   container = &menuitem->container;      
 
   string = mpui_string_new (NULL, channel, MPUI_ENCODING_UTF8);
-  str = mpui_str_new (string, x, y, 0, mpui->fonts->deflt,
-                      MPUI_FONT_SIZE_DEFAULT, NULL, NULL,
-                      NULL, MPUI_DISPLAY_ALWAYS);
+  str = mpui_str_new (string, x, y, 0, menu->font, MPUI_FONT_SIZE_DEFAULT,
+                      NULL, NULL, NULL, MPUI_DISPLAY_ALWAYS);
 
   elt = (mpui_element_t *) str;
   elt->x.val = *mx;
@@ -70,7 +68,7 @@ mpui_tv_add_channel (mpui_t *mpui, mpui_menu_t *menu,
 }
 
 void
-mpui_tv_analog_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
+mpui_tv_analog_channels_generate (mpui_menu_t *menu,
                                   mpui_size_t *mx, mpui_size_t *my,
                                   mpui_size_t *mw, mpui_size_t *mh,
                                   mpui_coord_t *spacing)
@@ -94,12 +92,12 @@ mpui_tv_analog_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
         continue;
 
       snprintf (cmd, 32, "loadfile tv://%d", idx++);
-      mpui_tv_add_channel (mpui, menu, mx, my, mw, mh, spacing, sep + 1, cmd);
+      mpui_tv_add_channel (menu, mx, my, mw, mh, spacing, sep + 1, cmd);
     }
 }
 
 void
-mpui_tv_dvb_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
+mpui_tv_dvb_channels_generate (mpui_menu_t *menu,
                                mpui_size_t *mx, mpui_size_t *my,
                                mpui_size_t *mw, mpui_size_t *mh,
                                mpui_coord_t *spacing)
@@ -125,7 +123,7 @@ mpui_tv_dvb_channels_generate (mpui_t *mpui, mpui_menu_t *menu,
           channel = &(channels_list->channels[chan]);
           cmd = malloc (25 + strlen (channel->name));
           sprintf (cmd, "loadfile 'dvb://%d@%s'", card, channel->name);
-          mpui_tv_add_channel (mpui, menu, mx, my, mw, mh,
+          mpui_tv_add_channel (menu, mx, my, mw, mh,
                                spacing, channel->name, cmd);
           free (cmd);
         }

@@ -986,9 +986,9 @@ mpui_parse_node_objects (mpui_t *mpui, char **attribs, char *body)
 }
 
 static void
-mpui_parse_node_channels (mpui_t *mpui, char **attribs, mpui_menu_t *menu,
+mpui_parse_node_channels (char **attribs, mpui_menu_t *menu,
                           mpui_size_t *mx, mpui_size_t *my,
-                          mpui_size_t *mw, mpui_size_t *mh, 
+                          mpui_size_t *mw, mpui_size_t *mh,
                           mpui_coord_t *spacing)
 {
   char *mode = asx_get_attrib ("mode", attribs);
@@ -996,9 +996,9 @@ mpui_parse_node_channels (mpui_t *mpui, char **attribs, mpui_menu_t *menu,
     return;
 
   if (!strcmp (mode, "tv"))
-    mpui_tv_analog_channels_generate (mpui, menu, mx, my, mw, mh, spacing);
+    mpui_tv_analog_channels_generate (menu, mx, my, mw, mh, spacing);
   else if (!strcmp (mode, "dvb"))
-    mpui_tv_dvb_channels_generate (mpui, menu, mx, my, mw, mh, spacing);
+    mpui_tv_dvb_channels_generate (menu, mx, my, mw, mh, spacing);
 
   asx_free_attribs (attribs);
   free (mode);
@@ -1136,7 +1136,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
   item_y = ms.val/2;
 
   if (id)
-    menu = mpui_menu_new (id, orientation, mx.val, my.val);
+    menu = mpui_menu_new (id, orientation, mx.val, my.val, font);
 
   asx_free_attribs (attribs);
   free (id);
@@ -1186,7 +1186,7 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
         elt = (mpui_element_t *) mpui_parse_node_menu_all_items (mpui, attribs,
                                                                  sbody, menu);
       else if (!strcmp (element, "channels"))
-        mpui_parse_node_channels (mpui, attribs, menu,
+        mpui_parse_node_channels (attribs, menu,
                                   &item_x, &item_y, &max_w, &max_h, &ms);
 
       if (elt)

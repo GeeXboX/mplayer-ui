@@ -305,6 +305,7 @@ struct mpui_menu {
   int is_browser;
   mpui_orientation_t orientation, scrolling;
   mpui_size_t x, y, w, h;
+  mpui_font_t *font;
   mpui_element_t **elements;
 };
 
@@ -315,7 +316,6 @@ struct mpui_mnu {
 
 struct mpui_browser {
   mpui_menu_t menu;
-  mpui_font_t *font;
   mpui_obj_t *border;
   mpui_allmenuitem_t *item_border;
   mpui_filetypes_t *filter;
@@ -562,7 +562,7 @@ mpui_objects_add (mpui_objects_t *objects, mpui_object_t *object)
 }
 
 mpui_menu_t *mpui_menu_new (char * id, mpui_orientation_t orientation,
-                            mpui_size_t x, mpui_size_t y);
+                            mpui_size_t x, mpui_size_t y, mpui_font_t *font);
 mpui_menu_t *mpui_menu_get (mpui_t *mpui, char *id);
 void mpui_menu_free (mpui_menu_t *menu);
 

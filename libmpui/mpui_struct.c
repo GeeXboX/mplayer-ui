@@ -983,7 +983,7 @@ mpui_objects_free (mpui_objects_t *objects)
 
 mpui_menu_t *
 mpui_menu_new (char *id, mpui_orientation_t orientation,
-               mpui_size_t x, mpui_size_t y)
+               mpui_size_t x, mpui_size_t y, mpui_font_t *font)
 {
   mpui_menu_t *menu;
 
@@ -994,6 +994,7 @@ mpui_menu_new (char *id, mpui_orientation_t orientation,
   menu->scrolling = 0;
   menu->x = x;
   menu->y = y;
+  menu->font = font;
   menu->elements = mpui_list_new ();
   return menu;
 }
@@ -1233,8 +1234,8 @@ mpui_browser_new (char *id, mpui_font_t *font, mpui_orientation_t orientation,
   browser->menu.y = y;
   browser->menu.w = w;
   browser->menu.h = h;
+  browser->menu.font = font;
   browser->menu.elements = mpui_list_new ();
-  browser->font = font;
   browser->icon_w = icon_w;
   browser->icon_h = icon_h;
   browser->item_w = item_w;
