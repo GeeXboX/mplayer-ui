@@ -195,7 +195,7 @@ mpui_parse_node_strings (char **attribs, char *body)
 mpui_image_t *
 mpui_parse_node_image (mpui_t *mpui, char **attribs)
 {
-  char *id, *file, *f, *x, *y, *h, *w;
+  char *id, *file, *f, *x, *y, *w, *h;
   mpui_size_t sx, sy, sh, sw;
   mpui_image_t *image = NULL;
 
@@ -203,13 +203,13 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
   file = asx_get_attrib ("file", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
 
   sx = mpui_parse_size (x, mpui->width);
   sy = mpui_parse_size (y, mpui->height);
-  sh = mpui_parse_size (h, mpui->height);
   sw = mpui_parse_size (w, mpui->width);
+  sh = mpui_parse_size (h, mpui->height);
 
   f = (char *) malloc (strlen (MPUI_DATADIR) + strlen (file) + 1);
   snprintf (f, strlen (MPUI_DATADIR) + strlen (file) + 1,
@@ -217,7 +217,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 
   if (id && f)
     {
-      image = mpui_image_new (id, sx, sy, sh, sw);
+      image = mpui_image_new (id, sx, sy, sw, sh);
       mpui_image_load (image, f, mpui->format);
     }
   asx_free_attribs (attribs);
@@ -228,20 +228,20 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *h, *w, *when_focused;
+  char *id, *x, *y, *w, *h, *when_focused;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
   when_focused = asx_get_attrib ("when-focused", attribs);
 
   if (id)
     {
       mpui_image_t *image;
-      mpui_size_t sx, sy, sh, sw;
+      mpui_size_t sx, sy, sw, sh;
       int wf = MPUI_DISPLAY_ALWAYS;
 
       image = mpui_image_get (mpui, id);
@@ -254,10 +254,10 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
         }
       sx = mpui_parse_size (x, mpui->width);
       sy = mpui_parse_size (y, mpui->height);
-      sh = mpui_parse_size (h, mpui->height);
       sw = mpui_parse_size (w, mpui->width);
+      sh = mpui_parse_size (h, mpui->height);
       if (image)
-        img = mpui_img_new (image, sx, sy, sh, sw, wf);
+        img = mpui_img_new (image, sx, sy, sw, sh, wf);
     }
   asx_free_attribs (attribs);
 
@@ -614,20 +614,20 @@ mpui_parse_node_menu_item (mpui_t *mpui, char **attribs, char *body)
 mpui_menu_t *
 mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 {
-  char *id, *orientation, *font, *x, *y, *h, *w, *element;
+  char *id, *orientation, *font, *x, *y, *w, *h, *element;
   ASX_Parser_t* parser;
   mpui_menu_t *menu = NULL;
   mpui_menu_orientation_t morientation = MPUI_MENU_ORIENTATION_V;
   mpui_font_t *mfont = NULL;
-  mpui_size_t mx, my, mh, mw;
+  mpui_size_t mx, my, mw, mh;
 
   id = asx_get_attrib ("id", attribs);
   orientation = asx_get_attrib ("orientation", attribs);
   font = asx_get_attrib ("font", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
-  h = asx_get_attrib ("h", attribs);
   w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
 
 /*   if (!strcmp (orientation, "horizontal")) */
 /*     morientation = MPUI_MENU_ORIENTATION_H; */
@@ -637,11 +637,11 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
 
   mx = mpui_parse_size (x, mpui->width);
   my = mpui_parse_size (y, mpui->height);
-  mh = mpui_parse_size (h, mpui->height);
   mw = mpui_parse_size (w, mpui->width);
+  mh = mpui_parse_size (h, mpui->height);
 
   if (id && mfont)
-    menu = mpui_menu_new (id, morientation, mfont, mx, my, mh, mw);
+    menu = mpui_menu_new (id, morientation, mfont, mx, my, mw, mh);
   asx_free_attribs (attribs);
 
   while (1)

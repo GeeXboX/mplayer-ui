@@ -100,11 +100,6 @@ struct mpui_color {
   unsigned char y, u, v;
 };
 
-struct mpui_ids {
-  char *id;
-  mpui_element_t *elem;
-};
-
 struct mpui_strings {
   char *encoding;
   char *lang;
@@ -132,7 +127,7 @@ struct mpui_images {
 
 struct mpui_image {
   char *id;
-  mpui_size_t x, y, h, w;
+  mpui_size_t x, y, w, h;
   int format;         /* one of the IMGFMT_* */
   int width, height;  /* original size of image file */
   int alpha;          /* does the image contain an alpha channel */
@@ -145,7 +140,7 @@ struct mpui_image {
 
 struct mpui_img {
   mpui_image_t *image;
-  mpui_size_t x, y, h, w;
+  mpui_size_t x, y, w, h;
   mpui_when_focused_t when_focused;
 };
 
@@ -206,7 +201,7 @@ struct mpui_menu {
   char *id;
   mpui_menu_orientation_t orientation;
   mpui_font_t *font;
-  mpui_size_t x, y, h, w;
+  mpui_size_t x, y, w, h;
   mpui_element_t **elements;
 };
 
@@ -259,12 +254,12 @@ mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
 void mpui_strings_free (mpui_strings_t *strings);
 
 mpui_image_t *mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
-                              mpui_size_t h, mpui_size_t w);
+                              mpui_size_t w, mpui_size_t h);
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
 mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-                          mpui_size_t h, mpui_size_t w,
+                          mpui_size_t w, mpui_size_t h,
                           mpui_when_focused_t when_focused);
 void mpui_img_free (mpui_img_t *img);
 

@@ -177,7 +177,7 @@ mpui_strings_free (mpui_strings_t *strings)
 
 mpui_image_t *
 mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
-                mpui_size_t h, mpui_size_t w)
+                mpui_size_t w, mpui_size_t h)
 {
   mpui_image_t *image;
 
@@ -185,8 +185,8 @@ mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
   image->id = mpui_strdup (id);
   image->x = x;
   image->y = y;
-  image->h = h;
   image->w = w;
+  image->h = h;
   image->alpha = 0;
   image->num_planes = 0;
 
@@ -217,7 +217,7 @@ mpui_image_free (mpui_image_t *image)
 
 mpui_img_t *
 mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-              mpui_size_t h, mpui_size_t w, mpui_when_focused_t when_focused)
+              mpui_size_t w, mpui_size_t h, mpui_when_focused_t when_focused)
 {
   mpui_img_t *img;
 
@@ -225,8 +225,8 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
   img->image = image;
   img->x = x;
   img->y = y;
-  img->h = h;
   img->w = w;
+  img->h = h;
   img->when_focused = when_focused;
 
   return img;
