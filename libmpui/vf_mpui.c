@@ -40,6 +40,7 @@
 #include "mpui_browser.h"
 #include "mpui_parser.h"
 #include "mpui_render.h"
+#include "mpui_cmd.h"
 
 
 struct vf_priv_s {
@@ -99,6 +100,12 @@ cmd_filter (mp_cmd_t *cmd, int paused, struct vf_priv_s *priv)
       return 1;
     case MP_CMD_MPUI_CD:
       mpui_browser_cd (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_HIDE:
+      mpui_cmd_hide (priv->mpui, cmd->args[0].v.s);
+      return 1;
+    case MP_CMD_MPUI_SHOW:
+      mpui_cmd_show (priv->mpui, cmd->args[0].v.s);
       return 1;
     }
   return 0;

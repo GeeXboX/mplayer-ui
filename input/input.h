@@ -94,6 +94,8 @@
 #define MP_CMD_MPUI_POPUP    8001
 #define MP_CMD_MPUI_SCREEN   8002
 #define MP_CMD_MPUI_CD       8003
+#define MP_CMD_MPUI_HIDE     8004
+#define MP_CMD_MPUI_SHOW     8005
 
 // The arg types
 #define MP_CMD_ARG_INT 0
