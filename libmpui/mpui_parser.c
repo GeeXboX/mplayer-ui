@@ -83,11 +83,49 @@ mpui_parse_size (char *size)
   return st;
 }
 
+int
+color_from_hex (char *color)
+{
+  int value = 0;
+
+  tolower (color[0]);
+  tolower (color[1]);
+
+  if (color[0] >= 'a' && color[0] <= 'f')
+    value = (color[0] - 87) * 16;
+  else if (color[0] >= '0' && color[0] <= '9')
+    value = (color[0] - 48) * 16;
+  if (color[1] >= 'a' && color[0] <= 'f')
+    value += color[1] - 87;
+  else if (color[1] >= '0' && color[0] <= '9')
+    value += color[1] - 48;
+
+  return value;
+}
+
 mpui_color_t
 mpui_parse_color (char *color)
 {
   mpui_color_t c;
   
+  if (color && color[0] == '#' && strlen (color) == 7)
+    {
+      char val[3];
+
+      val[0] = color[1];
+      val[1] = color[2];
+      val[2] = '\0';
+      c.r = color_from_hex (val);
+      
+      val[0] = color[3];
+      val[1] = color[4];
+      c.g = color_from_hex (val);
+
+      val[0] = color[5];
+      val[1] = color[6];
+      c.b = color_from_hex (val);
+    }
+
   return c;
 }
 
@@ -149,7 +187,9 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
         }
       sx = mpui_parse_size (x);
       sy = mpui_parse_size (y);
-      /* FIXME: get colors */
+      col = mpui_parse_color (color);
+      fcol = mpui_parse_color (focused_color);
+
       if (string)
         str = mpui_str_new (string, sx, sy, font, s, col, fcol, wf);
     }
