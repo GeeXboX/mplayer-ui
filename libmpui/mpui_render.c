@@ -328,17 +328,6 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
   while (*txt)
     {
       unsigned char c = *txt++;
-      if (c == '\\')
-        {
-          char *t = txt;
-          if (*t == 'n')
-            {
-              *txt++;
-              context->x = x_init;
-              context->y += font->height;
-            }
-          continue;
-        }
       if (c == '\n')
         {
           context->x = x_init;

@@ -94,10 +94,22 @@ mpui_string_t *
 mpui_string_new (char *id, char *str)
 {
   mpui_string_t *string;
+  char *dst;
 
   string = (mpui_string_t *) malloc (sizeof (*string));
   string->id = mpui_strdup (id);
-  string->text = mpui_strdup (str);
+  string->text = dst = (char *) malloc (strlen (str) + 1);
+  while (*str)
+    {
+      if (*str == '\\' && str[1] == 'n')
+        {
+          *dst++ = '\n';
+          str += 2;
+        }
+      else
+        *dst++ = *str++;
+    }
+  *dst = '\0';
   return string;
 }
 
@@ -127,23 +139,32 @@ static void
 mpui_str_get_size (mpui_str_t *str)
 {
   font_desc_t *font = str->font->font_desc;
-  char *s = str->string->text;
-  int f, w = 0, h = 0;
+  int f, w = 0, h = 0, wmax = 0, htot = 0;
+  char *s;
 
-  while (*s)
+  for (s=str->string->text; *s; s++)
     {
+      if (*s == '\n')
+        {
+          htot += h;
+          w = 0;
+          h = 0;
+          continue;
+        }
+
       render_one_glyph (font, *s);
       f = font->font[(int)*s];
 
       w += font->width[(int)*s] + font->charspace;
+      if (w > wmax)
+        wmax = w;
       if (f >= 0 && font->pic_a[f]->h > h)
         h = font->pic_a[f]->h;
-
-      s++;
     }
+  htot += h;
 
-  str->element.w = w;
-  str->element.h = h;
+  str->element.w = wmax;
+  str->element.h = htot;
 }
 
 mpui_str_t *
