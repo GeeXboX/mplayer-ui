@@ -159,15 +159,6 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
     }
   asx_free_attribs (attribs);
 
-  printf ("Str attrib id =  %s\n", id);
-  printf ("Str attrib x =  %s\n", x);
-  printf ("Str attrib y =  %s\n", y);
-  printf ("Str attrib font =  %s\n", font_id);
-  printf ("Str attrib size =  %s\n", size);
-  printf ("Str attrib color =  %s\n", color);
-  printf ("Str attrib focused_color =  %s\n", focused_color);
-  printf ("Str attrib when_focused =  %s\n", when_focused);
-
   return str;
 }
 
@@ -183,8 +174,6 @@ mpui_parse_node_strings (char **attribs, char *body)
   asx_free_attribs (attribs);
 
   strings = mpui_strings_new (code, lang);
-  printf ("Strings attrib encoding =  %s\n", code);
-  printf ("Strings attrib lang =  %s\n", lang);
 
   while (1)
     {
@@ -269,13 +258,6 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
     }
   asx_free_attribs (attribs);
 
-  printf ("Img attrib id =  %s\n", id);
-  printf ("Img attrib x =  %s\n", x);
-  printf ("Img attrib y =  %s\n", y);
-  printf ("Img attrib h =  %s\n", h);
-  printf ("Img attrib w =  %s\n", w);
-  printf ("Img attrib when_focused =  %s\n", when_focused);
-
   return img;
 }
 
@@ -338,12 +320,6 @@ mpui_parse_node_font (char **attribs)
   if (id && file)
     font = mpui_font_new (id, file, s, color, focused_color);
 
-  printf ("Font attrib id =  %s\n", id);
-  printf ("Font attrib file =  %s\n", file);
-  printf ("Font attrib size =  %s\n", size);
-  printf ("Font attrib color =  %s\n", col);
-  printf ("Font attrib focused-color =  %s\n", focused_col);
-
   return font;
 }
 
@@ -355,8 +331,6 @@ mpui_parse_node_fonts (mpui_t *mpui, char **attribs, char *body)
 
   dflt = asx_get_attrib ("default", attribs);
   asx_free_attribs (attribs);
-
-  printf ("Fonts attrib default =  %s\n", dflt);
 
   fonts = mpui_fonts_new ();
 
@@ -397,8 +371,6 @@ mpui_parse_node_action (char **attribs)
   if (cmd)
     action = mpui_action_new (cmd);
                   
-  printf ("Action attrib cmd =  %s\n", cmd);
-
   return action;
 }
 
@@ -429,9 +401,6 @@ mpui_parse_node_obj (mpui_t *mpui, char **attribs)
         obj = mpui_obj_new (object, wf);
     }
   asx_free_attribs (attribs);
-
-  printf ("Obj attrib id =  %s\n", id);
-  printf ("Obj attrib when_focused =  %s\n", when_focused);
 
   return obj;
 }
@@ -662,14 +631,6 @@ mpui_parse_node_menu (mpui_t *mpui, char **attribs, char *body)
     menu = mpui_menu_new (id, morientation, mfont, mx, my, mh, mw);
   asx_free_attribs (attribs);
 
-  printf ("Menu attrib id =  %s\n", id);
-  printf ("Menu attrib orientation =  %s\n", orientation);
-  printf ("Menu attrib font =  %s\n", font);
-  printf ("Menu attrib x =  %s\n", x);
-  printf ("Menu attrib y =  %s\n", y);
-  printf ("Menu attrib h =  %s\n", h);
-  printf ("Menu attrib w =  %s\n", w);
-
   while (1)
     {
       mpui_element_t *elt = NULL;
@@ -781,8 +742,6 @@ mpui_parse_node_screen (mpui_t *mpui, char **attribs, char *body)
   if (id)
     screen = mpui_screen_new (id);
 
-  printf ("Screen attrib id =  %s\n", id);
-
   while (1)
     {
       mpui_element_t *elt = NULL;
@@ -837,9 +796,6 @@ mpui_parse_node_screens (mpui_t *mpui, char **attribs, char *body)
 
   screens = mpui_screens_new ();
 
-  printf ("Screens attrib menu =  %s\n", menu);
-  printf ("Screens attrib control =  %s\n", control);
-
   while (1)
     {
       char *sbody;
@@ -883,7 +839,6 @@ mpui_parse_config (char *buffer)
     }
 
   mpui = mpui_new ();
-  printf ("***** Element root : %s\n", element);
 
   while(1)
     {
@@ -896,7 +851,6 @@ mpui_parse_config (char *buffer)
       else if (r == 0)
         return mpui;
 
-      printf ("***** Element type : %s\n", element);
       if (!strcmp (element, "strings"))
         {
           mpui_strings_t *strings = mpui_parse_node_strings (attribs, sbody);
