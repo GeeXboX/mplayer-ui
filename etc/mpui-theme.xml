@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="iso-8859-1" ?>
+<?xml version="1.0" encoding="iso-8859-1"?>
 <!DOCTYPE mpui SYSTEM "mpui.dtd">
 
 <mpui>
@@ -8,12 +8,22 @@
     <image id="back" file="background.png" x="0" y="0" h="100%" w="100%"/>
     <image id="logo_gx" file="logo_gx.png" x="70%" y="0%" h="13%" w="30%"/>
 
-    <image id="help" file="help.png" x="80%" y="90%" h="10%" w="8%"/>
-    <image id="help_focus" file="help_focus.png" x="85%" y="90%" h="10%" w="8%"/>
-    <image id="quit" file="quit.png" x="89%" y="90%" h="10%" w="8%"/>
-    <image id="quit_focus" file="quit_focus.png" x="89%" y="90%" h="10%" w="8%"/>
+    <image id="help" file="help.png" h="15%"/>
+    <image id="help_focus" file="help_focus.png" h="15%"/>
+    <image id="quit" file="quit.png" h="15%"/>
+    <image id="quit_focus" file="quit_focus.png" h="15%"/>
 
     <image id="sep" file="separator.png"/>
+
+    <image id="menu-tl" file="menu-tl.png"/>
+    <image id="menu-t"  file="menu-t.png"/>
+    <image id="menu-tr" file="menu-tr.png"/>
+    <image id="menu-r"  file="menu-r.png"/>
+    <image id="menu-br" file="menu-br.png"/>
+    <image id="menu-b"  file="menu-b.png"/>
+    <image id="menu-bl" file="menu-bl.png"/>
+    <image id="menu-l"  file="menu-l.png"/>
+    <image id="menu-c"  file="menu-c.png"/>
 
     <image id="logo_tv" file="logo_tv.png" x="5%" y="30%" h="30%" w="30%"/>
     <image id="logo_dvd" file="logo_dvd.png" x="5%" y="30%" h="30%" w="30%"/>
@@ -24,12 +34,14 @@
   </images>
 
   <fonts default="menu_font">
-    <font id="menu_font" file="Handycandy.ttf" size="12"
-                         color="#ffffff" focused-color="#ffff81"/>
+    <font id="menu_font" file="Handycandy.ttf" size="30"
+                         color="#CCCCCC" focused-color="#ffff81"/>
+    <font id="version_font" file="subfont.ttf" size="14"
+                            color="#ffffff" focused-color="#ffff81"/>
   </fonts>
 
   <objects>
-    <object id="menu-item-border" relative="yes">
+    <object id="menu-item-border">
       <img id="border-horiz" x="left" y="top-5%" w="width" h="2%"/>
       <img id="border-horiz" x="left" y="bottom+5%" w="width" h="2%"/>
       <img id="border-vert" x="left-5%" y="top" w="2%" h="height"/>
@@ -39,22 +51,23 @@
       <img id="border-bottom-right" x="right+5%" y="bottom+5%" w="2%" h="2%"/>
       <img id="border-bottom-left" x="left-5%" y="bottom+5%" w="2%" h="2%"/>
     </object>
-    <object id="menu-border" relative="yes">
-      <img id="menu-border-horiz" x="left" y="top-5%" w="width" h="2%"/>
-      <img id="menu-border-horiz" x="left" y="bottom+5%" w="width" h="2%"/>
-      <img id="menu-border-vert" x="left-5%" y="top" w="2%" h="height"/>
-      <img id="menu-border-vert" x="right+5%" y="top" w="2%" h="height"/>
-      <img id="menu-border-top-left" x="left-5%" y="top-5%" w="2%" h="2%"/>
-      <img id="menu-border-top-right" x="right+5%" y="top-5%" w="2%" h="2%"/>
-      <img id="menu-border-bottom-right" x="right+5%" y="bottom+5%" w="2%" h="2%"/>
-      <img id="menu-border-bottom-left" x="left-5%" y="bottom+5%" w="2%" h="2%"/>
+    <object id="menu-border">
+      <img id="menu-c"  x="left"    y="top"    w="width" h="height"/>
+      <img id="menu-t"  x="left"    y="top-5%" w="width" h="5%"/>
+      <img id="menu-b"  x="left"    y="bottom" w="width" h="5%"/>
+      <img id="menu-l"  x="left-5%" y="top"    w="5%"    h="height"/>
+      <img id="menu-r"  x="right"   y="top"    w="5%"    h="height"/>
+      <img id="menu-tl" x="left-5%" y="top-5%" w="5%"    h="5%"/>
+      <img id="menu-tr" x="right"   y="top-5%" w="5%"    h="5%"/>
+      <img id="menu-br" x="right"   y="bottom" w="5%"    h="5%"/>
+      <img id="menu-bl" x="left-5%" y="bottom" w="5%"    h="5%"/>
     </object>
-    <object id="help_button" dynamic="yes">
+    <object id="help_button" x="70%" y="83%">
       <img id="help" when-focused="no"/>
       <img id="help_focus" when-focused="yes"/>
       <action cmd="screen help_screen"/>
     </object>
-    <object id="quit_button" dynamic="yes">
+    <object id="quit_button" x="84%" y="83%">
       <img id="quit" when-focused="no"/>
       <img id="quit_focus" when-focused="yes"/>
       <action cmd="exit"/>
@@ -63,7 +76,7 @@
 
   <menus>
     <menu id="main-menu" orientation="vertical" font="menu_font"
-                         x="50%" y="20%" h="60%" w="40%">
+                         x="50%" y="22%">
 
       <obj id="menu-border"/>
 
@@ -74,31 +87,31 @@
       <menu-item>
         <str id="watch_tv"/>
         <action cmd="screen tv_screen"/>
-        <img id="logo_tv" when-focused="yes"/>
+        <img id="logo_tv" when-focused="yes" absolute="yes"/>
       </menu-item>
 
       <menu-item>
         <str id="play_dvd"/>
         <action cmd="play dvd://"/>
-        <img id="logo_dvd" when-focused="yes"/>
+        <img id="logo_dvd" when-focused="yes" absolute="yes"/>
       </menu-item>
 
       <menu-item>
         <str id="view_img"/>
         <action cmd="screen img_screen"/>
-        <img id="logo_img" when-focused="yes"/>
+        <img id="logo_img" when-focused="yes" absolute="yes"/>
       </menu-item>
 
       <menu-item>
         <str id="play_mov"/>
         <action cmd="screen video_screen"/>
-        <img id="logo_mov" when-focused="yes"/>
+        <img id="logo_mov" when-focused="yes" absolute="yes"/>
       </menu-item>
 
       <menu-item>
         <str id="play_snd"/>
         <action cmd="screen audio_screen"/>
-        <img id="logo_snd" when-focused="yes"/>
+        <img id="logo_snd" when-focused="yes" absolute="yes"/>
       </menu-item>
 
       <img id="separator"/>
@@ -106,7 +119,7 @@
       <menu-item>
         <str id="settings"/>
         <action cmd="screen settings_screen"/>
-        <img id="logo_set" when-focused="yes"/>
+        <img id="logo_set" when-focused="yes" absolute="yes"/>
       </menu-item>
     </menu>
   </menus>
@@ -117,7 +130,7 @@
       <img id="logo_gx"/>
       <obj id="help_button"/>
       <obj id="quit_button"/>
-      <str id="version" x="5%" y="2%"/>
+      <str id="version" font="version_font" x="4%" y="3%"/>
       <mnu id="main-menu"/>
     </screen>
   </screens>
