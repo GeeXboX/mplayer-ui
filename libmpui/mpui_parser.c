@@ -94,7 +94,8 @@ mpui_get_full_name (mpui_t *mpui, char *name)
 static char *
 mpui_read_filename (char *filename)
 {
-  int fd, r;
+  int fd;
+  ssize_t r;
   struct stat st;
   char *buffer;
   fd = open (filename, O_RDONLY);
@@ -109,13 +110,13 @@ mpui_read_filename (char *filename)
   if (!buffer)
     return NULL;
   r = read (fd, buffer, st.st_size);
-  *(buffer + r) = '\0';
   close (fd);
   if (r != st.st_size)
     {
       free (buffer);
       return NULL;
     }
+  buffer[r] = '\0';
   return buffer;
 }
 
