@@ -25,6 +25,31 @@
 #include "../libvo/font_load.h"
 #include "../mp_msg.h"
 
+
+typedef struct mpui_render_context mpui_render_context_t;
+
+struct mpui_render_context {
+  mpui_size_t x, y;
+};
+
+
+static void
+mpui_render_context_update (mpui_element_t *element,
+                            mpui_render_context_t *context)
+{
+  if (element->flags & MPUI_FLAG_RELATIVE)
+    {
+      context->x += element->x;
+      context->y += element->y;
+    }
+  else
+    {
+      context->x = element->x;
+      context->y = element->y;
+    }
+}
+
+
 static inline void
 mpui_render_alpha (unsigned char *dst, unsigned char src, unsigned char alpha)
 {
@@ -32,9 +57,11 @@ mpui_render_alpha (unsigned char *dst, unsigned char src, unsigned char alpha)
 }
 
 static void
-mpui_render_planar_image (mpui_image_t *image, mp_image_t *mpi)
+mpui_render_planar_image (mpui_img_t *img, mp_image_t *mpi,
+                          mpui_render_context_t *context)
 {
   unsigned char *end, *y, *u, *v, *yi, *ui, *vi, *aiy, *aiuv;
+  mpui_image_t *image = img->image;
   int i, incr;
 
   yi   = image->planes[0];
@@ -43,11 +70,11 @@ mpui_render_planar_image (mpui_image_t *image, mp_image_t *mpi)
   aiy  = image->planes[3];
   aiuv = image->planes[4];
 
-  y = mpi->planes[0] + image->y*mpi->stride[0] + image->x;
-  u = mpi->planes[1] + (image->y>>mpi->chroma_y_shift)*mpi->stride[1]
-                     + (image->x>>mpi->chroma_x_shift);
-  v = mpi->planes[2] + (image->y>>mpi->chroma_y_shift)*mpi->stride[2]
-                     + (image->x>>mpi->chroma_x_shift);
+  y = mpi->planes[0] + context->y*mpi->stride[0] + context->x;
+  u = mpi->planes[1] + (context->y>>mpi->chroma_y_shift)*mpi->stride[1]
+                     + (context->x>>mpi->chroma_x_shift);
+  v = mpi->planes[2] + (context->y>>mpi->chroma_y_shift)*mpi->stride[2]
+                     + (context->x>>mpi->chroma_x_shift);
 
   if (image->alpha)
     {
@@ -79,13 +106,15 @@ mpui_render_planar_image (mpui_image_t *image, mp_image_t *mpi)
 }
 
 static void
-mpui_render_packed_image (mpui_image_t *image, mp_image_t *mpi)
+mpui_render_packed_image (mpui_img_t *img, mp_image_t *mpi,
+                          mpui_render_context_t *context)
 {
   unsigned char *end, *y, *yi, *aiy;
+  mpui_image_t *image = img->image;
   int i, incr;
 
   yi  = image->planes[0];
-  y = mpi->planes[0] + image->y*mpi->stride[0] + image->x*image->bpp;
+  y = mpi->planes[0] + context->y*mpi->stride[0] + context->x*image->bpp;
 
   if (image->alpha)
     {
@@ -109,9 +138,10 @@ mpui_render_packed_image (mpui_image_t *image, mp_image_t *mpi)
 }
 
 static inline void
-mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
+mpui_render_image (mpui_img_t *img, mp_image_t *mpi,
+                   mpui_render_context_t *context)
 {
-  if (image->num_planes <= 0)
+  if (img->image->num_planes <= 0)
     return;
 
   switch (mpi->imgfmt)
@@ -120,11 +150,11 @@ mpui_render_image (mpui_image_t *image, mp_image_t *mpi)
     case IMGFMT_YV12:
     case IMGFMT_I420:
     case IMGFMT_IYUV:
-      mpui_render_planar_image (image, mpi);
+      mpui_render_planar_image (img, mpi, context);
       break;
     case IMGFMT_YUY2:
     case IMGFMT_UYVY:
-      mpui_render_packed_image (image, mpi);
+      mpui_render_packed_image (img, mpi, context);
       break;
     }
 }
@@ -265,10 +295,10 @@ mpui_render_glyph (font_desc_t *font, unsigned char c,
 }
 
 static inline void
-mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
+mpui_render_string (mpui_str_t *str, mp_image_t* mpi,
+                    mpui_render_context_t *context)
 {
   char *p, *txt = str->string->text;
-  int x = str->element.x, y = str->element.y;
   font_desc_t *font;
   mpui_color_t *color;
   int f;
@@ -292,15 +322,23 @@ mpui_render_string (mpui_str_t *str, mp_image_t* mpi)
     {
       unsigned char c = *txt++;
       if ((f = font->font[c]) >= 0
-          && (x + font->width[c] <= mpi->w)
-          && (y + font->pic_a[f]->h <= mpi->h))
-        mpui_render_glyph (font, c, x, y, color, mpi);
-      x += font->width[c] + font->charspace;
+          && (context->x + font->width[c] <= mpi->w)
+          && (context->y + font->pic_a[f]->h <= mpi->h))
+        mpui_render_glyph (font, c, context->x, context->y, color, mpi);
+      context->x += font->width[c] + font->charspace;
     }
 }
 
+static void mpui_render_object (mpui_obj_t *object, mp_image_t *mpi,
+                                mpui_render_context_t *context);
+static void mpui_render_menu (mpui_mnu_t *menu, mp_image_t *mpi,
+                              mpui_render_context_t *context);
+static void mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi,
+                                  mpui_render_context_t *context);
+
 static inline void
-mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
+mpui_render_element (mpui_element_t *element, mp_image_t *mpi,
+                     mpui_render_context_t context)
 {
   if (!element)
     return;
@@ -309,55 +347,60 @@ mpui_render_element (mpui_element_t *element, mp_image_t *mpi)
       || (element->focus && element->when_focused == MPUI_DISPLAY_FOCUSED)
       || (!element->focus && element->when_focused == MPUI_DISPLAY_NORMAL))
     {
+      mpui_render_context_update (element, &context);
+
       switch (element->type)
         {
         case MPUI_IMG:
-          mpui_render_image (((mpui_img_t *) element)->image, mpi);
+          mpui_render_image ((mpui_img_t *) element, mpi, &context);
           break;
         case MPUI_OBJ:
-          mpui_render_object (((mpui_obj_t *) element)->object, mpi);
+          mpui_render_object ((mpui_obj_t *) element, mpi, &context);
           break;
         case MPUI_STR:
-          mpui_render_string (((mpui_str_t *) element), mpi);
+          mpui_render_string ((mpui_str_t *) element, mpi, &context);
           break;
         case MPUI_MNU:
-          mpui_render_menu (((mpui_mnu_t *) element)->menu, mpi);
+          mpui_render_menu ((mpui_mnu_t *) element, mpi, &context);
           break;
         case MPUI_MENUITEM:
-          mpui_render_menuitem (((mpui_menuitem_t *) element), mpi);
+          mpui_render_menuitem ((mpui_menuitem_t *) element, mpi, &context);
           break;
         }
     }
 }
 
-void
-mpui_render_object (mpui_object_t *object, mp_image_t *mpi)
+static void
+mpui_render_object (mpui_obj_t *obj, mp_image_t *mpi,
+                    mpui_render_context_t *context)
 {
   mpui_element_t **elements;
 
-  for (elements=object->elements; *elements; elements++)
-    mpui_render_element (*elements, mpi);
+  for (elements=obj->object->elements; *elements; elements++)
+    mpui_render_element (*elements, mpi, *context);
 }
 
-void
-mpui_render_menu (mpui_menu_t *menu, mp_image_t *mpi)
+static void
+mpui_render_menu (mpui_mnu_t *mnu, mp_image_t *mpi,
+                  mpui_render_context_t *context)
 {
   mpui_element_t **elements;
   int first = 0; /* Only set focus to first menuitem */
 
-  for (elements=menu->elements; *elements; elements++)
+  for (elements=mnu->menu->elements; *elements; elements++)
     {
       if ((*elements)->type == MPUI_MENUITEM && !first)
         {
           (*elements)->focus = 1;
           first++;
         }
-      mpui_render_element (*elements, mpi);
+      mpui_render_element (*elements, mpi, *context);
     }
 }
 
-void
-mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi)
+static void
+mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi,
+                      mpui_render_context_t *context)
 {
   mpui_element_t **elements;
 
@@ -365,17 +408,21 @@ mpui_render_menuitem (mpui_menuitem_t *menuitem, mp_image_t *mpi)
     {
       if (menuitem->element.focus)
         (*elements)->focus = 1;
-      mpui_render_element (*elements, mpi);
+      mpui_render_element (*elements, mpi, *context);
     }
 }
 
 int
 mpui_render_screen (mpui_screen_t *screen, mp_image_t *mpi)
 {
+  mpui_render_context_t context;
   mpui_element_t **elements;
 
+  context.x = 0;
+  context.y = 0;
+
   for (elements=screen->elements; *elements; elements++)
-    mpui_render_element (*elements, mpi);
+    mpui_render_element (*elements, mpi, context);
 
   return 0;
 }
