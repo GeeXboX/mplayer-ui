@@ -39,13 +39,15 @@ mpui_focus_box_next (mpui_screen_t *screen)
   mpui_element_t **elements;
 
   for (elements=screen->focus_box+1; *elements; elements++)
-    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX)
+    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
+        && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
         screen->focus_box = elements;
         return;
       }
   for (elements=screen->elements; *elements; elements++)
-    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX)
+    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
+        && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
         screen->focus_box = elements;
         return;
@@ -58,14 +60,16 @@ mpui_focus_box_previous (mpui_screen_t *screen)
   mpui_element_t **elements;
 
   for (elements=screen->focus_box-1; elements >= screen->elements; elements--)
-    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX)
+    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
+        && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
         screen->focus_box = elements;
         return;
       }
   for (elements=screen->focus_box+1; *elements; elements++);
   for (elements--; elements > screen->focus_box; elements--)
-    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX)
+    if ((*elements)->flags & MPUI_FLAG_FOCUS_BOX
+        && !((*elements)->flags & MPUI_FLAG_HIDDEN))
       {
         screen->focus_box = elements;
         return;
