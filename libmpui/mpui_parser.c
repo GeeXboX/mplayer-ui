@@ -91,6 +91,34 @@ mpui_get_full_name (mpui_t *mpui, char *name)
   return fullname;
 }
 
+static char *
+mpui_read_filename (char *filename)
+{
+  int fd, r;
+  struct stat st;
+  char *buffer;
+  fd = open (filename, O_RDONLY);
+  if (fd == -1)
+    return NULL;
+  if (fstat (fd, &st) == -1)
+    {
+      close (fd);
+      return NULL;
+    }
+  buffer = (char *) malloc (st.st_size + 1);
+  if (!buffer)
+    return NULL;
+  r = read (fd, buffer, st.st_size);
+  *(buffer + r) = '\0';
+  close (fd);
+  if (r != st.st_size)
+    {
+      free (buffer);
+      return NULL;
+    }
+  return buffer;
+}
+
 static int
 mpui_parse_get_element (ASX_Parser_t* parser, char **buffer,
                         char **element, char **body, char ***attribs)
@@ -362,33 +390,12 @@ mpui_parse_node_string (mpui_t *mpui, char **attribs)
 
   if (id && !text && file)
     {
-      int fd, r;
-      struct stat st;
       char *f;
 
       f = mpui_get_full_name (mpui, file);
-
-      fd = open (f, O_RDONLY);
+      text = mpui_read_filename (f);
       free (f);
-      if (fd == -1)
-        {
-          free (id);
-          free (text);
-          free (file);
-          return NULL;
-        }
-      if (fstat (fd, &st) == -1)
-        {
-          close (fd);
-          free (id);
-          free (text);
-          free (file);
-          return NULL;
-        }
-      text = (char *) malloc (st.st_size);
-      r = read (fd, text, st.st_size);
-      close (fd);
-      if (r != st.st_size)
+      if (!text)
         {
           free (id);
           free (text);
@@ -1802,33 +1809,22 @@ mpui_parse_config (mpui_t *mpui, char *buffer,
 
       if (!strcmp (element, "include"))
         {
-          int fd, r;
-          struct stat st;
-          char *buffer;
-          char *file, *f;
-          
+          char *file, *f, *buffer;
+
           file = asx_get_attrib ("file", attribs);
-          f = mpui_get_full_name (mpui, file);
-
-          free (file);
-          fd = open (f, O_RDONLY);
-          free (f);
-
-          if (fd == -1)
+          if (!file)
             continue;
-          if (fstat (fd, &st) == -1)
-            {
-              close (fd);
-              continue;
-            }
-          buffer = (char *) malloc (st.st_size);
-          r = read (fd, buffer, st.st_size);
-          close (fd);
-          if (r != st.st_size)
-            {
-              free (buffer);
-              continue;
-            }
+
+          f = mpui_get_full_name (mpui, file);
+          free (file);
+          if (!f)
+            continue;
+
+          buffer = mpui_read_filename (f);
+          free (f);
+          if (!buffer)
+            continue;
+
           mpui_parse_config (mpui, buffer, width, height, format);
           free (buffer);
         }
@@ -1905,8 +1901,6 @@ mpui_t *
 mpui_parse_config_file (char *theme, char *lang,
                         int width, int height, int format)
 {
-  int fd, r;
-  struct stat st;
   char *buffer, *filename;
   mpui_t *mpui;
 
@@ -1915,23 +1909,10 @@ mpui_parse_config_file (char *theme, char *lang,
   if (!filename)
     return NULL;
 
-  fd = open (filename, O_RDONLY);
+  buffer = mpui_read_filename (filename);
   free (filename);
-  if (fd == -1)
+  if (!buffer)
     return NULL;
-  if (fstat (fd, &st) == -1)
-    {
-      close (fd);
-      return NULL;
-    }
-  buffer = (char *) malloc (st.st_size);
-  r = read (fd, buffer, st.st_size);
-  close (fd);
-  if (r != st.st_size)
-    {
-      free (buffer);
-      return NULL;
-    }
 
   if (mpui_parse_config (mpui, buffer, width, height, format))
     {
