@@ -59,18 +59,117 @@ mpui_parse_size (char *size, int total, mpui_size_t deflt)
 
   if (size && *size)
     {
-      /* Determine absolute position/size */
       if (isdigit (size[0]))
         {
           char *end;
           val = strtol (size, &end, 10);
           val = (*end == '%') ? val * total / 100 : val;
         }
-      /* FIXME: determine position/size for special keywords like
-         left, right, top, bottom, width, height */
+      else
+        val = -1;
     }
   
   return val;
+}
+
+static mpui_size_t
+mpui_recompute_one_coord (mpui_size_t c, char *sc,
+                          mpui_size_t w, mpui_size_t h, mpui_size_t total)
+{
+  struct { char *id; mpui_size_t v; } *l, list[] = {
+    { "left",   0 },
+    { "right",  w },
+    { "top",    0 },
+    { "bottom", h },
+    { "width",  w },
+    { "height", h },
+    { NULL }
+  };
+
+  if (c == -1)
+    {
+      for (l=list; l->id; l++)
+        if (!strncmp (sc, l->id, strlen (l->id)))
+          {
+            char *end, *s = sc + strlen (l->id);
+            int val, mul = *s++ == '-' ? -1 : 1;
+            if (!isdigit (*s))
+              {
+                if (*s == '\0')
+                  c = l->v;
+                break;
+              }
+            val = strtol (s, &end, 10);
+            val = (*end == '%') ? val * total / 100 : val;
+            c = l->v + val * mul;
+            break;
+          }
+      free (sc);
+    }
+  return c;
+}
+
+static void
+mpui_recompute_coord (mpui_t *mpui, mpui_element_t *element,
+                      mpui_size_t w, mpui_size_t h)
+{
+  mpui_element_t **elements = NULL;
+
+  switch (element->type)
+    {
+    case MPUI_MNU:
+      elements = ((mpui_mnu_t *) element)->menu->elements;
+      break;
+
+    case MPUI_MENUITEM:
+      elements = ((mpui_menuitem_t *) element)->elements;
+      break;
+
+    case MPUI_OBJ:
+      if (element->flags & MPUI_FLAG_NOCOORD)
+        {
+          element->w = w;
+          element->h = h;
+        }
+      elements = ((mpui_obj_t *) element)->object->elements;
+      break;
+
+    case MPUI_STR:
+    case MPUI_IMG:
+      element->x = mpui_recompute_one_coord (element->x, element->sx,
+                                             w, h, mpui->width);
+      element->y = mpui_recompute_one_coord (element->y, element->sy,
+                                             w, h, mpui->height);
+      element->w = mpui_recompute_one_coord (element->w, element->sw,
+                                             w, h, mpui->width);
+      element->h = mpui_recompute_one_coord (element->h, element->sh,
+                                             w, h, mpui->height);
+      if (element->type == MPUI_IMG)
+        mpui_img_load (mpui, (mpui_img_t *) element);
+      break;
+    }
+
+  if (elements)
+    for (; *elements; elements++)
+      mpui_recompute_coord (mpui, *elements, element->w, element->h);
+
+  element->flags &= ~MPUI_FLAG_NOCOORD;
+}
+
+static void
+mpui_set_nocoord (mpui_element_t *element, char *x, char *y, char *w, char *h)
+{
+  if (element->x == -1 || element->y == -1
+      || element->h == -1 || element->w == -1)
+    element->flags |= MPUI_FLAG_NOCOORD;
+  if (element->x == -1)
+    element->sx = strdup (x);
+  if (element->y == -1)
+    element->sy = strdup (y);
+  if (element->w == -1)
+    element->sw = strdup (w);
+  if (element->h == -1)
+    element->sh = strdup (h);
 }
 
 mpui_color_t *
@@ -161,7 +260,10 @@ mpui_parse_node_str (mpui_t *mpui, char **attribs)
       fcol = mpui_parse_color (focused_color);
 
       if (string)
-        str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
+        {
+          str = mpui_str_new (string, sx, sy, flags, font, s, col, fcol, wf);
+          mpui_set_nocoord ((mpui_element_t *) str, x, y, NULL, NULL);
+        }
     }
 
   return str;
@@ -225,10 +327,7 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
             "%s%s", MPUI_DATADIR, file);
 
   if (id && f)
-    {
-      image = mpui_image_new (id, sx, sy, sw, sh);
-      mpui_image_load (image, f, mpui->format);
-    }
+    image = mpui_image_new (id, f, sx, sy, sw, sh);
   asx_free_attribs (attribs);
 
   return image;
@@ -237,12 +336,14 @@ mpui_parse_node_image (mpui_t *mpui, char **attribs)
 mpui_img_t *
 mpui_parse_node_img (mpui_t *mpui, char **attribs)
 {
-  char *id, *x, *y, *relative, *when_focused;
+  char *id, *x, *y, *w, *h, *relative, *when_focused;
   mpui_img_t *img = NULL;
 
   id = asx_get_attrib ("id", attribs);
   x = asx_get_attrib ("x", attribs);
   y = asx_get_attrib ("y", attribs);
+  w = asx_get_attrib ("w", attribs);
+  h = asx_get_attrib ("h", attribs);
   relative = asx_get_attrib ("relative", attribs);
   when_focused = asx_get_attrib ("when-focused", attribs);
 
@@ -269,10 +370,13 @@ mpui_parse_node_img (mpui_t *mpui, char **attribs)
         }
       if (image)
         {
-          mpui_size_t sx, sy;
+          mpui_size_t sx, sy, sw, sh;
           sx = mpui_parse_size (x, mpui->width, image->x);
           sy = mpui_parse_size (y, mpui->height, image->y);
-          img = mpui_img_new (image, sx, sy, flags, wf);
+          sw = mpui_parse_size (w, mpui->width, image->w);
+          sh = mpui_parse_size (h, mpui->height, image->h);
+          img = mpui_img_new (image, sx, sy, sw, sh, flags, wf);
+          mpui_set_nocoord ((mpui_element_t *) img, x, y, w, h);
         }
     }
   asx_free_attribs (attribs);
@@ -844,6 +948,8 @@ mpui_t *
 mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
 {
   char *element, *body, **attribs;
+  mpui_element_t **elements;
+  mpui_screen_t **screen;
   mpui_t* mpui;
   ASX_Parser_t* parser = asx_parser_new();
 
@@ -871,7 +977,7 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
       if (r < 0)
         return NULL;
       else if (r == 0)
-        return mpui;
+        break;
 
       if (!strcmp (element, "include"))
         {
@@ -946,7 +1052,12 @@ mpui_parse_config (mpui_t *ui, char *buffer, int width, int height, int format)
 
       free (element);
     }
-  free (parser);
+
+  if (mpui->screens)
+    for (screen=mpui->screens->screens; *screen; screen++)
+      for (elements=(*screen)->elements; *elements; elements++)
+        mpui_recompute_coord (mpui, *elements, mpui->width, mpui->height);
+
   return mpui;
 }
 

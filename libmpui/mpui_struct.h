@@ -57,6 +57,7 @@ typedef struct mpui mpui_t;
 #define MPUI_FLAG_RELATIVE ((mpui_flags_t) 0x01)
 #define MPUI_FLAG_DYNAMIC  ((mpui_flags_t) 0x02)
 #define MPUI_FLAG_FOCUS    ((mpui_flags_t) 0x04)
+#define MPUI_FLAG_NOCOORD  ((mpui_flags_t) 0x08)
 
 enum mpui_when_focused {
   MPUI_DISPLAY_NORMAL,
@@ -79,6 +80,8 @@ struct mpui_element {
   mpui_size_t w, h;
   mpui_when_focused_t when_focused;
   int focus;
+  char *sx, *sy;
+  char *sw, *sh;
 };
 
 struct mpui_color {
@@ -112,6 +115,7 @@ struct mpui_images {
 
 struct mpui_image {
   char *id;
+  char *file;
   mpui_size_t x, y, w, h;
   int format;         /* one of the IMGFMT_* */
   int width, height;  /* original size of image file */
@@ -239,14 +243,16 @@ mpui_strings_t *mpui_strings_new (char *encoding, char *lang);
 #define mpui_strings_add(a,b) a->strings = mpui_list_add(a->strings, b)
 void mpui_strings_free (mpui_strings_t *strings);
 
-mpui_image_t *mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
+mpui_image_t *mpui_image_new (char *id, char *file,
+                              mpui_size_t x, mpui_size_t y,
                               mpui_size_t w, mpui_size_t h);
 mpui_image_t *mpui_image_get (mpui_t *mpui, char *id);
 void mpui_image_free (mpui_image_t *image);
 
 mpui_img_t *mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-                          mpui_flags_t flags,
+                          mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
                           mpui_when_focused_t when_focused);
+void mpui_img_load (mpui_t *mpui, mpui_img_t *img);
 void mpui_img_free (mpui_img_t *img);
 
 mpui_images_t *mpui_images_new (void);

@@ -283,13 +283,13 @@ mpui_image_load_jpeg (mpui_image_t *image, FILE *fp)
 }
 
 int
-mpui_image_load (mpui_image_t *image, char *filename, int format)
+mpui_image_load (mpui_image_t *image, int format)
 {
   png_byte header[8];
   int ret = 1;
   FILE *fp;
 
-  fp = fopen (filename, "rb");
+  fp = fopen (image->file, "rb");
   if (!fp)
     return ret;
   fread (header, 1, sizeof (header), fp);
@@ -301,7 +301,21 @@ mpui_image_load (mpui_image_t *image, char *filename, int format)
   fclose (fp);
 
   if (!ret)
-    mpui_image_convert (image, format);
+    {
+      if (image->w == 0 && image->h == 0)
+        {
+          image->w = image->width;
+          image->h = image->height;
+        }
+      else
+        {
+          if (image->w == 0)
+            image->w = image->h*image->width/image->height;
+          if (image->h == 0)
+            image->h = image->w*image->height/image->width;
+        }
+      mpui_image_convert (image, format);
+    }
 
   return ret;
 }

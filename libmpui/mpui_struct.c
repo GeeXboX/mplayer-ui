@@ -203,13 +203,14 @@ mpui_strings_free (mpui_strings_t *strings)
 
 
 mpui_image_t *
-mpui_image_new (char *id, mpui_size_t x, mpui_size_t y,
-                mpui_size_t w, mpui_size_t h)
+mpui_image_new (char *id, char *file,
+                mpui_size_t x, mpui_size_t y, mpui_size_t w, mpui_size_t h)
 {
   mpui_image_t *image;
 
   image = (mpui_image_t *) malloc (sizeof (*image));
   image->id = mpui_strdup (id);
+  image->file = mpui_strdup (file);
   image->x = x;
   image->y = y;
   image->w = w;
@@ -237,6 +238,7 @@ void
 mpui_image_free (mpui_image_t *image)
 {
   free (image->id);
+  free (image->file);
   if (image->num_planes > 0)
     free (image->planes[0]);
   free (image);
@@ -244,7 +246,8 @@ mpui_image_free (mpui_image_t *image)
 
 mpui_img_t *
 mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
-              mpui_flags_t flags, mpui_when_focused_t when_focused)
+              mpui_size_t w, mpui_size_t h, mpui_flags_t flags,
+              mpui_when_focused_t when_focused)
 {
   mpui_img_t *img;
 
@@ -253,11 +256,32 @@ mpui_img_new (mpui_image_t *image, mpui_size_t x, mpui_size_t y,
   img->element.flags = flags;
   img->element.x = x;
   img->element.y = y;
-  img->element.w = image->w;
-  img->element.h = image->h;
+  img->element.w = w;
+  img->element.h = h;
   img->element.when_focused = when_focused;
   img->image = image;
   return img;
+}
+
+void
+mpui_img_load (mpui_t *mpui, mpui_img_t *img)
+{
+  mpui_image_t *image = img->image;
+
+  if (img->element.w == image->w && img->element.h == image->h)
+    {
+      if (image->num_planes <= 0)
+        mpui_image_load (image, mpui->format);
+    }
+  else
+    {
+      image = mpui_image_new ("", image->file,
+                              img->element.x, img->element.y,
+                              img->element.w, img->element.h);
+      mpui_images_add (mpui->images[0], image);
+      mpui_image_load (image, mpui->format);
+      img->image = image;
+    }
 }
 
 void
@@ -640,25 +664,29 @@ void
 mpui_elements_get_size (mpui_element_t *element,
                         mpui_element_t **elements, mpui_element_t **elements2)
 {
-  element->w = 0;
-  element->h = 0;
+  element->w = -1;
+  element->h = -1;
 
   while (elements)
     {
       while (*elements)
         {
-          if ((*elements)->flags & MPUI_FLAG_RELATIVE)
+          if ((*elements)->flags & MPUI_FLAG_RELATIVE
+              && !((*elements)->flags & MPUI_FLAG_NOCOORD))
             {
-              if (/* (*elements)->x +  */(*elements)->w > element->w)
-                element->w = /* (*elements)->x +  */(*elements)->w;
-              if (/* (*elements)->y +  */(*elements)->h > element->h)
-                element->h = /* (*elements)->y +  */(*elements)->h;
+              if ((*elements)->x + (*elements)->w > element->w)
+                element->w = (*elements)->x + (*elements)->w;
+              if ((*elements)->y + (*elements)->h > element->h)
+                element->h = (*elements)->y + (*elements)->h;
             }
           elements++;
         }
       elements = elements2;
       elements2 = NULL;
     }
+
+  if (element->w == -1 || element->h == -1)
+    element->flags |= MPUI_FLAG_NOCOORD;
 }
 
 
