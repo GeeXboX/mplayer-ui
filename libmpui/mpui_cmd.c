@@ -23,20 +23,25 @@
 #include "mpui_info.h"
 
 
-typedef void (* mpui_cmd_action_t) (mpui_element_t *element, void *data);
+typedef void (* mpui_cmd_action_t) (mpui_t *mpui, mpui_element_t *element,
+                                    void *data);
 
 static void
-mpui_cmd_for_each_element (mpui_element_t **elements, char *element_id,
+mpui_cmd_for_each_element (mpui_t *mpui, mpui_element_t **elements,
+                           char *element_id, mpui_type_t element_type,
                            mpui_cmd_action_t func, void *data)
 {
   for (; *elements; elements++)
     {
-      if (!element_id
-          || ((*elements)->id && !strcmp ((*elements)->id, element_id)))
-        func (*elements, data);
+      if ((!element_id
+           || ((*elements)->id && !strcmp ((*elements)->id, element_id)))
+          && (element_type == MPUI_ANY
+              || element_type == (*elements)->type))
+        func (mpui, *elements, data);
       if ((*elements)->flags & MPUI_FLAG_CONTAINER)
-        mpui_cmd_for_each_element (((mpui_container_t *) *elements)->elements,
-                                   element_id, func, data);
+        mpui_cmd_for_each_element (mpui,
+                                   ((mpui_container_t *) *elements)->elements,
+                                   element_id, element_type, func, data);
     }
 }
 
@@ -77,7 +82,9 @@ mpui_cmd_popup_close (mpui_t *mpui)
 
 
 static void
-mpui_cmd_hide_func (mpui_element_t *element, void *data)
+mpui_cmd_hide_func (mpui_t *mpui __attribute__((unused)),
+                    mpui_element_t *element,
+                    void *data __attribute__((unused)))
 {
   element->flags |= MPUI_FLAG_HIDDEN;
 }
@@ -86,13 +93,16 @@ void
 mpui_cmd_hide (mpui_t *mpui, char *element_id)
 {
   if (mpui->current_screen)
-    mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               element_id, MPUI_ANY,
                                mpui_cmd_hide_func, NULL);
 }
 
 
 static void
-mpui_cmd_show_func (mpui_element_t *element, void *data)
+mpui_cmd_show_func (mpui_t *mpui __attribute__((unused)),
+                    mpui_element_t *element,
+                    void *data __attribute__((unused)))
 {
   element->flags &= ~MPUI_FLAG_HIDDEN;
 }
@@ -101,22 +111,24 @@ void
 mpui_cmd_show (mpui_t *mpui, char *element_id)
 {
   if (mpui->current_screen)
-    mpui_cmd_for_each_element (mpui->current_screen->elements, element_id,
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               element_id, MPUI_ANY,
                                mpui_cmd_show_func, NULL);
 }
 
 static void
-mpui_cmd_info_clean_func (mpui_element_t *element, void *data)
+mpui_cmd_info_clean_func (mpui_t *mpui __attribute__((unused)),
+                          mpui_element_t *element,
+                          void *data __attribute__((unused)))
 {
-  if (element->type == MPUI_INF)
-    mpui_info_clean ((mpui_inf_t *) element);
+  mpui_info_clean ((mpui_inf_t *) element);
 }
 
 static void
-mpui_cmd_info_update_func (mpui_element_t *element, void *data)
+mpui_cmd_info_update_func (mpui_t *mpui __attribute__((unused)),
+                           mpui_element_t *element, void *data)
 {
-  if (element->type == MPUI_INF)
-    mpui_info_update ((mpui_inf_t *) element, (char *) data);
+  mpui_info_update ((mpui_inf_t *) element, (char *) data);
 }
 
 void
@@ -126,10 +138,10 @@ mpui_cmd_info (mpui_t *mpui, char *filename)
     return;
 
   if (!filename)
-    mpui_cmd_for_each_element (mpui->current_screen->elements,
-                               NULL, mpui_cmd_info_clean_func, NULL);
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               NULL, MPUI_INF, mpui_cmd_info_clean_func, NULL);
   else
-    mpui_cmd_for_each_element (mpui->current_screen->elements,
-                               NULL, mpui_cmd_info_update_func,
+    mpui_cmd_for_each_element (mpui, mpui->current_screen->elements,
+                               NULL, MPUI_INF, mpui_cmd_info_update_func,
                                (void *) filename);
 }

@@ -121,6 +121,7 @@ enum mpui_match {
 };
 
 enum mpui_type {
+  MPUI_ANY,
   MPUI_STR,
   MPUI_IMG,
   MPUI_OBJ,
