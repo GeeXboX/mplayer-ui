@@ -122,6 +122,28 @@ mpui_focus_previous (mpui_focus_box_t *focus_box)
 }
 
 
+void
+mpui_focus_action_exec (mpui_focus_box_t *focus_box)
+{
+  mpui_action_t **actions;
+
+  switch ((*focus_box->focus)->type)
+    {
+    case MPUI_MENUITEM:
+      actions = ((mpui_menuitem_t *) *focus_box->focus)->actions;
+      break;
+    default:
+      break;
+    }
+
+  if (actions)
+    for (; *actions; actions++)
+      mp_input_queue_cmd (mp_input_parse_cmd ((*actions)->cmd));
+
+  return;
+}
+
+
 int
 mpui_is_focused (mpui_screen_t *screen, mpui_element_t *element)
 {

@@ -111,6 +111,9 @@ read_keycode (int code)
     case KEY_SPACE:
       mpui_focus_box_next (st_priv->mpui->screens->menu);
       break;
+    case KEY_ENTER:
+      mpui_focus_action_exec (fb);
+      break;
     case KEY_ESC:
       exit_player ("mpui");
     }
