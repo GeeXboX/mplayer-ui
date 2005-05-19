@@ -5,7 +5,7 @@ LIBNAME=libmpui.a
 SRCS=mpui_struct.c mpui_parser.c mpui_browser.c mpui_playlist.c mpui_slideshow.c mpui_image.c mpui_focus.c mpui_render.c mpui_cmd.c mpui_info.c mpui_tv.c vf_mpui.c
 OBJS=$(SRCS:.c=.o)
 
-CFLAGS=$(OPTFLAGS) -I. -I.. $(FREETYPE_INC) $(EXTRA_INC) -Wall
+CFLAGS=$(OPTFLAGS) -I. -I.. $(FREETYPE_INC) $(DVB_INC) $(EXTRA_INC) -Wall
 
 .SUFFIXES: .c .o
 

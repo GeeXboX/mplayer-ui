@@ -19,6 +19,7 @@
 
 #include <string.h>
 
+#include "config.h"
 #include "libmpdemux/dvbin.h"
 
 #include "mpui_struct.h"
