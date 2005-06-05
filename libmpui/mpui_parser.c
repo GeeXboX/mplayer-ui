@@ -1090,8 +1090,10 @@ mpui_parse_node_channels (mpui_t *mpui, char **attribs, mpui_menu_t *menu,
 
   if (!strcmp (mode, "tv"))
     mpui_tv_analog_channels_generate (menu, mx, my, mw, mh, spacing, empty);
+#ifdef HAS_DVBIN_SUPPORT
   else if (!strcmp (mode, "dvb"))
     mpui_tv_dvb_channels_generate (menu, mx, my, mw, mh, spacing, empty);
+#endif /* HAS_DVBIN_SUPPORT */
 
   asx_free_attribs (attribs);
   free (mode);

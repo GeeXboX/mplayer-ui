@@ -20,7 +20,9 @@
 #include <string.h>
 
 #include "config.h"
+#ifdef HAS_DVBIN_SUPPORT
 #include "libmpdemux/dvbin.h"
+#endif /* HAS_DVBIN_SUPPORT */
 
 #include "mpui_struct.h"
 #include "mpui_tv.h"
@@ -108,6 +110,7 @@ mpui_tv_analog_channels_generate (mpui_menu_t *menu,
     }
 }
 
+#ifdef HAS_DVBIN_SUPPORT
 void
 mpui_tv_dvb_channels_generate (mpui_menu_t *menu,
                                mpui_size_t *mx, mpui_size_t *my,
@@ -147,3 +150,4 @@ mpui_tv_dvb_channels_generate (mpui_menu_t *menu,
 
   free (dvb_config);
 }
+#endif /* HAS_DVBIN_SUPPORT */
