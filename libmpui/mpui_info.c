@@ -25,11 +25,17 @@
 #include <string.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <time.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
 
 #include "libmpdemux/stream.h"
 #include "libmpdemux/demuxer.h"
 #include "libmpdemux/stheader.h"
 #include "osdep/timer.h"
+#include "version.h"
 
 #include "mpui_struct.h"
 #include "mpui_parser.h"
@@ -48,6 +54,12 @@
 #define MPUI_INFO_VBITRATE "VBitrate"
 #define MPUI_INFO_ABITRATE "ABitrate"
 #define MPUI_INFO_SIZE "Size"
+
+#define MPUI_SYSINFO_DATE "Date"
+#define MPUI_SYSINFO_TIME "Time"
+#define MPUI_SYSINFO_MEMORY "Memory"
+#define MPUI_SYSINFO_NETWORK "Network"
+#define MPUI_SYSINFO_BUILD "Build"
 
 static char *
 mpui_tag_update (demuxer_t *demuxer, char *file, mpui_tag_t *tag)
@@ -184,6 +196,135 @@ mpui_info_update_pic (mpui_t *mpui, mpui_inf_t *inf, mpui_pic_t *pic)
                                (mpui_element_t *) img);
 }
 
+static char *
+mpui_sys_update (mpui_sys_t *sys)
+{
+  static char tmp[128];
+
+  bzero (tmp, 128);
+  if (!strcmp (sys->type, MPUI_SYSINFO_DATE))
+    {
+      time_t t;
+      struct tm *lt;
+
+      t = time (NULL);
+      lt = localtime (&t);
+      sprintf (tmp, "%.2d / %.2d / %d",
+               lt->tm_mon, lt->tm_mday, 1900 + lt->tm_year);
+    }
+  else if (!strcmp (sys->type, MPUI_SYSINFO_TIME))
+    {
+      time_t t;
+      struct tm *lt;
+
+      t = time (NULL);
+      lt = localtime (&t);
+      sprintf (tmp, "%.2d:%.2d:%.2d", lt->tm_hour, lt->tm_min, lt->tm_sec);
+    }
+  else if (!strcmp (sys->type, MPUI_SYSINFO_MEMORY))
+    {
+      FILE *fd;
+      char line[128], *val;
+      int active = 0, total = 0;
+
+      fd = fopen ("/proc/meminfo", "r");
+      if (!fd)
+        return NULL;
+
+      while (fgets (line, 128, fd))
+        {
+          if (!strncmp (line, "MemTotal", 8))
+            {
+              val = strtok (line, " ");
+              val = strtok (NULL, " ");
+              total = atoi (val);
+            }
+          if (!strncmp (line, "Active", 6))
+            {
+              val = strtok (line, " ");
+              val = strtok (NULL, " ");
+              active = atoi (val);
+            }
+        }
+      fclose (fd);
+
+      if (active && total)
+        sprintf (tmp, "%d / %d MB (%d %% free)",
+                 (int) (active / 1000), (int) (total / 1000),
+                 (int) ((total - active) * 100 / total));
+      else
+        return NULL;
+    }
+  else if (!strcmp (sys->type, MPUI_SYSINFO_NETWORK))
+    {
+      struct if_nameindex *ifs, *ifp;
+      struct ifreq ifr;
+      struct in_addr addr;
+      int fd;
+
+      fd = socket (AF_INET, SOCK_DGRAM, 0);
+      if (fd < 0)
+        return NULL;
+
+      for (ifp = ifs = if_nameindex (); ifp->if_index != 0; ifp++)
+        {
+          strcpy (ifr.ifr_name, ifp->if_name);
+          ifr.ifr_addr.sa_family = AF_INET;
+
+          if (ioctl (fd, SIOCGIFADDR, &ifr) == 0)
+            {
+              char *val = NULL;
+              val = (char *) malloc (32);
+              addr = ((struct sockaddr_in *) &ifr.ifr_addr)->sin_addr;
+              sprintf (val, "\n  %s : %s", ifp->if_name, inet_ntoa (addr));
+              strcat (tmp, val);
+              free (val);
+            }
+          else
+            return NULL;
+        }
+
+      if_freenameindex (ifs);
+      close (fd);
+    }
+  else if (!strcmp (sys->type, MPUI_SYSINFO_BUILD))
+    return VERSION;
+
+  return tmp;
+}
+
+static void
+mpui_info_update_sys (mpui_inf_t *inf, mpui_sys_t *sys,
+                      mpui_coord_t *cx, mpui_coord_t *cy)
+{
+  mpui_string_t *string;
+  mpui_str_t *str;
+  mpui_coord_t x, y;
+  char *tmp, *val;
+
+  x = (sys->x.val) ? sys->x : *cx;
+  y = (sys->y.val) ? sys->y : *cy;
+
+  val = mpui_sys_update (sys);
+  if (!val)
+    return;
+
+  tmp = (char *) malloc (strlen (sys->caption) + strlen (val) + 4);
+  sprintf (tmp, "%s : %s", sys->caption, val);
+  string = mpui_string_new (NULL, tmp, MPUI_ENCODING_UTF8);
+  free (tmp);
+
+  str = mpui_str_new (string, x, y, 0, inf->info->font,
+                      MPUI_FONT_SIZE_DEFAULT, NULL, NULL,
+                      NULL, MPUI_DISPLAY_ALWAYS);
+
+  mpui_container_elements_add ((mpui_container_t *) inf, 
+                               (mpui_element_t *) str);
+
+  *cx = x;
+  (*cy).val = y.val + ((mpui_element_t *) str)->h.val;
+}
+
 static void
 mpui_info_generate (mpui_t *mpui, mpui_inf_t *inf)
 {
@@ -217,6 +358,19 @@ mpui_info_generate (mpui_t *mpui, mpui_inf_t *inf)
   free_stream (stream);
 }
 
+static void
+mpui_info_generate_sys (mpui_t *mpui, mpui_inf_t *inf)
+{
+  mpui_sys_t **sys;
+  mpui_coord_t x, y;
+
+  x = inf->info->x;
+  y = inf->info->y;
+
+  for (sys = inf->info->sys; *sys; sys++)
+    mpui_info_update_sys (inf, *sys, &x, &y);
+}
+
 void
 mpui_info_clean (mpui_inf_t *inf)
 {
@@ -242,12 +396,20 @@ mpui_info_filename (mpui_inf_t *inf, char *filename)
 void
 mpui_info_update (mpui_t *mpui, mpui_inf_t *inf)
 {
-  if (inf->last_filename_id != inf->filename_id
-      && GetTimer() > inf->next_timer)
+  if (GetTimer() > inf->next_timer)
     {
-      mpui_info_clean (inf);
-      if (*inf->filename)
-        mpui_info_generate (mpui, inf);
-      inf->last_filename_id = inf->filename_id;
+      if (inf->last_filename_id != inf->filename_id)
+        {
+          mpui_info_clean (inf);
+          if (*inf->filename)
+            mpui_info_generate (mpui, inf);
+          inf->last_filename_id = inf->filename_id;
+        }
+      else if (!mpui_list_empty (inf->info->sys))
+        {
+          mpui_info_clean (inf);
+          mpui_info_generate_sys (mpui, inf);
+          inf->next_timer = GetTimer () + 5000 * inf->timer;
+        }
     }
 }

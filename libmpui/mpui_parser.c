@@ -1690,6 +1690,39 @@ mpui_parse_node_pic (mpui_t *mpui, char **attribs)
   return pic;
 }
 
+static mpui_sys_t *
+mpui_parse_node_sys (mpui_t *mpui, char **attribs)
+{
+  char *id, *caption, *type, *x, *y;
+  mpui_sys_t *sys = NULL;
+  mpui_string_t *string = NULL;
+  mpui_coord_t mx, my;
+
+  id = asx_get_attrib ("id", attribs);
+  caption = asx_get_attrib ("caption", attribs);
+  type = asx_get_attrib ("type", attribs);
+  x = asx_get_attrib ("x", attribs);
+  y = asx_get_attrib ("y", attribs);
+
+  if (caption)
+    string = mpui_string_get (mpui, caption);
+
+  mx = mpui_parse_size (x, mpui->width, mpui->diag, 0);
+  my = mpui_parse_size (y, mpui->height, mpui->diag, 0);
+
+  if (id && string && type)
+    sys = mpui_sys_new (id, string->text, type, mx, my);
+
+  asx_free_attribs (attribs);
+  free (id);
+  free (caption);
+  free (type);
+  free (x);
+  free (y);
+
+  return sys;
+}
+
 static mpui_inf_t *
 mpui_parse_node_inf (mpui_t *mpui, char **attribs)
 {
@@ -1799,6 +1832,12 @@ mpui_parse_node_info (mpui_t *mpui, char **attribs, char *body)
             mpui_pic_t *pic = mpui_parse_node_pic (mpui, attribs);
             if (pic)
               mpui_info_add_pic (info, pic);
+          }
+        else if (!strcmp (element, "sys"))
+          {
+            mpui_sys_t *sys = mpui_parse_node_sys (mpui, attribs);
+            if (sys)
+              mpui_info_add_sys (info, sys);
           }
         asx_parser_free (parser);
       }

@@ -1486,6 +1486,31 @@ mpui_pic_free (mpui_pic_t *pic)
   free (pic);
 }
 
+mpui_sys_t *
+mpui_sys_new (char *id, char *caption, char *type,
+              mpui_coord_t x, mpui_coord_t y)
+{
+  mpui_sys_t *sys;
+
+  sys = (mpui_sys_t *) malloc (sizeof (*sys));
+  sys->id = mpui_strdup (id);
+  sys->caption = mpui_strdup (caption);
+  sys->type = mpui_strdup (type);
+  sys->x = x;
+  sys->y = y;
+
+  return sys;
+}
+
+void
+mpui_sys_free (mpui_sys_t *sys)
+{
+  free (sys->id);
+  free (sys->caption);
+  free (sys->type);
+  free (sys);
+}
+
 mpui_info_t *
 mpui_info_new (char *id, mpui_font_t *font, mpui_coord_t x, mpui_coord_t y,
                mpui_coord_t w, mpui_coord_t h)
@@ -1501,6 +1526,7 @@ mpui_info_new (char *id, mpui_font_t *font, mpui_coord_t x, mpui_coord_t y,
   info->h = h;
   info->tags = mpui_list_new ();
   info->pics = mpui_list_new ();
+  info->sys = mpui_list_new ();
 
   return info;
 }
@@ -1521,6 +1547,7 @@ mpui_info_free (mpui_info_t *info)
 {
   mpui_list_free (info->tags, (mpui_list_free_func_t) mpui_tag_free);
   mpui_list_free (info->pics, (mpui_list_free_func_t) mpui_pic_free);
+  mpui_list_free (info->sys, (mpui_list_free_func_t) mpui_sys_free);
   free (info->id);
   free (info);
 }

@@ -44,5 +44,12 @@
     <string id="info_fps" text="Fps"/>
     <string id="info_vbitrate" text="Vid. Birate"/>
     <string id="info_abitrate" text="Aud. Bitrate"/>
+
+    <string id="sysinfo_date" text="Date"/>
+    <string id="sysinfo_time" text="Time"/>
+    <string id="sysinfo_build" text="MPlayer Version"/>
+    <string id="sysinfo_memory" text="Memory Used"/>
+    <string id="sysinfo_network" text="Network Interfaces Information"/>
+
   </strings>
 </mpui>
